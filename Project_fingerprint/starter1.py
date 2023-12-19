@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
@@ -92,10 +93,14 @@ def print_image(img):
 
 
 # reads image 'opencv-logo.png' as grayscale
-img = cv2.imread('images/blurred_finger_small.png', 0)
-print(img.shape)
-print(img)
-print_image(img)
+
+dir = os.path.abspath("images")
+
+print(type(cv2.imread))
+img = cv2.imread(dir + "\\moist_finger_small.png", 0)
+print(type(img))
+# print(img.shape)
+# print_image(img)
 
 original_max = maximum_value(img)
 original_min = minimum_value(img)
@@ -113,24 +118,76 @@ img_dnm_sym_x = denormalize(img_nm_sym_x, original_min, original_max)
 
 
 ####starter_2
-def img_rotation(img, p, center):
-    rotated_img = np.ones_like(img)
-    rotation_matrix = np.array([[np.cos(p), -np.sin(p)],[np.sin(p), np.cos(p)]])
+def img_rotation(img, p, center_normalized):
+    ''' 2D rotation of the img matrix in a p angle '''
+    center = np.array([img.shape[0]//(1/center_normalized[0]),img.shape[1]//(1/center_normalized[1])]).astype(int)
+    print(center)
+    p_radian = p * np.pi/180
+    n, m = img.shape
+    rotation_matrix = np.array([[np.cos(p_radian), -np.sin(p_radian)],[np.sin(p_radian), np.cos(p_radian)]])
+    
+    n_rotated = n
+    m_rotated = m
+    offset_x = 0
+    offset_y = 0
+    for i_c in [0,n-1] :
+        for j_c in [0,m-1] :
+            i = i_c-center[0]
+            j = j_c-center[1]
+            index_centered = np.array([i, j])
+            rotated_ind_centered = np.floor(rotation_matrix @ index_centered).astype(int)
+            rotated_ind = rotated_ind_centered + center
+            
+            if rotated_ind[0]>n_rotated :
+                n_rotated = rotated_ind[0]
+            elif rotated_ind[0] < -offset_x:
+                offset_x = -rotated_ind[0]
+            
+            if rotated_ind[1]>m_rotated :
+                m_rotated = rotated_ind[1]
+            elif rotated_ind[1] < -offset_y:
+                offset_y = -rotated_ind[1]
+
+    rotated_img = np.ones((n_rotated + offset_x, m_rotated + offset_y))
+    print(offset_x,offset_y)
+    print(n_rotated,m_rotated)
+
+
+
+    for i_c in range(0,n_rotated + offset_x):
+        for j_c in range(0,m_rotated + offset_y):
+            i = i_c-center[0] - offset_x
+            j = j_c-center[1] - offset_y
+            index_centered = np.array([i, j])
+            rotated_ind = np.floor(rotation_matrix @ index_centered).astype(int)
+            # print(rotated_ind)
+            if (0 <= rotated_ind[0] + center[0] < n) and (0 <=rotated_ind[1] + center[1]  < m):
+                rotated_img[i_c][j_c] = img[rotated_ind[0] + center[0] ][rotated_ind[1] + center[1]]
+    return rotated_img
+
+# print_image(img)
+rotated_img_nm = img_rotation(img_nm, 70, (0.5,0.5))
+rotated_img = denormalize(rotated_img_nm, original_min, original_max)
+print_image(rotated_img)
+
+def img_rotation(img, p):
+    p_radian = p * np.pi/180
+    rotation_matrix = np.array([[np.cos(p_radian), -np.sin(p_radian)],[np.sin(p_radian), np.cos(p_radian)]])#.transpose()
     n, m = img.shape 
+    rotated_img = np.ones((2*n, 2*m))
     for i in range(n):
         for j in range(m):
-            initial_ind = np.array([i, j]) - center
+            initial_ind = np.array([i, j]) 
             rotated_ind = np.dot(rotation_matrix, initial_ind).astype(np.uint8)
-            if (0 <= rotated_ind[0] + center[0] < n) and (0 <=rotated_ind[1] + center[0]  < m)   :
-                rotated_img[i][j] = img[rotated_ind[0] + center[0] ][rotated_ind[1] + center[1]]
+            if (0 <= rotated_ind[0] < n) and (0 <=rotated_ind[1] < m)   :
+                rotated_img[i + n//2][j + m//2] = img[rotated_ind[0]][rotated_ind[1]]
             else:
                 rotated_img[i][j] = 0
     return rotated_img
 
 
-rotated_img_nm = img_rotation(img_nm, 0, np.array([img.shape[0]//2,img.shape[1]//2]))
+rotated_img_nm = img_rotation(img_nm, 90)
 rotated_img = denormalize(rotated_img_nm, original_min, original_max)
-print_image(rotated_img)
-
+#print_image(rotated_img)
 
 
