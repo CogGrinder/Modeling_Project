@@ -83,7 +83,8 @@ class Image:
                     self.__data[x][y] = tmp[x][m - 1 - y]
     
     def rotate(self, p, center_normalized):
-        ''' 2D rotation of the img matrix in a p angle '''
+        ''' 2D rotation of the img matrix in a p angle
+        Makes the image bigger to compensate'''
         center = np.array([self.__data.shape[0]//(1/center_normalized[0]),self.__data.shape[1]//(1/center_normalized[1])]).astype(int)
         print(center)
         p_radian = p * np.pi/180
@@ -122,6 +123,30 @@ class Image:
             for j_c in range(0,m_rotated + offset_y):
                 i = i_c-center[0] - offset_x
                 j = j_c-center[1] - offset_y
+                index_centered = np.array([i, j])
+                rotated_ind = np.floor(rotation_matrix @ index_centered).astype(int)
+                # print(rotated_ind)
+                if (0 <= rotated_ind[0] + center[0] < n) and (0 <=rotated_ind[1] + center[1]  < m):
+                    self.__data[i_c][j_c] = tmp[rotated_ind[0] + center[0] ][rotated_ind[1] + center[1]]
+
+
+    def rotate2(self, p, center_normalized):
+        ''' 2D rotation of the img matrix in a p angle
+         Keeps the image size constant '''
+        center = np.array([self.__data.shape[0]//(1/center_normalized[0]),self.__data.shape[1]//(1/center_normalized[1])]).astype(int)
+        print(center)
+        p_radian = p * np.pi/180
+        n, m = self.__data.shape
+        rotation_matrix = np.array([[np.cos(p_radian), -np.sin(p_radian)],[np.sin(p_radian), np.cos(p_radian)]])
+        
+
+        tmp = np.copy(self.__data)
+        self.__data = np.ones((n,m))
+
+        for i_c in range(0,n):
+            for j_c in range(0,m):
+                i = i_c-center[0]
+                j = j_c-center[1]
                 index_centered = np.array([i, j])
                 rotated_ind = np.floor(rotation_matrix @ index_centered).astype(int)
                 # print(rotated_ind)
