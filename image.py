@@ -21,6 +21,7 @@ class Image:
         """
         self.__denormalize()
         cv2.imwrite(filename, self.__data)
+        self.__normalize()
 
     def max(self):
         """
