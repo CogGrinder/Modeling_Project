@@ -81,7 +81,7 @@ class Image:
                 else:
                     self.__data[x][y] = tmp[x][m - 1 - y]
     
-    def img_rotation(self, p, center_normalized):
+    def rotate(self, p, center_normalized):
         ''' 2D rotation of the img matrix in a p angle '''
         center = np.array([self.__data.shape[0]//(1/center_normalized[0]),self.__data.shape[1]//(1/center_normalized[1])]).astype(int)
         print(center)
@@ -111,11 +111,11 @@ class Image:
                 elif rotated_ind[1] < -offset_y:
                     offset_y = -rotated_ind[1]
 
-        rotated_img = np.ones((n_rotated + offset_x, m_rotated + offset_y))
         print(offset_x,offset_y)
         print(n_rotated,m_rotated)
 
-
+        tmp = np.copy(self.__data)
+        self.__data = np.ones((n_rotated + offset_x, m_rotated + offset_y))
 
         for i_c in range(0,n_rotated + offset_x):
             for j_c in range(0,m_rotated + offset_y):
@@ -125,5 +125,4 @@ class Image:
                 rotated_ind = np.floor(rotation_matrix @ index_centered).astype(int)
                 # print(rotated_ind)
                 if (0 <= rotated_ind[0] + center[0] < n) and (0 <=rotated_ind[1] + center[1]  < m):
-                    rotated_img[i_c][j_c] = self.__data[rotated_ind[0] + center[0] ][rotated_ind[1] + center[1]]
-        return rotated_img
+                    self.__data[i_c][j_c] = tmp[rotated_ind[0] + center[0] ][rotated_ind[1] + center[1]]

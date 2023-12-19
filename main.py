@@ -32,13 +32,14 @@ from image import Image
 # plt.imshow(noisy_img_symm, cmap='gray')
 # plt.show()
 
-img = Image("images/moist_finger.png")
+img = Image("images/warp1_finger.png")
 # img.display()
 
 img.create_rectangle((50,50),100,50,"white")
 img.create_rectangle((175,125),25,50,"black")
-img.symmetry(0)
-img.symmetry(1)
+# img.symmetry(0)
+# img.symmetry(1)
+img.rotate(45,(0.55,0.6))
 
-img.save("noisy_img2.png")
+img.save("warp1_finger_edit.png")
 img.display()
