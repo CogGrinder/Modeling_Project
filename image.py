@@ -80,3 +80,50 @@ class Image:
                     self.__data[x][y] = tmp[n - 1 - x][y]
                 else:
                     self.__data[x][y] = tmp[x][m - 1 - y]
+    
+    def img_rotation(self, p, center_normalized):
+        ''' 2D rotation of the img matrix in a p angle '''
+        center = np.array([self.__data.shape[0]//(1/center_normalized[0]),self.__data.shape[1]//(1/center_normalized[1])]).astype(int)
+        print(center)
+        p_radian = p * np.pi/180
+        n, m = self.__data.shape
+        rotation_matrix = np.array([[np.cos(p_radian), -np.sin(p_radian)],[np.sin(p_radian), np.cos(p_radian)]])
+        
+        n_rotated = n
+        m_rotated = m
+        offset_x = 0
+        offset_y = 0
+        for i_c in [0,n-1] :
+            for j_c in [0,m-1] :
+                i = i_c-center[0]
+                j = j_c-center[1]
+                index_centered = np.array([i, j])
+                rotated_ind_centered = np.floor(rotation_matrix @ index_centered).astype(int)
+                rotated_ind = rotated_ind_centered + center
+                
+                if rotated_ind[0]>n_rotated :
+                    n_rotated = rotated_ind[0]
+                elif rotated_ind[0] < -offset_x:
+                    offset_x = -rotated_ind[0]
+                
+                if rotated_ind[1]>m_rotated :
+                    m_rotated = rotated_ind[1]
+                elif rotated_ind[1] < -offset_y:
+                    offset_y = -rotated_ind[1]
+
+        rotated_img = np.ones((n_rotated + offset_x, m_rotated + offset_y))
+        print(offset_x,offset_y)
+        print(n_rotated,m_rotated)
+
+
+
+        for i_c in range(0,n_rotated + offset_x):
+            for j_c in range(0,m_rotated + offset_y):
+                i = i_c-center[0] - offset_x
+                j = j_c-center[1] - offset_y
+                index_centered = np.array([i, j])
+                rotated_ind = np.floor(rotation_matrix @ index_centered).astype(int)
+                # print(rotated_ind)
+                if (0 <= rotated_ind[0] + center[0] < n) and (0 <=rotated_ind[1] + center[1]  < m):
+                    rotated_img[i_c][j_c] = self.__data[rotated_ind[0] + center[0] ][rotated_ind[1] + center[1]]
+        return rotated_img
