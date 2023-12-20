@@ -50,7 +50,22 @@ img.create_rectangle((175,125),25,50,"black")
 img.rotate2(45,(0.55,0.6))
 
 img.save("warp1_finger_edit.png")
-img.display()
+#img.display()
 
 img.rotate2(-45,(0.5,0.5))
+#img.display()
+
+
+# Testing for convolution
+img = Image("images/warp1_finger.png")
+
+kernel = np.array([[-1,-1,-1],[-1,8,-1],[-1,-1,-1]])
+img.conv_2d(kernel)
+img.display()
+
+img = Image("images/warp1_finger.png")
+
+kernel = np.ones((3,3))
+
+img.conv_2d(kernel)
 img.display()
