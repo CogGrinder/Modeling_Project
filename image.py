@@ -81,7 +81,7 @@ class Image:
                     self.__data[x][y] = tmp[n - 1 - x][y]
                 else:
                     self.__data[x][y] = tmp[x][m - 1 - y]
-    
+
     def rotate(self, p, center_normalized):
         ''' 2D rotation of the img matrix in a p angle
         Makes the image bigger to compensate'''
@@ -152,3 +152,14 @@ class Image:
                 # print(rotated_ind)
                 if (0 <= rotated_ind[0] + center[0] < n) and (0 <=rotated_ind[1] + center[1]  < m):
                     self.__data[i_c][j_c] = tmp[rotated_ind[0] + center[0] ][rotated_ind[1] + center[1]]
+
+    def blur(self, kernel_size):
+        """
+            Convolve the image with a blur kernel which size is passed by argument
+            TODO: Implement 2D convolution from scratch
+        """
+        # Definition of a blur kernel
+        k = np.ones((kernel_size, kernel_size), np.float32) / (kernel_size**2)
+
+        # Convolve the image with a blur kernel
+        self.__data = cv2.filter2D(src=self.__data, ddepth=-1, kernel=k)
