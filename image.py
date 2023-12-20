@@ -163,3 +163,21 @@ class Image:
 
         # Convolve the image with a blur kernel
         self.__data = cv2.filter2D(src=self.__data, ddepth=-1, kernel=k)
+
+    def conv_2d(self, kernel):
+        N = kernel.shape[0]
+        n,m = self.__data.shape
+
+        # Padded version with edge of the image
+        padded_image = np.pad(self.__data, (N-1)//2, mode='constant')
+
+
+        self.__data = np.zeros((n,m))
+        
+        for i in range(0, n):
+            for j in range(0, m):
+                result = 0
+                for N_i in range(-(N-1)//2, (N-1)//2 + 1):
+                    for N_j in range(-(N-1)//2, (N-1)//2 + 1):
+                        result += kernel[N_i + (N-1)//2 ][N_j + (N-1)//2] * padded_image[i-N_i][j-N_j]
+                self.__data[i][j] = result
