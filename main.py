@@ -57,15 +57,21 @@ img.rotate2(-45,(0.5,0.5))
 
 
 # Testing for convolution
-img = Image("images/warp1_finger.png")
+# img = Image("images/warp1_finger.png")
 
-kernel = np.array([[-1,-1,-1],[-1,8,-1],[-1,-1,-1]])
-img.conv_2d(kernel)
-img.display()
+# kernel = np.array([[-1,-1,-1],[-1,8,-1],[-1,-1,-1]])
+# img.conv_2d(kernel)
+# img.display()
 
-img = Image("images/warp1_finger.png")
+# img = Image("images/warp1_finger.png")
 
-kernel = np.ones((3,3))
+# kernel = np.ones((3,3))
 
-img.conv_2d(kernel)
-img.display()
+# img.conv_2d(kernel)
+# img.display()
+
+# Testing 2D FFT
+img = Image("images/moist_finger.png")
+img_fft = img.fft_2d()
+plt.imshow(np.log(abs(img_fft)))
+plt.show()

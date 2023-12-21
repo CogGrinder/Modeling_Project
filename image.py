@@ -181,3 +181,11 @@ class Image:
                     for N_j in range(-(N-1)//2, (N-1)//2 + 1):
                         result += kernel[N_i + (N-1)//2 ][N_j + (N-1)//2] * padded_image[i-N_i][j-N_j]
                 self.__data[i][j] = result
+
+    def fft_2d(self):
+        """
+            Return an array of the 2D fast Fourier transform applied on the image
+        """
+        ft = np.fft.ifftshift(self.__data)
+        ft = np.fft.fft2(ft)
+        return np.fft.fftshift(ft)
