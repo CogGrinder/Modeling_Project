@@ -2,7 +2,6 @@ import numpy as np
 import cv2
 import matplotlib.pyplot as plt
 
-
 class Image:
     def __init__(self, filename):
         self.__data = cv2.imread(filename, 0)
@@ -182,6 +181,21 @@ class Image:
                     for N_j in range(-(N-1)//2, (N-1)//2 + 1):
                         result += kernel[N_i + (N-1)//2 ][N_j + (N-1)//2] * padded_image[i-N_i + (N-1)//2][j-N_j + (N-1)//2]
                 self.__data[i][j] = result
+
+    def fft_2d(self):
+        """
+            Return an array of the 2D fast Fourier transform applied on the image
+        """
+        ft = np.fft.ifftshift(self.__data)
+        ft = np.fft.fft2(ft)
+        return np.fft.fftshift(ft)
+    
+    def ifft_2d(self, ft):
+        """
+            Return an array of the 2D inverse fast Fourier transform
+        """
+        ift = np.fft.ifft2(ft)
+        return np.fft.fftshift(ift)
 
 
     def test_black(self, n=5):
