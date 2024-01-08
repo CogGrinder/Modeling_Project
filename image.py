@@ -240,10 +240,12 @@ class Image:
                 j_centered = j - center[1]
                 pixel_center = self.pixel_center(i_centered, j_centered)
                 inverse_coord = np.dot(inverse_rotation_matrix, pixel_center)
-                if (0 <= inverse_coord[0] <= self.__n) and (0 <= inverse_coord[1] <= self.__m):
+                if (0 <= inverse_coord[0] + center[0] <= self.__n) and (0 <= inverse_coord[1] + center[1] <= self.__m):
                     # if the coordinates of the pixel by the inverse rotation matrix is in the range of the original image
                     # let's perform a bi-linear interpolation to compute the intensity of the rotated pixel
                     self.__data[i][j] = self.bilinear_interp(inverse_coord, tmp)
+                    print("i =", i, ", j =", j, ", pixel value =", self.__data[i][j])
+                    input()
                 # otherwise the pixel intensity is set to 1 
 
         # Part 2 : perform the translation
