@@ -1,0 +1,4 @@
+- Rotation of 45° to the left
+- w could be the function of rotation, of angle p
+- the only parameter of this mlotion model is the angle p, angle of rotation
+- rotate2 function
