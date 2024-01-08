@@ -32,11 +32,11 @@ from image import Image
 # plt.imshow(noisy_img_symm, cmap='gray')
 # plt.show()
 
-img = Image("images/warp1_finger.png")
+# img = Image("images/warp1_finger.png")
 # img.display()
 
-img.create_rectangle((50,50),100,50,"white")
-img.create_rectangle((175,125),25,50,"black")
+# img.create_rectangle((50,50),100,50,"white")
+# img.create_rectangle((175,125),25,50,"black")
 # img.symmetry(0)
 # img.symmetry(1)
 # img.rotate(45,(0.55,0.6))
@@ -47,13 +47,13 @@ img.create_rectangle((175,125),25,50,"black")
 # img.rotate(-45,(0.5,0.5))
 # img.display()
 
-img.rotate2(45,(0.55,0.6))
+# img.rotate2(45,(0.55,0.6))
 
-img.save("warp1_finger_edit.png")
-#img.display()
+# img.save("warp1_finger_edit.png")
+# #img.display()
 
-img.rotate2(-45,(0.5,0.5))
-#img.display()
+# img.rotate2(-45,(0.5,0.5))
+# #img.display()
 
 
 # Testing for convolution
@@ -65,8 +65,8 @@ img.rotate2(-45,(0.5,0.5))
 
 # img = Image("images/warp1_finger.png")
 
-#testing with black image
-img.test_black(5)
+# testing with black image
+# img.test_black(5)
 
 
 # kernel = np.ones((3,3))
@@ -75,11 +75,18 @@ img.test_black(5)
 # img.display()
 
 # Testing 2D FFT
-img = Image("images/moist_finger.png")
-img_fft = img.fft_2d()
-plt.imshow(abs(img_fft))
-plt.show()
+# img = Image("images/moist_finger.png")
+# img_fft = img.fft_2d()
+# plt.imshow(abs(img_fft))
+# plt.show()
 
-img_ifft = img.ifft_2d(img_fft)
-plt.imshow(abs(img_ifft), cmap="gray")
-plt.show()
+# img_ifft = img.ifft_2d(img_fft)
+# plt.imshow(abs(img_ifft), cmap="gray")
+# plt.show()
+
+# Testing binarizaton
+img = Image("images/dry_finger.png")
+threshold = img.compute_threshold()
+print(threshold)
+img.binarize(threshold)
+img.display()

@@ -1,6 +1,8 @@
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
+from collections import OrderedDict
+
 
 class Image:
     def __init__(self, filename):
@@ -208,3 +210,58 @@ class Image:
     def test_black(self, n=5):
         np.set_printoptions(precision=1)
         self.__data = np.ones((n,n))
+
+
+
+    def __countFreq__(self):
+        """
+            Compute the frequency of values present in an array
+        """
+        tmp = np.copy(self.__data)
+        tmp = tmp.flatten()
+        n = len(tmp)
+        mp = dict()
+ 
+        # Traverse through array elements 
+        # and count frequencies
+        for i in range(n):
+            if tmp[i] in mp.keys():
+                mp[tmp[i]] += 1/n
+            else:
+                mp[tmp[i]] = 1/n
+        print(mp)
+        return mp
+
+    
+    def compute_threshold(self):
+        """
+            Compute the threshold for binarization(See Method to select a threshold automatically from a gray level histogram, N. Otsu, 1975, Automatica.)
+        """
+        frequency_dict = self.__countFreq__()
+        # print(frequency_dict)
+        sorted_frequency = dict(sorted(frequency_dict.items()))
+        k_max = 0
+        threshold = 0
+        omega = 0
+        for gray_level, frequency in sorted_frequency.items():
+            omega += frequency
+            # print(omega)
+            k = omega * (1 - omega)
+            if k_max <= k:
+                k_max = k
+                threshold = gray_level
+        
+        return threshold
+        
+
+
+    def binarize(self, threshold):
+        """
+            Binarize the image(pixels either 1 or 0) given a threshold
+        """
+        for i in range(self.__data.shape[0]):
+            for j in range(self.__data.shape[1]):
+                if self.__data[i][j] <= threshold:
+                    self.__data[i][j] = 0
+                else:
+                    self.__data[i][j] = 1
