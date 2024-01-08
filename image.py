@@ -182,6 +182,7 @@ class Image:
                 - point : tuple of float, belonging to [0;n]x[0;m]
                 - image : bi-dimensionnal of size n x m retpresenting the pixel intensity of the image '''
         # find the four points to perform the bi-linear interpolation
+        # find their vertical axis value
         if point[0] - np.floor(point[0]) > 0.5:
             x1_0 = np.floor(point[0]) + 0.5
             x3_0 = np.ceil(point[0]) + 0.5
@@ -191,6 +192,7 @@ class Image:
         x2_0 = x1_0
         x4_0 = x3_0
         
+        # find their horizontal axis value
         if point[1] - np.floor(point[1]) > 0.5:
             x1_1 = np.floor(point[1]) + 0.5
             x2_1 = np.ceil(point[1]) + 0.5
@@ -233,10 +235,21 @@ class Image:
         for i in range(0, self.__n):
             for j in range(0, self.__m):
                 # for each pixel of the result image, calculate its coordinates by the inverse rotation matrix
-                pixel_center = self.pixel_center(i, j)
+                # adapt coordinates to the center of rotation
+                i_centered = i - center[0]
+                j_centered = j - center[1]
+                pixel_center = self.pixel_center(i_centered, j_centered)
                 inverse_coord = np.dot(inverse_rotation_matrix, pixel_center)
-                # perform a bi-linear interpolation to compute the intensity of the rotated pixel
-                new_intensity = bilinear_interp(inverse_coord, tmp)
+                if (0 <= inverse_coord[0] <= self.__n) and (0 <= inverse_coord[1] <= self.__m):
+                    # if the coordinates of the pixel by the inverse rotation matrix is in the range of the original image
+                    # let's perform a bi-linear interpolation to compute the intensity of the rotated pixel
+                    self.__data[i][j] = self.bilinear_interp(inverse_coord, tmp)
+                # otherwise the pixel intensity is set to 1 
+
+        # Part 2 : perform the translation
+
+                
+
 
 
 
@@ -247,7 +260,7 @@ class Image:
     
     def intensity_of_center(self, point):
         ''' Return the pixel intensity of the pixel of center point=(i, j) '''
-        return self.__data[point[0]-0.5, point[1]-0.5]
+        return self.__data[int(point[0]-0.5)][int(point[1]-0.5)]
 
     def blur(self, kernel_size):
         """
