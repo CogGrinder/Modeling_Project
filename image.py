@@ -196,7 +196,14 @@ class Image:
         """
         ift = np.fft.ifft2(ft)
         return np.fft.fftshift(ift)
-
+    
+    def fft_conv_2d(self, g):
+        """
+            Convolve the image using the relation between convolution product and Fourier transform 
+            i.e. f*g = IFFT( FFT(f).FFT(g) )
+        """
+        ft_f = self.fft_2d()
+        ft_g = np.fft.fftshift(np.fft.fft2(g))
 
     def test_black(self, n=5):
         np.set_printoptions(precision=1)
