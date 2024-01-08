@@ -59,13 +59,20 @@ img.rotate2(-45,(0.5,0.5))
 # Testing for convolution
 img = Image("images/warp1_finger.png")
 
+#testing with black image
+img.test_black(5)
+
+
 kernel = np.array([[-1,-1,-1],[-1,8,-1],[-1,-1,-1]])
 img.conv_2d(kernel)
 img.display()
 
 img = Image("images/warp1_finger.png")
 
-kernel = np.ones((3,3))
+#testing with black image
+img.test_black(3)
+
+kernel = np.ones((5,5))
 
 img.conv_2d(kernel)
 img.display()

@@ -169,8 +169,9 @@ class Image:
         n,m = self.__data.shape
 
         # Padded version with edge of the image
+        print(self.__data)
         padded_image = np.pad(self.__data, (N-1)//2, mode='constant')
-
+        print(padded_image)
 
         self.__data = np.zeros((n,m))
         
@@ -179,5 +180,10 @@ class Image:
                 result = 0
                 for N_i in range(-(N-1)//2, (N-1)//2 + 1):
                     for N_j in range(-(N-1)//2, (N-1)//2 + 1):
-                        result += kernel[N_i + (N-1)//2 ][N_j + (N-1)//2] * padded_image[i-N_i][j-N_j]
+                        result += kernel[N_i + (N-1)//2 ][N_j + (N-1)//2] * padded_image[i-N_i + (N-1)//2][j-N_j + (N-1)//2]
                 self.__data[i][j] = result
+
+
+    def test_black(self, n=5):
+        np.set_printoptions(precision=1)
+        self.__data = np.ones((n,n))
