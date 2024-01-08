@@ -2,7 +2,6 @@ import numpy as np
 import cv2
 import matplotlib.pyplot as plt
 
-
 class Image:
     def __init__(self, filename):
         self.__data = cv2.imread(filename, 0)
@@ -189,3 +188,10 @@ class Image:
         ft = np.fft.ifftshift(self.__data)
         ft = np.fft.fft2(ft)
         return np.fft.fftshift(ft)
+    
+    def ifft_2d(self, ft):
+        """
+            Return an array of the 2D inverse fast Fourier transform
+        """
+        ift = np.fft.ifft2(ft)
+        return np.fft.fftshift(ift)

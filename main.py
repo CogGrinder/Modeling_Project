@@ -73,5 +73,9 @@ img.rotate2(-45,(0.5,0.5))
 # Testing 2D FFT
 img = Image("images/moist_finger.png")
 img_fft = img.fft_2d()
-plt.imshow(np.log(abs(img_fft)))
+plt.imshow(abs(img_fft))
+plt.show()
+
+img_ifft = img.ifft_2d(img_fft)
+plt.imshow(abs(img_ifft), cmap="gray")
 plt.show()
