@@ -229,7 +229,6 @@ class Image:
                 mp[tmp[i]] += 1/n
             else:
                 mp[tmp[i]] = 1/n
-        print(mp)
         return mp
 
     
@@ -238,8 +237,8 @@ class Image:
             Compute the threshold for binarization(See Method to select a threshold automatically from a gray level histogram, N. Otsu, 1975, Automatica.)
         """
         frequency_dict = self.__countFreq__()
-        # print(frequency_dict)
         sorted_frequency = dict(sorted(frequency_dict.items()))
+        # print(sorted_frequency)
         k_max = 0
         threshold = 0
         omega = 0
@@ -250,7 +249,7 @@ class Image:
             if k_max <= k:
                 k_max = k
                 threshold = gray_level
-        
+                # print(f"k_max : {k_max}, threshold : {threshold}")
         return threshold
         
 
@@ -261,7 +260,41 @@ class Image:
         """
         for i in range(self.__data.shape[0]):
             for j in range(self.__data.shape[1]):
-                if self.__data[i][j] <= threshold:
+                if self.__data[i][j] < threshold:
                     self.__data[i][j] = 0
                 else:
                     self.__data[i][j] = 1
+
+    def dilation(self, structuring_element = "Square", size = 3):
+        """
+            Dilate the binary version of an image
+            
+            params : 
+                structuring element : Defined the shape of the structuring_element(geometrical shape) used to probe the image
+                size : Defined the size of the structuring element
+        """
+        if structuring_element=='Square':
+            kernel = np.ones((size, size), np.uint8)
+            orig_shape = self.__data.shape
+            pad_width = size - 2 
+
+            # pad the image with pad_width
+            image_pad = np.pad(array=self.__data, pad_width=pad_width, mode='constant')
+            pimg_shape = image_pad.shape
+            h_reduce, w_reduce = (pimg_shape[0] - orig_shape[0]), (pimg_shape[1] - orig_shape[1])
+
+            # obtain the submatrices according to the size of the kernel
+            flat_submatrices = np.array([image_pad[i:(i + size), j:(j + size)]
+                                         for i in range(pimg_shape[0] - h_reduce) for j in range(pimg_shape[1] - w_reduce)])
+            
+            # replace the values either 1 or 0 by dilation condition
+            image_dilate = np.array([1 if (i == kernel).any() else 0 for i in flat_submatrices])
+            # obtain new matrix whose shape is equal to the original image size
+            self.__data = image_dilate.reshape(orig_shape)
+            
+
+    def erosion(self, structuring_element = "Square", size = 3):
+        if structuring_element=='Square':
+            kernel = np.ones((size, size), np.uint8)
+            self.__data = cv2.erode(self.__data, kernel, iterations=1)
+             
