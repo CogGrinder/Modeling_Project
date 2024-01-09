@@ -1,5 +1,6 @@
 ## Pseudo code for optimal value
-
+### greedy brute force strategy
+#### ``p_x``
 Algorithm : greedy brute force strategy to find the optimal value of ``p_x``
 Input     : ``n``, ``m``, ``l(p_x)`` function
 
@@ -18,7 +19,7 @@ while p_x < floor(n/2) :
 return p_x_min, l_list
 ```
 
-
+#### ``(p_x, p_y)``
 Algorithm : greedy brute force strategy to find the optimal value for ``(p_x, p_y)``
 Input     : ``n``, ``m``, ``l(p_x,p_y)`` function
 ```python
@@ -39,41 +40,42 @@ while p_x < floor(n/2) :
     p_x <- p_x + 1
 return p_x_min, l_list
 ```
-
+### non differentiable coordinate descent strategy 
 Algorithm : non differentiable coordinate descent strategy to find the optimal value for ``(p_x, p_y)``
-Input     : ``n``, ``m``, ``p_0`` a list of two real numbers, ``alp_0`` the initial percentage, ``l(p_x,p_y)`` loss function
-```python, ``epsilon`` the stopping level for ``alp``
-alp     <- apl_0
+Input     : ``n``, ``m``, ``p_0`` a list of two real numbers, ``alpha_0`` the initial percentage, ``l(p_x,p_y)`` loss function,
+ ``epsilon`` the stopping level for ``alpha``
+```python
+alpha     <- apl_0
 p_x     <- p_0[0]
 p_y     <- p_0[1]
 l   <- MAX_FLOAT
-while alp < epsilon:
-    l_p_x_over  <- evaluate l(p_x*(1+alp),p_y)
-    l_p_x_under <- evaluate l(p_x*(1-alp),p_y)
-    l_p_y_over  <- evaluate l(p_x,p_y*(1+alp))
-    l_p_y_under <- evaluate l(p_x,p_y*(1-alp))
+while alpha < epsilon:
+    l_p_x_over  <- evaluate l(p_x*(1+alpha),p_y)
+    l_p_x_under <- evaluate l(p_x*(1-alpha),p_y)
+    l_p_y_over  <- evaluate l(p_x,p_y*(1+alpha))
+    l_p_y_under <- evaluate l(p_x,p_y*(1-alpha))
     
     if l_p_x_over < l :
         l = l_p_x_over
-        p_x = p_x*(1+alp)
-        alp <- alp*1.1
+        p_x = p_x*(1+alpha)
+        alpha <- alpha*1.1
     else if l_p_x_under < l :
         l = l_p_x_under
-        p_x = p_x*(1-alp)
-        alp <- alp*1.1
+        p_x = p_x*(1-alpha)
+        alpha <- alpha*1.1
     else :
-        alp <- alp*0.5
+        alpha <- alpha*0.5
     S
     if l_p_y_over < l :
         l = l_p_y_over
-        p_y = p_y*(1+alp)
-        alp <- alp*1.1
+        p_y = p_y*(1+alpha)
+        alpha <- alpha*1.1
     else if l_p_y_under < l :
         l = l_p_y_under
-        p_y = p_y*(1-alp)  
-        alp <- alp*1.1
+        p_y = p_y*(1-alpha)  
+        alpha <- alpha*1.1
     else :
-        alp <- alp*0.5
+        alpha <- alpha*0.5
 
 
 
