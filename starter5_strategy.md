@@ -49,37 +49,22 @@ alpha     <- apl_0
 p_x     <- p_0[0]
 p_y     <- p_0[1]
 l   <- MAX_FLOAT
-while alpha < epsilon:
-    l_p_x_over  <- evaluate l(p_x*(1+alpha),p_y)
-    l_p_x_under <- evaluate l(p_x*(1-alpha),p_y)
-    l_p_y_over  <- evaluate l(p_x,p_y*(1+alpha))
-    l_p_y_under <- evaluate l(p_x,p_y*(1-alpha))
+while abs(l-l_p) > epsilon:
+    discrete_gradient <- {(l(p_x + 1, p_y) - (l(p_x - 1, p_y))) / 2, 
+                        (l(p_x, p_y + 1) - (l(p_x, p_y - 1))) / 2}
+
+
+    l_p  <- evaluate l(p_x - alpha * discrete_gradient[0],
+                            p_y - alpha * discrete_gradient[1])
     
-    if l_p_x_over < l :
+    if l_p < l :
         l = l_p_x_over
-        p_x = p_x*(1+alpha)
+        p_x = p_x - alpha * discrete_gradient[0]
+        p_y = p_y - alpha * discrete_gradient[1]
         alpha <- alpha*1.1
-    else if l_p_x_under < l :
-        l = l_p_x_under
-        p_x = p_x*(1-alpha)
-        alpha <- alpha*1.1
-    else :
-        alpha <- alpha*0.5
-    S
-    if l_p_y_over < l :
-        l = l_p_y_over
-        p_y = p_y*(1+alpha)
-        alpha <- alpha*1.1
-    else if l_p_y_under < l :
-        l = l_p_y_under
-        p_y = p_y*(1-alpha)  
-        alpha <- alpha*1.1
+    
     else :
         alpha <- alpha*0.5
 
-
-
-    p_y <- p_y + 1
-    p_x <- p_x + 1
 return p_x_min
 ```
