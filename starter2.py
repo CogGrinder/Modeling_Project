@@ -7,6 +7,10 @@ from image import Image
 img = Image("images/clean_finger.png")
 img.display()
 
-img.rotate_translate(-16, (100, 100), (0,0))
+img.rotate_translate(16, (100, 100), (-50,15))
+
+img.display()
+
+img.rotate_translate(-16, (100, 100), (50,-15))
 
 img.display()

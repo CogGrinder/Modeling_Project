@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
+import copy
 
 class Image:
     def __init__(self, filename):
@@ -12,7 +13,7 @@ class Image:
         """
             Display the image
         """
-        plt.imshow(self.__data, cmap='gray')
+        plt.imshow(self.__data, cmap='gray', vmin=0, vmax=1)
         plt.show()
 
     def save(self, filename):
@@ -158,23 +159,29 @@ class Image:
                 if (0 <= rotated_ind[0] + center[0] < n) and (0 <=rotated_ind[1] + center[1]  < m):
                     self.__data[i][j] = tmp[rotated_ind[0] + center[0]][rotated_ind[1] + center[1]]
 
-    def linear_interp(self, x, x1, x2, vx1, vx2):
+    def linear_interp(self, x, x1, x2, vx1, vx2, axis="vertical"):
         ''' Perorm the linear interpolation between the points x1 and x2, of values vx1 and vx2 
         NB : we have ||x1 - x2|| = 1
             Parameters:
                 - x : point of which we want to calculate the value threw interpolation (we assume that x is in [x1, x2])
                 - x1, x2 : points from which we know the values
                 - vx1, vx2 : values at points x1 and x2
+                - axis : string, taking two possible values : "vertical" or "horizontal", in order to know if the highest bound of x2 is n or m
             Return the value vx, of the point x  '''
+
+        if axis == "vertical":
+            bound_sup = self.__m
+        elif axis == "horizontal":
+            bound_sup = self.__n
         # Cases where x belongs to the surroundings (of margin length 0.5) of the image
         if x1 < 0:
             return vx2
-        if x2 > self.__n:
+        if x2 > bound_sup:
             return vx1
         
         alpha = x - x1
         beta = 1 - alpha
-        return vx1 * (1 - alpha) + vx2 * (1 - beta)
+        return vx1 * beta + vx2 * alpha # since we are in the case where ||x1 - x2|| = 1, then this expression is equivalent to : vx1 * (1-alpha) + vx2 * (1-beta)
 
     def bilinear_interp(self, point, image):
         ''' Perform the bilinear interpolation of the coordinate point in the image image 
@@ -208,8 +215,8 @@ class Image:
         x4 = np.array([x4_0, x4_1])
 
         # first, we compute the linear interpolation according to the vertical axis
-        v13 = self.linear_interp(point[0], x1_0, x3_0, self.intensity_of_center(x1), self.intensity_of_center(x3))
-        v24 = self.linear_interp(point[0], x2_0, x4_0, self.intensity_of_center(x2), self.intensity_of_center(x4))
+        v13 = self.linear_interp(point[0], x1_0, x3_0, image.intensity_of_center(x1), image.intensity_of_center(x3))
+        v24 = self.linear_interp(point[0], x2_0, x4_0, image.intensity_of_center(x2), image.intensity_of_center(x4))
         
         # secondly, we compute the linear interpolation according to the horizontal axis, with the value obtained above
         return self.linear_interp(point[1], x1_1, x2_1, v13, v24)
@@ -222,11 +229,10 @@ class Image:
                 - center : rotation center, tuple of two int values (supposed to be contained in the image shape), eg: (150, 200), for an image of shape 300x500
                 - offset : parameters of the translation, tuple of int values, eg: (2, -3) --> translation : (x', y') = (x + 2, y - 3)
         '''
-
-        # temporary copy of the grid
-        tmp = np.copy(self.__data)
+        # create a deepcopy of the self instance
+        tmp = copy.deepcopy(self)
         self.__data = np.ones((self.__n,self.__m))
-
+        
         # Part 1 : perform the rotation
         # Convert p to radian
         p_radian = p * np.pi/180
@@ -243,26 +249,35 @@ class Image:
                 if (0 <= inverse_coord[0] + center[0] <= self.__n) and (0 <= inverse_coord[1] + center[1] <= self.__m):
                     # if the coordinates of the pixel by the inverse rotation matrix is in the range of the original image
                     # let's perform a bi-linear interpolation to compute the intensity of the rotated pixel
-                    self.__data[i][j] = self.bilinear_interp(inverse_coord, tmp)
-                    print("i =", i, ", j =", j, ", pixel value =", self.__data[i][j])
-                    input()
+                    self.__data[i][j] = self.bilinear_interp(np.array([inverse_coord[0] + center[0], inverse_coord[1] + center[1]]), tmp)
                 # otherwise the pixel intensity is set to 1 
+        # free up memory space occupied by tmp
+        del tmp
 
         # Part 2 : perform the translation
-
-                
-
-
-
-
+        # create a deepcopy of the self instance
+        tmp = copy.deepcopy(self)
+        self.__data = np.ones((self.__n,self.__m))
+        for i in range(0, self.__n):
+            for j in range(0, self.__m):
+                if (0 <= i - offset[0] < self.__n) and (0 <= j - offset[1] < self.__m):
+                    self.__data[i][j] = tmp.__data[i - offset[0]][j - offset[1]]
+                else:
+                    self.__data[i][j] = 1
+        # free up memory space occupied by tmp
+        del tmp
+       
 
     def pixel_center(self, i, j):
         ''' Return the exact value of the center of the pixel of coordinates (i,j) '''
-        return np.array([i+0.5, j+0.5])
+        return np.array([int(i+0.5), int(j+0.5)])
     
     def intensity_of_center(self, point):
         ''' Return the pixel intensity of the pixel of center point=(i, j) '''
-        return self.__data[int(point[0]-0.5)][int(point[1]-0.5)]
+        if (0 <= point[0]-0.5 < self.__n) and (0 <= point[1]-0.5 < self.__m):
+            return self.__data[int(point[0]-0.5)][int(point[1]-0.5)]
+        else:
+            return 1
 
     def blur(self, kernel_size):
         """
