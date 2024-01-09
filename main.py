@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
+from scipy import signal
 
 from image import Image
 
@@ -63,16 +64,13 @@ img.rotate2(-45,(0.5,0.5))
 # img.conv_2d(kernel)
 # img.display()
 
-# img = Image("images/warp1_finger.png")
+img = Image("images/moist_finger.png")
+kernel = np.array([[0,-1,0], [-1,4,-1], [0,-1,0]])
+img.conv_2d(kernel)
+img.display()
 
 #testing with black image
-img.test_black(5)
-
-
-# kernel = np.ones((3,3))
-
-# img.conv_2d(kernel)
-# img.display()
+# img.test_black(5)
 
 # Testing 2D FFT
 img = Image("images/moist_finger.png")

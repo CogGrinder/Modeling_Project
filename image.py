@@ -168,9 +168,9 @@ class Image:
         n,m = self.__data.shape
 
         # Padded version with edge of the image
-        print(self.__data)
+        # print(self.__data)
         padded_image = np.pad(self.__data, (N-1)//2, mode='constant')
-        print(padded_image)
+        # print(padded_image)
 
         self.__data = np.zeros((n,m))
         
