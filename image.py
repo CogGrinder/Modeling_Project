@@ -215,8 +215,8 @@ class Image:
         x4 = np.array([x4_0, x4_1])
 
         # first, we compute the linear interpolation according to the vertical axis
-        v13 = self.linear_interp(point[0], x1_0, x3_0, image.intensity_of_center(x1), image.intensity_of_center(x3))
-        v24 = self.linear_interp(point[0], x2_0, x4_0, image.intensity_of_center(x2), image.intensity_of_center(x4))
+        v13 = self.linear_interp(point[0], x1_0, x3_0, image.intensity_of_center(x1), image.intensity_of_center(x3), axis="vertical")
+        v24 = self.linear_interp(point[0], x2_0, x4_0, image.intensity_of_center(x2), image.intensity_of_center(x4), axis="horizontal")
         
         # secondly, we compute the linear interpolation according to the horizontal axis, with the value obtained above
         return self.linear_interp(point[1], x1_1, x2_1, v13, v24)
