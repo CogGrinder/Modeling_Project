@@ -15,10 +15,10 @@ class Utils_starter_5:
         return
 
     def get_pix_at_translated(self, x : int, y : int, p : list):
-        n,m = self.__img2.data.shape
+        n,m = self.__img2._data.shape
         # print(x,y,p)
         if 0<=x-p[0]<n and 0<=y-p[1]<m:
-            return self.__img2.data[x-p[0]][y-p[1]]
+            return self.__img2._data[x-p[0]][y-p[1]]
         else:
             return 1 #white padding TODO check this condition when calculating loss
         #if p[0]<x or p[1]<y:
@@ -35,12 +35,12 @@ class Utils_starter_5:
                 warp = kwargs['warp']
                 # print("got warp")
         # print((self.__img2).data)
-        warped_img2 = np.array([[warp(i,j,p) for j in range(self.__img2.data.shape[1])] for i in range(self.__img2.data.shape[0])])
+        warped_img2 = np.array([[warp(i,j,p) for j in range(self.__img2._data.shape[1])] for i in range(self.__img2._data.shape[0])])
         # plt.imshow(self.__img2.data)
         # plt.show()
         # plt.imshow(warped_img2)
         # plt.show()
-        return np.sum((self.__img1.data - warped_img2)**2)
+        return np.sum((self.__img1._data - warped_img2)**2)
         #pass
     
     # @classmethod
@@ -57,7 +57,7 @@ class Utils_starter_5:
     def plot_loss(self, loss_function : callable) :
         print("plot_loss")
 
-        n,m = self.__img1.data.shape
+        n,m = self.__img1._data.shape
         
         ax = plt.figure().add_subplot(projection='3d')
         #fig, ax = plt.subplots(subplot_kw={'projection': '3d'})
