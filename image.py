@@ -236,18 +236,15 @@ class Image:
                 pixel_center = self.pixel_center(i, j)
                 inverse_coord = np.dot(inverse_rotation_matrix, pixel_center)
                 # perform a bi-linear interpolation to compute the intensity of the rotated pixel
-                new_intensity = bilinear_interp(inverse_coord, tmp)
-
-
-
+                new_intensity = self.bilinear_interp(inverse_coord, tmp)
 
     def pixel_center(self, i, j):
         ''' Return the exact value of the center of the pixel of coordinates (i,j) '''
-        return np.array([i+0.5, j+0.5])
+        return np.array([int(i+0.5), int(j+0.5)])
     
     def intensity_of_center(self, point):
         ''' Return the pixel intensity of the pixel of center point=(i, j) '''
-        return self.__data[point[0]-0.5, point[1]-0.5]
+        return self.__data[int(point[0]-0.5), int(point[1]-0.5)]
 
     def blur(self, kernel_size):
         """
