@@ -18,8 +18,16 @@ class Utils_starter_5:
     def get_pix_at_translated(self, x : int, y : int, p : list):
         n,m = self.__img2._data.shape
         # print(x,y,p)
-        if 0<=x-p[0]<n and 0<=y-p[1]<m:
-            return self.__img2._data[x-p[0]][y-p[1]]
+        int_px = math.floor(p[0]) #beware indexation
+        int_py = math.floor(p[1]) #beware indexation
+        if 1<=x-int_px<n and 1<=y-int_py<m:
+            float_px = p[0] - int_px #TODO probably bugs here with indexation
+            float_py = p[1] - int_py
+            return    (1-float_px)*(1-float_py) *self.__img2._data[x-int_px][y-int_py] \
+                    + float_px*(1-float_py)     *self.__img2._data[x-int_px-1][y-int_py] \
+                    + (1-float_px)*float_py     *self.__img2._data[x -int_px][y-int_py-1] \
+                    + float_px*float_py         *self.__img2._data[x -int_px-1][y-int_py-1] #TODO probably bugs here with indexation
+
         else:
             return 1 #white padding TODO check this condition when calculating loss
         #if p[0]<x or p[1]<y:
@@ -55,13 +63,13 @@ class Utils_starter_5:
         """
         pass #TODO
 
-    def plot_loss(self, loss_function : callable) : #TODO : vary the ranges and shapes for p, maybe with relation to loss function and image data
+    def test_plot_loss(self, loss_function : callable) : #TODO : vary the ranges and shapes for p, maybe with relation to loss function and image data
         """Function used to greedily calculate all the loss_function returns for a certain range of p
 
         Args:
             loss_function (callable): function treated as loss function with a parameter p
         """
-        print("plot_loss")
+        print("test_plot_loss")
 
         n,m = self.__img2._data.shape
         
@@ -90,7 +98,7 @@ class Utils_starter_5:
 
 
     def greedy_optimization_xy(self, **kwargs) : #TODO : vary the ranges and shapes for p, maybe with relation to loss function and image data
-        """greedy brute force strategy to find the optimal value of p_x
+        """greedy brute force strategy to find the optimal value of p_x or of [p_x,p_y]
 
         Args:
             loss_function (callable): function treated as loss function with a parameter p
@@ -136,7 +144,10 @@ class Utils_starter_5:
         p_min = [0,0]
         
         if xy_translate == "x" :
-            for i, p_x in enumerate(range(- math.ceil(n/2), math.floor(n/2) + 1)) :
+            step = 1 #for testing purposes
+            list_px = list(np.arange(- math.ceil(n/2), math.floor(n/2) + 1, step))
+            l_list = np.zeros(len(list_px))
+            for i, p_x in enumerate(list_px) :
                 l = loss_function(p=[0,p_x]) #beware the indexation
                 
                 if l_min > l : #update the min and argmin
@@ -146,8 +157,9 @@ class Utils_starter_5:
                 l_list[i] = l
             print("The translation in x that minimizes our loss function is ", p_min[1])
             if plot :
-                p = np.arange(- math.ceil(n/2), math.floor(n/2) + 1)
-                plt.plot(p,l_list)
+                #p = np.arange(- math.ceil(n/2), math.floor(n/2) + 1)
+                plt.plot(list_px,l_list)
+                #plt.plot(p,l_list)
                 plt.show()
         elif xy_translate == "xy" :
             l_list  = np.zeros((m+1,n+1)) #make the list bigger to accomodate for all translations
@@ -158,9 +170,9 @@ class Utils_starter_5:
                     
                     if l_min > l :
                         l_min = l
-                        p_min = [p_y,p_x]
+                        p_min = [p_y,p_x] #beware the indexation
                     l_list[i][j] = l
-            print("The translation in y,x that minimizes our loss function is ", p_min)
+            print("The translation in y, x coordinates that minimizes our loss function is ", p_min)
             if plot :
                 p_x, p_y = np.meshgrid(np.arange(- math.ceil(n/2), math.floor(n/2) + 1),np.arange(- math.ceil(m/2), math.floor(m/2) + 1))
                 ax = plt.figure().add_subplot(projection='3d')
@@ -168,8 +180,116 @@ class Utils_starter_5:
                 plt.show()
 
         print("min loss and argmin computation done")
-        
+
         return p_min, l_list
+
+
+    def coordinate_descent_optimization_xy(self, **kwargs) : #TODO : vary the ranges and shapes for p, maybe with relation to loss function and image data
+        """non differentiable coordinate descent strategy to find the optimal value of [p_x,p_y]
+
+        Args:
+            loss_function (callable): function treated as loss function with a parameter p
+            kwargs :
+                plot : default is False - choose wether to plot the loss function
+                loss_function : callable function which takes a parameter p
+                epsilon : stopping level for our loss function decrease
+                p0 : initial p parameter for loss function
+                alpha0 : initial percentage (in direct multiplicative factor form) for adjustment of p
+
+
+        """
+        print("coordinate_descent_optimization_xy")
+        
+        p0 = [0,0]
+        alpha0 = 0.1
+        plot = False
+        loss_function = self.loss_function_1
+        epsilon = 1000 #arbitrary default
+
+        for key,value in kwargs.items():
+            if key == "loss_function":
+                if not (type(value) is callable):
+                    raise TypeError("loss_function not a function")
+                else :
+                    loss_function = value
+            elif key == "plot":
+                if not (type(value) is bool):
+                    print(type(value))
+                    raise TypeError("plot must be a bool")
+                else :
+                    plot = value
+            elif key == "epsilon":
+                if value<0:
+                    raise ValueError("epsilon must be positive")
+                else:
+                    epsilon = value
+            elif key == "p0":
+                p0 = value
+            elif key == "alpha0":
+                alpha0 = value
+        
+        print("~~~~~~~~~~~~")
+        print("Parameters :")
+        print("~~~~~~~~~~~~")
+
+        for key,value in kwargs.items() :
+            print(key,": ",value)
+        n,m = self.__img2._data.shape
+
+        
+        p_min = [0,0]
+        
+        alpha = alpha0
+        l_previous   = sys.float_info.max
+
+        """Do While style loop
+        """
+        p = p0.copy()
+        l = loss_function(p=p)
+        p_list = [p.copy()] #used to return the points for plotting
+        l_list = [l] #used to return the loss function for plotting
+        discrete_gradient = [ (loss_function(p=[p[0] + 1, p[1]]) - (loss_function(p=[p[0] - 1, p[1]])) ) /2, 
+                            (loss_function(p=[p[0], p[1] + 1]) - (loss_function(p=[p[0], p[1] - 1])) ) /2] #beware the indexation
+        print(discrete_gradient)
+        print(alpha)
+
+        while abs(l_previous-l) > epsilon : #TODO : change conditional
+            print(l_previous,l)
+            
+            if l < l_previous : #updates l and alpha
+                l_previous = l
+                p[0] -= alpha*discrete_gradient[0] #beware the indexation
+                p[1] -= alpha*discrete_gradient[1]
+                
+                l_list.append(l_previous)
+                p_list.append(p.copy())
+                alpha *= 1.1
+
+            else :
+                alpha *= 0.5
+            
+            discrete_gradient = [ (loss_function(p=[p[0] + 1, p[1]]) - (loss_function(p=[p[0] - 1, p[1]])) ) /2, 
+                                (loss_function(p=[p[0], p[1] + 1]) - (loss_function(p=[p[0], p[1] - 1])) ) /2] #beware the indexation
+            print(discrete_gradient)
+            print(alpha)
+
+            l = loss_function(p=[p[0] - alpha * discrete_gradient[0],
+                                 p[1] - alpha * discrete_gradient[1]]) #beware the indexation
+        
+        """end of loop
+        """
+
+        print("The translation in y, x coordinates that minimizes our loss function is ", p)
+        if plot :
+            ax = plt.figure().add_subplot(projection='3d')
+            p_list_np = np.array(p_list).transpose()
+            l_list_np = np.array(l_list)
+            ax.plot(p_list_np[0],p_list_np[1],l_list_np)
+            plt.show()
+
+        print("min loss and argmin computation done")
+        
+        return p, l_list
 
 def test_loss(*args,**kwargs):#(p : list) :
     """Used as a dummy function to test the plot_loss function
@@ -187,16 +307,45 @@ def test_loss(*args,**kwargs):#(p : list) :
 
 
 if __name__ == '__main__' :
-    utils = Utils_starter_5(Image("images/clean_finger.png"),Image("images/tx_finger.png"))
-    # p_min, l_list = utils.greedy_optimization_xy(translate_type = "x", plot = True)
     
-    clean_finger_small = Image("images/clean_finger_small.png")
-    tx_finger_small = Image("images/tx_finger.png")
-    tx_finger_small._data = cv2.resize(tx_finger_small._data, dsize=clean_finger_small._data.shape[::-1], interpolation=cv2.INTER_CUBIC)
-    print(clean_finger_small._data.shape,tx_finger_small._data.shape)
+    utils = Utils_starter_5(Image("images/clean_finger.png"),Image("images/tx_finger.png"))
+    
+    """Testing loss_function in a test set of translations
+    """
+    if False:
+        utils.test_plot_loss(utils.loss_function_1)
+        utils.test_plot_loss(test_loss)
+    
+    """Testing greedy_optimization_xy with x translation
+    """
+    if False:
+        p_min, l_list = utils.greedy_optimization_xy(translate_type = "x", plot = True)
+        # note: can use a floating step to test floating point translation
+    
 
-    utils = Utils_starter_5(clean_finger_small,tx_finger_small)
-    p_min, l_list = utils.greedy_optimization_xy(translate_type = "xy", plot = True)
+    """Making smaller images for testing greedy_optimization_xy with xy translation
+    """
+    if False:
+        clean_finger_small = Image("images/clean_finger_small.png")
+        tx_finger_small = Image("images/tx_finger.png")
+        tx_finger_small._data = cv2.resize(tx_finger_small._data, dsize=clean_finger_small._data.shape[::-1], interpolation=cv2.INTER_CUBIC)
+        print(clean_finger_small._data.shape,tx_finger_small._data.shape)
 
-    #utils.plot_loss(utils.loss_function_1)
-    #utils.plot_loss(test_loss)
+        utils = Utils_starter_5(clean_finger_small,tx_finger_small)
+        
+        p_min, l_list = utils.greedy_optimization_xy(translate_type = "xy", plot = True)
+
+    """Testing coordinate_descent_optimization_xy with small translation
+    """
+    if True:
+        utils = Utils_starter_5(Image("images/clean_finger.png"),Image("images/tx_finger.png"))
+
+        p, l_list = utils.coordinate_descent_optimization_xy(plot = True)
+
+
+
+
+
+
+
+

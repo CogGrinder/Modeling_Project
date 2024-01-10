@@ -45,23 +45,23 @@ return p_x_min, l_list
 ### non differentiable coordinate descent strategy 
 Algorithm : non differentiable coordinate descent strategy to find the optimal value for ``(p_x, p_y)``
 Input     : ``n``, ``m``, ``p_0`` a list of two real numbers, ``alpha_0`` the initial percentage, ``l(p_x,p_y)`` loss function,
- ``epsilon`` the stopping level for our loss function diminishing
+ ``epsilon`` the stopping level for our loss function decrease
 ```python
 alpha     <- alpha_0
 p_x     <- p_0[0]
 p_y     <- p_0[1]
 
-l   <- MAX_FLOAT
-while abs(l-l_p) > epsilon:
+l_previous   <- MAX_FLOAT
+while abs(l_previous - l) > epsilon:
     discrete_gradient <- {(l(p_x + 1, p_y) - (l(p_x - 1, p_y))) / 2, 
                         (l(p_x, p_y + 1) - (l(p_x, p_y - 1))) / 2}
 
 
-    l_p  <- evaluate l(p_x - alpha * discrete_gradient[0],
+    l  <- evaluate l(p_x - alpha * discrete_gradient[0],
                             p_y - alpha * discrete_gradient[1])
     
-    if l_p < l :
-        l = l_p_x_over
+    if l < l_previous:
+        l_previous = l
         p_x = p_x - alpha * discrete_gradient[0]
         p_y = p_y - alpha * discrete_gradient[1]
         alpha <- alpha*1.1
