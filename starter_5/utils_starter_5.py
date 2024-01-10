@@ -2,6 +2,7 @@ import numpy as np
 import cv2
 import matplotlib.pyplot as plt
 
+import math
 import sys
 import os
 sys.path.append(os.getcwd())
@@ -54,10 +55,15 @@ class Utils_starter_5:
         """
         pass #TODO
 
-    def plot_loss(self, loss_function : callable) :
+    def plot_loss(self, loss_function : callable) : #TODO : vary the ranges and shapes for p, maybe with relation to loss function and image data
+        """Function used to greedily calculate all the loss_function returns for a certain range of p
+
+        Args:
+            loss_function (callable): function treated as loss function with a parameter p
+        """
         print("plot_loss")
 
-        n,m = self.__img1._data.shape
+        n,m = self.__img2._data.shape
         
         ax = plt.figure().add_subplot(projection='3d')
         #fig, ax = plt.subplots(subplot_kw={'projection': '3d'})
@@ -83,7 +89,96 @@ class Utils_starter_5:
         #loss_function(p = [1,4])
 
 
+    def greedy_optimization_xy(self, **kwargs) : #TODO : vary the ranges and shapes for p, maybe with relation to loss function and image data
+        """greedy brute force strategy to find the optimal value of p_x
+
+        Args:
+            loss_function (callable): function treated as loss function with a parameter p
+            kwargs :
+                translate_type : either "xy" or "x"
+                plot : default is False - choose wether to plot the loss function
+                loss_function : callable function which takes a parameter p
+        """
+        print("greedy_optimization_xy")
+        
+        xy_translate = "xy"
+        plot = False
+        loss_function = self.loss_function_1
+
+        for key,value in kwargs.items():
+            if key == "loss_function":
+                if not (type(value) is callable):
+                    raise TypeError("loss_function not a function")
+                else :
+                    loss_function = value
+            if key == "plot":
+                if not (type(value) is bool):
+                    print(type(value))
+                    raise TypeError("plot must be a bool")
+                else :
+                    plot = value
+            if key == "translate_type" :
+                if value in ["xy", "x"]:
+                    xy_translate = value
+                else:
+                    raise ValueError("unknown translate_type")
+        print("~~~~~~~~~~~~")
+        print("Parameters :")
+        print("~~~~~~~~~~~~")
+
+        for key,value in kwargs.items() :
+            print(key,": ",value)
+        n,m = self.__img2._data.shape
+
+        l_min   = sys.float_info.max
+        l_list  = np.zeros(n+1) #used to return the loss function for plotting
+        
+        p_min = [0,0]
+        
+        if xy_translate == "x" :
+            for i, p_x in enumerate(range(- math.ceil(n/2), math.floor(n/2) + 1)) :
+                l = loss_function(p=[0,p_x]) #beware the indexation
+                
+                if l_min > l : #update the min and argmin
+                    l_min = l
+                    p_min = [0,p_x]
+                
+                l_list[i] = l
+            print("The translation in x that minimizes our loss function is ", p_min[1])
+            if plot :
+                p = np.arange(- math.ceil(n/2), math.floor(n/2) + 1)
+                plt.plot(p,l_list)
+                plt.show()
+        elif xy_translate == "xy" :
+            l_list  = np.zeros((m+1,n+1)) #make the list bigger to accomodate for all translations
+            for j, p_x in enumerate(range(- math.ceil(n/2), math.floor(n/2) + 1)) :
+                for i, p_y in enumerate(range(- math.ceil(m/2), math.floor(m/2) + 1)) :
+                    l = loss_function(p=[p_y,p_x]) #beware the indexation
+                    print([p_y,p_x])
+                    
+                    if l_min > l :
+                        l_min = l
+                        p_min = [p_y,p_x]
+                    l_list[i][j] = l
+            print("The translation in y,x that minimizes our loss function is ", p_min)
+            if plot :
+                p_x, p_y = np.meshgrid(np.arange(- math.ceil(n/2), math.floor(n/2) + 1),np.arange(- math.ceil(m/2), math.floor(m/2) + 1))
+                ax = plt.figure().add_subplot(projection='3d')
+                ax.plot_surface(p_x,p_y,l_list)
+                plt.show()
+
+        print("min loss and argmin computation done")
+        
+        return p_min, l_list
+
 def test_loss(*args,**kwargs):#(p : list) :
+    """Used as a dummy function to test the plot_loss function
+
+    Args:
+        p: coordinates for evaluating function
+    Returns:
+        float : cone function ie distance to [0,0]
+    """
     p = 0
     for params in kwargs:
         p = kwargs['p']
@@ -92,6 +187,16 @@ def test_loss(*args,**kwargs):#(p : list) :
 
 
 if __name__ == '__main__' :
-    utils = Utils_starter_5(Image("images/clean_finger.png"),Image("images/clean_finger.png"))#,Image("images/tx_finger.png"))
-    utils.plot_loss(utils.loss_function_1)
-    utils.plot_loss(test_loss)
+    utils = Utils_starter_5(Image("images/clean_finger.png"),Image("images/tx_finger.png"))
+    # p_min, l_list = utils.greedy_optimization_xy(translate_type = "x", plot = True)
+    
+    clean_finger_small = Image("images/clean_finger_small.png")
+    tx_finger_small = Image("images/tx_finger.png")
+    tx_finger_small._data = cv2.resize(tx_finger_small._data, dsize=clean_finger_small._data.shape[::-1], interpolation=cv2.INTER_CUBIC)
+    print(clean_finger_small._data.shape,tx_finger_small._data.shape)
+
+    utils = Utils_starter_5(clean_finger_small,tx_finger_small)
+    p_min, l_list = utils.greedy_optimization_xy(translate_type = "xy", plot = True)
+
+    #utils.plot_loss(utils.loss_function_1)
+    #utils.plot_loss(test_loss)

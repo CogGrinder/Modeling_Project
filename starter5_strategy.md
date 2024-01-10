@@ -5,15 +5,16 @@ Algorithm : greedy brute force strategy to find the optimal value of ``p_x``
 Input     : ``n``, ``m``, ``l(p_x)`` function
 
 ```python
-p_x     <- -ceil(n/2)
-p_x_min <- p_x
+p_x_min <- 0
 l_min   <- MAX_FLOAT
 l_list  <- list of size n
+
+p_x     <- -ceil(n/2)
 while p_x < floor(n/2) :
     l <- evaluate l(p_x)
     if l_min > l :
-        l_min = l
-        p_x_min = p_x
+        l_min <- l
+        p_x_min <- p_x
     l_list[p_x] <- l
     p_x <- p_x + 1
 return p_x_min, l_list
@@ -23,18 +24,19 @@ return p_x_min, l_list
 Algorithm : greedy brute force strategy to find the optimal value for ``(p_x, p_y)``
 Input     : ``n``, ``m``, ``l(p_x,p_y)`` function
 ```python
-p_x     <- -ceil(n/2)
-p_y     <- -ceil(m/2)
-p_min   <- [p_x,p_y]
+p_min   <- [0,0]
 l_min   <- MAX_FLOAT
 l_list  <- double list of size n x m
+
+p_x     <- -ceil(n/2)
+p_y     <- -ceil(m/2)
 while p_x < floor(n/2) :
     while p_y < floor(m/2) :
         l <- evaluate l(p_x,p_y)
         if l_min > l :
             l_min = l
-            p_x_min = p_x
-            p_y_min = p_y
+            p_x_min <- p_x
+            p_y_min <- p_y
         l_list[p_x][p_y] <- l
         p_y <- p_y + 1
     p_x <- p_x + 1
@@ -43,11 +45,12 @@ return p_x_min, l_list
 ### non differentiable coordinate descent strategy 
 Algorithm : non differentiable coordinate descent strategy to find the optimal value for ``(p_x, p_y)``
 Input     : ``n``, ``m``, ``p_0`` a list of two real numbers, ``alpha_0`` the initial percentage, ``l(p_x,p_y)`` loss function,
- ``epsilon`` the stopping level for ``alpha``
+ ``epsilon`` the stopping level for our loss function diminishing
 ```python
-alpha     <- apl_0
+alpha     <- alpha_0
 p_x     <- p_0[0]
 p_y     <- p_0[1]
+
 l   <- MAX_FLOAT
 while abs(l-l_p) > epsilon:
     discrete_gradient <- {(l(p_x + 1, p_y) - (l(p_x - 1, p_y))) / 2, 
