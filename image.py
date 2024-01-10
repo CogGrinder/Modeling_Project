@@ -2,6 +2,7 @@ import numpy as np
 import cv2
 import matplotlib.pyplot as plt
 import copy
+import math
 
 class Image:
     def __init__(self, filename):
@@ -72,16 +73,60 @@ class Image:
 
         self.__data[corner[0]: corner[0] + width, corner[1]: corner[1] + length] = value
 
-    def symmetry(self, axis = 0):
-        ''' Create and return the symetric of img with respect to the y axis '''
-        n, m = self.__data.shape
+    def symmetry(self, axis=0):
+        ''' Return the symetric of img with respect to the x axis if axis=0,
+                                                    to the y axis if axis=1 '''
         tmp=np.copy(self.__data)
-        for x in range(n):
-            for y in range(m):
+        for x in range(self.__n):
+            for y in range(self.__m):
                 if axis == 0:
                     self.__data[x][y] = tmp[n - 1 - x][y]
                 else:
                     self.__data[x][y] = tmp[x][m - 1 - y]
+
+    def symmetry_diagonal(self, axis=0):
+        ''' Return the symmetric of the image with respect to the diagonal going from bottom left corner to top right corner if axis=0
+                                                                           going from top left corner to bottom right corner if axis=1 '''
+        tmp = np.copy(self.__data)
+        self.__data = np.ones((self.__m, self.__n))
+        for x in range(self.__n):
+            for y in range(self.__m):
+                if axis == 0:
+                    self.__data[x][y] = tmp[y][x]
+                else:
+                    self.__data[x][y] = tmp[self.__n - y][self.__m - x]
+
+    def distance_between_pixels(self, x, y):
+        ''' Return the distance between pixels x of coordinates (x1, x2) and point y of coordinates (y1, y2) 
+            The distance corresponds to the distance between the centers of the two pixels '''
+        # let's get the center of the pixels
+        center_x = self.pixel_center(x[0], x[1])
+        center_y = self.pixel_center(y[0], y[1])        
+        return np.sqrt((center_x[0] - center_y[0])**2 + (center_x[1] - center_y[1])**2)
+    
+    def c1(r):
+        return 1 / (r+1)
+
+    def c2(r):
+        return np.exp(-r)
+
+    def c3(r):
+        u = 5
+        s = np.sqrt(0.2)
+        return 1/2 (1 + math.erf((r - u)/(s*sqrt(2))))
+
+    def simulate_low_pressure(self, center, c):
+        ''' Return the image at which we have simulate a low pressure of center center.
+            Parameters :
+                - center : coordinates of the pixel center of the low pressure (tuple of two int values)
+                - c : mathematical function of one argument (c(r)), monotonically decreasing as r tends to infinity, with c(0)=1 and c(r)=0 the limit when
+                r tends to infinity.
+        '''
+        center_coord = self.pixel_center(center[0], center[1])
+        for x in range(self.__n):
+            for y in range(self.__m):
+                distance = distance_between_pixels((x, y), center_coord)
+                self.__data[x][y] *= c(distance)
 
     def rotate(self, p, center_normalized):
         ''' 2D rotation of the img matrix in a p angle
