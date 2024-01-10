@@ -85,8 +85,8 @@ from image import Image
 # plt.show()
 
 # Testing binarizaton
-img = Image("images/clean_finger.png")
+img = Image("images/moist_finger.png")
 threshold = img.compute_threshold()
 img.binarize(threshold)
-img.dilation()
+img.erosion()
 img.display()
