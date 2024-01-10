@@ -271,7 +271,7 @@ class Image:
             
             params : 
                 structuring element : Defined the shape of the structuring_element(geometrical shape) used to probe the image
-                    Possible values : Square, Rectangle
+                    Possible values : Square, Horizontal Rectangle, Vertical Horizontal
 
                 size : Defined the size of the structuring element
         """
@@ -294,7 +294,7 @@ class Image:
             # obtain new matrix whose shape is equal to the original image size
             self.__data = image_dilate.reshape(orig_shape)
         
-        if structuring_element=='Rectangle':
+        if structuring_element=='Horizontal Rectangle':
             kernel = np.ones((2, size), np.uint8)
             orig_shape = self.__data.shape
             pad_width = size - 2
@@ -312,6 +312,25 @@ class Image:
             image_dilate = np.array([1 if (i == kernel).any() else 0 for i in flat_submatrices])
             # obtain new matrix whose shape is equal to the original image size
             self.__data = image_dilate.reshape(orig_shape)
+        
+        if structuring_element=='Vertical Rectangle':
+            kernel = np.ones((size, 2), np.uint8)
+            orig_shape = self.__data.shape
+            pad_width = size - 2
+
+            # pad the image with pad_width
+            image_pad = np.pad(array=self.__data, pad_width=pad_width, mode='constant')
+            pimg_shape = image_pad.shape
+            h_reduce, w_reduce = (pimg_shape[0] - orig_shape[0]), (pimg_shape[1] - orig_shape[1])
+            
+            # obtain the submatrices according to the size of the kernel
+            flat_submatrices = np.array([image_pad[i:(i + size), j:(j + 2)]
+                                         for i in range(pimg_shape[0] - h_reduce) for j in range(pimg_shape[1] - w_reduce)])
+            
+            # replace the values either 1 or 0 by dilation condition
+            image_dilate = np.array([1 if (i == kernel).any() else 0 for i in flat_submatrices])
+            # obtain new matrix whose shape is equal to the original image size
+            self.__data = image_dilate.reshape(orig_shape)
 
             
     def erosion(self, structuring_element = "Square", size = 3):
@@ -320,7 +339,7 @@ class Image:
             
             params : 
                 structuring element : Defined the shape of the structuring_element(geometrical shape) used to probe the image
-                    Possible values : Square, Rectangle
+                    Possible values : Square, Horizontal Rectangle, Vertical Horizontal
 
                 size : Defined the size of the structuring element
         """
@@ -338,12 +357,12 @@ class Image:
             flat_submatrices = np.array([image_pad[i:(i + size), j:(j + size)]
                                          for i in range(pimg_shape[0] - h_reduce) for j in range(pimg_shape[1] - w_reduce)])
             
-            # replace the values either 1 or 0 by dilation condition
+            # replace the values either 1 or 0 by erosion condition
             image_erode = np.array([0 if (i != kernel).any() else 1 for i in flat_submatrices])
             # obtain new matrix whose shape is equal to the original image size
             self.__data = image_erode.reshape(orig_shape)
 
-        if structuring_element=='Rectangle':
+        if structuring_element=='Horizontal Rectangle':
             kernel = np.ones((2, size), np.uint8)
             orig_shape = self.__data.shape
             pad_width = size - 2 
@@ -357,7 +376,26 @@ class Image:
             flat_submatrices = np.array([image_pad[i:(i + 2), j:(j + size)]
                                          for i in range(pimg_shape[0] - h_reduce) for j in range(pimg_shape[1] - w_reduce)])
             
-            # replace the values either 1 or 0 by dilation condition
+            # replace the values either 1 or 0 by erosion condition
+            image_erode = np.array([0 if (i != kernel).any() else 1 for i in flat_submatrices])
+            # obtain new matrix whose shape is equal to the original image size
+            self.__data = image_erode.reshape(orig_shape)
+        
+        if structuring_element=='Vertical Rectangle':
+            kernel = np.ones((size, 2), np.uint8)
+            orig_shape = self.__data.shape
+            pad_width = size - 2 
+
+            # pad the image with pad_width
+            image_pad = np.pad(array=self.__data, pad_width=pad_width, mode='constant')
+            pimg_shape = image_pad.shape
+            h_reduce, w_reduce = (pimg_shape[0] - orig_shape[0]), (pimg_shape[1] - orig_shape[1])
+            
+            # obtain the submatrices according to the size of the kernel
+            flat_submatrices = np.array([image_pad[i:(i + size), j:(j + 2)]
+                                         for i in range(pimg_shape[0] - h_reduce) for j in range(pimg_shape[1] - w_reduce)])
+            
+            # replace the values either 1 or 0 by erosion condition
             image_erode = np.array([0 if (i != kernel).any() else 1 for i in flat_submatrices])
             # obtain new matrix whose shape is equal to the original image size
             self.__data = image_erode.reshape(orig_shape)

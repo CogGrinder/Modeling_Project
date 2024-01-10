@@ -88,6 +88,6 @@ from image import Image
 img = Image("images/dry_finger.png")
 threshold = img.compute_threshold()
 img.binarize(threshold)
-img.dilation('Square', 3)
-img.erosion('Rectangle', 3)
+img.erosion()
+img.dilation()
 img.display()
