@@ -258,6 +258,15 @@ class Image:
         # Convolve the image with a blur kernel
         self._data = cv2.filter2D(src=self._data, ddepth=-1, kernel=k)
 
+    def kernel(self,i,j,xc,yc):
+        corners = [np.array([0,0]), 
+            np.array([0,self.__m]), 
+            np.array([self.__n, 0]), np.array([self.__n, self.__m])]
+        
+        # dist_max = max(np.linalg.norm(np.array([i,j] - np.array([0,0]))))
+        N = (8/dist_max) * np.linalg.norm(np.array([i,j]) - np.array([xc,yc]))
+        return np.eye(2*N-1).T
+
     def conv_2d(self, kernel):
         N = kernel(0,0).shape[0]
         n,m = self._data.shape

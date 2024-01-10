@@ -37,10 +37,8 @@ from image import Image
 # x = np.array([[0, 0, 0], [0, 1, 2], [0, 1, 1]])
 # #print(np.tensordot(x, kernel, axes=((0,1),(0,1))))
 
-def kernel(i,j):
-    return np.array([[1,1,1], [1,1,1], [1,1,1]])/9
-
 # kernel = np.ones((15, 15))/225
 img = Image("images/clean_finger.png")
-img.conv_2d(kernel)
+K = img.kernel(0,0)
+img.fft_conv_2d(K)
 img.display()
