@@ -85,9 +85,23 @@ from image import Image
 # plt.show()
 
 # Testing binarizaton
-img = Image("images/dry_finger.png")
+img = Image("images/clean_finger.png")
+dry = Image("images/dry_finger.png")
+moist = Image("images/moist_finger.png")
 threshold = img.compute_threshold()
 img.binarize(threshold)
-img.erosion()
-img.dilation()
+
+# Moist finger approximation
+# img.erosion("Square", 3)
+# img.dilation()
+# img.erosion("Square", 3)
+# moist.display()
+# img.display()
+
+# Dry finger approximation
+img.dilation("Horizontal Rectangle", 5)
+img.dilation("Square", 6)
+dry.display()
 img.display()
+
+
