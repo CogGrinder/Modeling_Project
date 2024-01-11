@@ -1,4 +1,5 @@
 import numpy as np
+import math
 from scipy import signal
 import cv2
 import matplotlib.pyplot as plt
@@ -259,31 +260,50 @@ class Image:
         self._data = cv2.filter2D(src=self._data, ddepth=-1, kernel=k)
 
     def kernel(self,i,j,xc,yc):
-        corners = [np.array([0,0]), 
-            np.array([0,self.__m]), 
-            np.array([self.__n, 0]), np.array([self.__n, self.__m])]
-        
-        # dist_max = max(np.linalg.norm(np.array([i,j] - np.array([0,0]))))
-        N = (8/dist_max) * np.linalg.norm(np.array([i,j]) - np.array([xc,yc]))
-        return np.eye(2*N-1).T
 
-    def conv_2d(self, kernel):
-        N = kernel(0,0).shape[0]
+        # maximum distance from (i,j) point to each corners of the image
+        dist_max = max(np.linalg.norm(np.array([i,j]) - np.array([0,0])),
+                    np.linalg.norm(np.array([i,j]) - np.array([0,self.__m])),
+                    np.linalg.norm(np.array([i,j]) - np.array([self.__n, 0])),
+                    np.linalg.norm(np.array([i,j]) - np.array([self.__n, self.__m])))
+        
+        # we chose 8 because 15 // 2 + 1 = 8 (15 is the max size of our kernel)
+        N = int(np.floor(((8-1)/dist_max) * np.linalg.norm(np.array([i,j]) - np.array([xc,yc])))+1)
+        
+        N_float = ((8-1)/dist_max) * np.linalg.norm(np.array([i,j]) - np.array([xc,yc])) + 1
+        N_int = math.floor(N_float)
+
+        if N_float - N_int > 0:
+            matrix = np.eye(2*N_int+1)[::-1]
+            matrix[0][-1] = N_float - N_int
+            matrix[-1][0] = N_float - N_int
+        else:
+            matrix = np.eye(2*N_int-1)[::-1]
+
+        
+         
+        return matrix/np.sum(matrix)
+
+    def conv_2d(self, xc, yc):
+        
         n,m = self._data.shape
 
         # Padded version with edge of the image
-        # print(self._data)
-        padded_image = np.pad(self._data, (N-1)//2, mode='constant')
-        # print(padded_image)
+        # we chose 7 because 7 = 15 // 2
+        # padded_image = np.pad(self._data, (N-1)//2, mode='constant')
+        padded_image = np.pad(self._data, 7, mode='edge')
 
         self._data = np.zeros((n,m))
         
         for i in range(0, n):
             for j in range(0, m):
+                K = self.kernel(i,j,xc,yc)
+                N = K.shape[0]
                 result = 0
                 for N_i in range(-(N-1)//2, (N-1)//2 + 1):
                     for N_j in range(-(N-1)//2, (N-1)//2 + 1):
-                        result += kernel(i,j)[N_i + (N-1)//2 ][N_j + (N-1)//2] * padded_image[i-N_i + (N-1)//2][j-N_j + (N-1)//2]
+                        # we chose 7 because 7 = 15 // 2
+                        result += K[N_i + (N-1)//2 ][N_j + (N-1)//2] * padded_image[i-N_i + 7][j-N_j + 7]
                 self._data[i][j] = result
 
     def fft_2d(self):
