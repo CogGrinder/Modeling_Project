@@ -17,7 +17,6 @@ class Utils_starter_5:
 
     def get_pix_at_translated(self, x : int, y : int, p : list):
         n,m = self.__img2._data.shape
-        # print(x,y,p)
         int_px = math.floor(p[0]) #beware indexation
         int_py = math.floor(p[1]) #beware indexation
         if 1<=x-int_px<n and 1<=y-int_py<m:
@@ -30,29 +29,18 @@ class Utils_starter_5:
 
         else:
             return 1 #white padding TODO check this condition when calculating loss
-        #if p[0]<x or p[1]<y:
 
-    # @classmethod
     def loss_function_1(self,**kwargs):#(self, p : list, warp : callable = get_pix_at_translated): #[[int,int,list],float]
         p = 0
         warp = self.get_pix_at_translated #default warp function
         for params in kwargs:
             if params == 'p':
                 p = kwargs['p']
-                # print("got p")
             if params == 'warp':
                 warp = kwargs['warp']
-                # print("got warp")
-        # print((self.__img2).data)
         warped_img2 = np.array([[warp(i,j,p) for j in range(self.__img2._data.shape[1])] for i in range(self.__img2._data.shape[0])])
-        # plt.imshow(self.__img2.data)
-        # plt.show()
-        # plt.imshow(warped_img2)
-        # plt.show()
         return np.sum((self.__img1._data - warped_img2)**2)
-        #pass
     
-    # @classmethod
     def loss_function_2(self,**kwargs):#(self, p : list, warp : callable = get_pix_at_translated):
         p = 0
         for params in kwargs:
@@ -74,7 +62,6 @@ class Utils_starter_5:
         n,m = self.__img2._data.shape
         
         ax = plt.figure().add_subplot(projection='3d')
-        #fig, ax = plt.subplots(subplot_kw={'projection': '3d'})
         
         translate_span_x = 1
         translate_span_y = m//3
@@ -93,9 +80,6 @@ class Utils_starter_5:
 
         ax.plot_surface(px,py,loss_grid)
         plt.show()
-        
-        #loss_function(p = [1,4])
-
 
     def greedy_optimization_xy(self, **kwargs) : #TODO : vary the ranges and shapes for p, maybe with relation to loss function and image data
         """greedy brute force strategy to find the optimal value of p_x or of [p_x,p_y]
@@ -157,9 +141,9 @@ class Utils_starter_5:
                 l_list[i] = l
             print("The translation in x that minimizes our loss function is ", p_min[1])
             if plot :
-                #p = np.arange(- math.ceil(n/2), math.floor(n/2) + 1)
+                #p = np.arange(- math.ceil(n/2), math.floor(n/2) + 1) #pre-testing
                 plt.plot(list_px,l_list)
-                #plt.plot(p,l_list)
+                #plt.plot(p,l_list) #pre-testing
                 plt.show()
         elif xy_translate == "xy" :
             l_list  = np.zeros((m+1,n+1)) #make the list bigger to accomodate for all translations
@@ -234,10 +218,7 @@ class Utils_starter_5:
 
         for key,value in kwargs.items() :
             print(key,": ",value)
-        n,m = self.__img2._data.shape
 
-        
-        p_min = [0,0]
         
         alpha = alpha0
         l_previous   = sys.float_info.max
