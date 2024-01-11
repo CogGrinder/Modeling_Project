@@ -99,8 +99,8 @@ img.binarize(threshold)
 # img.display()
 
 # Dry finger approximation
-img.dilation("Horizontal Rectangle", 5)
-img.dilation("Square", 6)
+# img.dilation("Square", 3)
+img.erosion("Horizontal Rectangle", 3)
 dry.display()
 img.display()
 

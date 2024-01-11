@@ -312,6 +312,9 @@ class Image:
             image_dilate = np.array([1 if (i == kernel).any() else 0 for i in flat_submatrices])
             # obtain new matrix whose shape is equal to the original image size
             self.__data = image_dilate.reshape(orig_shape)
+
+            for i in range(pad_width):
+                self.__data[i, :] = 1
         
         if structuring_element=='Vertical Rectangle':
             kernel = np.ones((size, 2), np.uint8)
@@ -331,6 +334,9 @@ class Image:
             image_dilate = np.array([1 if (i == kernel).any() else 0 for i in flat_submatrices])
             # obtain new matrix whose shape is equal to the original image size
             self.__data = image_dilate.reshape(orig_shape)
+            
+            for i in range(pad_width):
+                self.__data[:, i] = 1
 
             
     def erosion(self, structuring_element = "Square", size = 3):
@@ -380,6 +386,10 @@ class Image:
             image_erode = np.array([0 if (i != kernel).any() else 1 for i in flat_submatrices])
             # obtain new matrix whose shape is equal to the original image size
             self.__data = image_erode.reshape(orig_shape)
+
+            for i in range(pad_width):
+                self.__data[:, i] = 1
+                self.__data[i+1, :] = 1
         
         if structuring_element=='Vertical Rectangle':
             kernel = np.ones((size, 2), np.uint8)
@@ -399,6 +409,9 @@ class Image:
             image_erode = np.array([0 if (i != kernel).any() else 1 for i in flat_submatrices])
             # obtain new matrix whose shape is equal to the original image size
             self.__data = image_erode.reshape(orig_shape)
+            for i in range(pad_width):
+                self.__data[:, i] = 1
+                self.__data[i+1, :] = 1
 
             
              
