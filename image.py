@@ -4,13 +4,14 @@ from scipy import signal
 import cv2
 import matplotlib.pyplot as plt
 import copy
+
 from starter2 import Starter_2
-from main_course_1 import Main_Course_1
+# from main_course_1 import Main_Course_1
 
 class Image:
     def __init__(self, filename):
-        self._data = cv2.imread(filename, 0)
-        self.__n, self.__m = self._data.shape
+        self.__data = cv2.imread(filename, 0)
+        self.__n, self.__m = self.__data.shape
         self.__normalize()
 
     def display(self):
@@ -25,23 +26,23 @@ class Image:
             Save the image into a file
         """
         self.__denormalize()
-        cv2.imwrite(filename, self._data)
-        cv2.imwrite(filename, self._data)
+        cv2.imwrite(filename, self.__data)
+        cv2.imwrite(filename, self.__data)
         self.__normalize()
 
     def max(self):
         """
             Returns the maximum intensity of the image
         """
-        return np.max(self._data)
-        return np.max(self._data)
+        return np.max(self.__data)
+        return np.max(self.__data)
 
     def min(self):
         """
             Returns the minimum intensity of the image
         """
-        return np.min(self._data)
-        return np.min(self._data)
+        return np.min(self.__data)
+        return np.min(self.__data)
 
     def __normalize(self):
         """
@@ -50,8 +51,8 @@ class Image:
         """
         min = self.min()
         max = self.max()
-        self._data = (self._data - min)/(max - min)
-        self._data = (self._data - min)/(max - min)
+        self.__data = (self.__data - min)/(max - min)
+        self.__data = (self.__data - min)/(max - min)
 
     def __denormalize(self, original_min=-1, original_max=-1):
         """ 
@@ -61,13 +62,13 @@ class Image:
             (0 will be transformed into 0, 1 into 255) 
         """
         if original_max == -1 and original_min == -1:
-            self._data *= 256
-            self._data *= 256
+            self.__data *= 256
+            self.__data *= 256
         else:
             self._data = self._data * \
                 (original_max - original_min) + original_min
-        self._data = self._data.astype(int)
-        self._data = self._data.astype(int)
+        self.__data = self.__data.astype(int)
+        self.__data = self.__data.astype(int)
 
     def create_rectangle(self, corner, width, length, color):
         ''' Create and return a version of the image, where has been included a rectangle of origin (top-left corner) origin (tuple of 2 int values, coordinates
@@ -90,8 +91,8 @@ class Image:
         for x in range(self.__n):
             for y in range(self.__m):
                 if axis == 0:
-                    self._data[x][y] = tmp[n - 1 - x][y]
-                    self._data[x][y] = tmp[n - 1 - x][y]
+                    self.__data[x][y] = tmp[n - 1 - x][y]
+                    self.__data[x][y] = tmp[n - 1 - x][y]
                 else:
                     self.__data[x][y] = tmp[x][m - 1 - y]
 
@@ -189,7 +190,7 @@ class Image:
         # Padded version with edge of the image
         # we chose 7 because 7 = 15 // 2
         # padded_image = np.pad(self._data, (N-1)//2, mode='constant')
-        padded_image = np.pad(self._data, 7, mode='edge')
+        padded_image = np.pad(self.__data, 7, mode='edge')
 
         self._data = np.zeros((n,m))
         
@@ -208,8 +209,8 @@ class Image:
         """
             Return an array of the 2D fast Fourier transform applied on the image
         """
-        ft = np.fft.ifftshift(self._data)
-        ft = np.fft.ifftshift(self._data)
+        ft = np.fft.ifftshift(self.__data)
+        ft = np.fft.ifftshift(self.__data)
         ft = np.fft.fft2(ft)
         return np.fft.fftshift(ft)
     
@@ -231,7 +232,7 @@ class Image:
         # print("ft_g:", ft_g.shape)
         # ift_fg = np.fft.ifft2(np.multiply(ft_f, ft_g))
         # return np.fft.fftshift(ift_fg)
-        self._data = signal.fftconvolve(self._data, g, mode="same")
+        self.__data = signal.fftconvolve(self.__data, g, mode="same")
 
     # def test_black(self, n=5):
     #     np.set_printoptions(precision=1)

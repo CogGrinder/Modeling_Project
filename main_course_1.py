@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 
-from image import Image
+# from image import Image
 from starter2 import Starter_2
 
 class Main_Course_1:

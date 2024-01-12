@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from image import Image
 
 class Starter_2:
 
@@ -70,11 +69,9 @@ class Starter_2:
         return np.array([int(i+0.5), int(j+0.5)])
 
 
-
-
-
-
 if __name__ == "__main__":
+
+    from image import Image
 
     img = Image("images/clean_finger.png")
     img.display()
@@ -86,7 +83,3 @@ if __name__ == "__main__":
     img.rotate_translate(-16, (100, 100), (50,-15))
 
     img.display()
-
-img.rotate_translate(-16, (150, 150), (0, 0))
-
-img.display()
