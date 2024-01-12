@@ -65,7 +65,6 @@ class Image:
             self._data *= 256
         else:
             self._data = self._data * \
-            self._data = self._data * \
                 (original_max - original_min) + original_min
         self._data = self._data.astype(int)
         self._data = self._data.astype(int)
