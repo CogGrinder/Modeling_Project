@@ -2,7 +2,6 @@ import numpy as np
 import cv2
 import matplotlib.pyplot as plt
 import copy
-import math
 from starter2 import Starter_2
 from main_course_1 import Main_Course_1
 
