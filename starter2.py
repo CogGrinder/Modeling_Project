@@ -57,11 +57,11 @@ class Starter_2:
         x4 = np.array([x4_0, x4_1])
 
         # first, we compute the linear interpolation according to the vertical axis
-        v13 = Starter_2.linear_interp(point[0], x1_0, x3_0, image.intensity_of_center(x1), image.intensity_of_center(x3), image.__n)
-        v24 = Starter_2.linear_interp(point[0], x2_0, x4_0, image.intensity_of_center(x2), image.intensity_of_center(x4), image.__n)
+        v13 = Starter_2.linear_interp(point[0], x1_0, x3_0, image.intensity_of_center(x1), image.intensity_of_center(x3), image.n)
+        v24 = Starter_2.linear_interp(point[0], x2_0, x4_0, image.intensity_of_center(x2), image.intensity_of_center(x4), image.n)
         
         # secondly, we compute the linear interpolation according to the horizontal axis, with the value obtained above
-        return Starter_2.linear_interp(point[1], x1_1, x2_1, v13, v24, image.__m)
+        return Starter_2.linear_interp(point[1], x1_1, x2_1, v13, v24, image.m)
     
     @staticmethod
     def pixel_center(i, j):
