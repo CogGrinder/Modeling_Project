@@ -33,11 +33,11 @@ from image import Image
 # plt.imshow(noisy_img_symm, cmap='gray')
 # plt.show()
 
-img = Image("images/warp1_finger.png")
+# img = Image("images/warp1_finger.png")
 # img.display()
 
-img.create_rectangle((50,50),100,50,"white")
-img.create_rectangle((175,125),25,50,"black")
+# img.create_rectangle((50,50),100,50,"white")
+# img.create_rectangle((175,125),25,50,"black")
 # img.symmetry(0)
 # img.symmetry(1)
 # img.rotate(45,(0.55,0.6))
@@ -48,11 +48,13 @@ img.display()
 # img.rotate(-45,(0.5,0.5))
 # img.display()
 
-img.rotate2(45,(0.55,0.6))
+# img.rotate2(45,(0.55,0.6))
 
-img.save("warp1_finger_edit.png")
-#img.display()
+# img.save("warp1_finger_edit.png")
+# #img.display()
 
+# img.rotate2(-45,(0.5,0.5))
+# #img.display()
 # img.rotate2(-45,(0.5,0.5))
 # #img.display()
 
@@ -72,6 +74,8 @@ img.save("warp1_finger_edit.png")
 # #testing with black image
 # # img.test_black(5)
 
+# testing with black image
+# img.test_black(5)
 # # Testing 2D FFT
 # img = Image("images/moist_finger.png")
 # img_fft = img.fft_2d()
