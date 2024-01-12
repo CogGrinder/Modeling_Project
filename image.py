@@ -212,46 +212,55 @@ class Image:
         self.__data = np.ones((n,n))
 
 
-
-    def __countFreq__(self):
-        """
-            Compute the frequency of values present in an array
-        """
-        tmp = np.copy(self.__data)
-        tmp = tmp.flatten()
-        n = len(tmp)
-        mp = dict()
- 
-        # Traverse through array elements 
-        # and count frequencies
-        for i in range(n):
-            if tmp[i] in mp.keys():
-                mp[tmp[i]] += 1/n
-            else:
-                mp[tmp[i]] = 1/n
-        return mp
+    def otsu_intraclass_variance(image, threshold):
+	    """
+	    Otsu’s intra-class variance.
+	    If all pixels are above or below the threshold, this will throw a warning that can safely be ignored.
+	    """
+	    return np.nansum([
+		    np.mean(cls) * np.var(image, where=cls)
+		    #   weight   ·  intra-class variance
+		    for cls in [image>=threshold, image<threshold]
+	    ])
+	    # NaNs only arise if the class is empty, in which case the contribution should be zero, which `nansum` accomplishes.
 
     
     def compute_threshold(self):
         """
             Compute the threshold for binarization(See Method to select a threshold automatically from a gray level histogram, N. Otsu, 1975, Automatica.)
         """
-        frequency_dict = self.__countFreq__()
-        sorted_frequency = dict(sorted(frequency_dict.items()))
-        # print(sorted_frequency)
-        k_max = 0
-        threshold = 0
-        omega = 0
-        for gray_level, frequency in sorted_frequency.items():
-            omega += frequency
-            # print(omega)
-            k = omega * (1 - omega)
-            if k_max <= k:
-                k_max = k
-                threshold = gray_level
-                # print(f"k_max : {k_max}, threshold : {threshold}")
-        return threshold
+        image = self
+        image.__denormalize()
+
+        def otsu_intraclass_variance(image, threshold):
+	        """
+	        Otsu’s intra-class variance.
+	        If all pixels are above or below the threshold, this will throw a warning that can safely be ignored.
+	        """
+	        return np.nansum([
+		        np.mean(cls) * np.var(image, where=cls)
+		        #   weight   ·  intra-class variance
+		        for cls in [image>=threshold, image<threshold]
+	        ])
+	    # NaNs only arise if the class is empty, in which case the contribution should be zero, which `nansum` accomplishes.
         
+        otsu_threshold = min(
+		    range( np.min(image.__data)+1, np.max(image.__data) ),
+		    key = lambda th: otsu_intraclass_variance(image.__data, th)
+	    )  
+        mini = self.min()
+        maxi = self.max()
+        otsu_threshold = (otsu_threshold- mini)/(maxi - mini)
+        return otsu_threshold
+
+    def image_hist(self):
+        """
+            Plot the grayscale histogram of the image
+        """
+        # create the histogram
+        hist,bins = np.histogram(self.__data.ravel(),256,[0,1])
+        # configure and draw the histogram figure
+        plt.hist(self.__data.ravel(),256,[0,1]); plt.show()
 
     def binarize(self, threshold):
         """
