@@ -3,6 +3,8 @@ import cv2
 import matplotlib.pyplot as plt
 import copy
 import math
+from starter2 import Starter_2
+from main_course_1 import Main_Course_1
 
 class Image:
     def __init__(self, filename):
@@ -96,24 +98,6 @@ class Image:
                 else:
                     self.__data[x][y] = tmp[self.__n - y][self.__m - x]
 
-    def distance_between_pixels(self, x, y):
-        ''' Return the distance between pixels x of coordinates (x1, x2) and point y of coordinates (y1, y2) 
-            The distance corresponds to the distance between the centers of the two pixels '''
-        # let's get the center of the pixels
-        center_x = self.pixel_center(x[0], x[1])
-        center_y = self.pixel_center(y[0], y[1])        
-        return np.sqrt((center_x[0] - center_y[0])**2 + (center_x[1] - center_y[1])**2)
-    
-    def c1(r):
-        return 1 / (r+1)
-
-    def c2(r):
-        return np.exp(-r)
-
-    def c3(r):
-        u = 5
-        s = np.sqrt(0.2)
-        return 1/2 (1 + math.erf((r - u)/(s*sqrt(2))))
 
     def simulate_low_pressure(self, center, c):
         ''' Return the image at which we have simulate a low pressure of center center.
@@ -122,149 +106,11 @@ class Image:
                 - c : mathematical function of one argument (c(r)), monotonically decreasing as r tends to infinity, with c(0)=1 and c(r)=0 the limit when
                 r tends to infinity.
         '''
-        center_coord = self.pixel_center(center[0], center[1])
+        center_coord = Starter_2.pixel_center(center[0], center[1])
         for x in range(self.__n):
             for y in range(self.__m):
-                distance = distance_between_pixels((x, y), center_coord)
+                distance = Main_Course_1.distance_between_pixels((x, y), center_coord)
                 self.__data[x][y] *= c(distance)
-
-    def rotate(self, p, center_normalized):
-        ''' 2D rotation of the img matrix in a p angle
-        Makes the image bigger to compensate'''
-        center = np.array([self.__data.shape[0]//(1/center_normalized[0]),self.__data.shape[1]//(1/center_normalized[1])]).astype(int)
-        print(center)
-        p_radian = p * np.pi/180
-        n, m = self.__data.shape
-        rotation_matrix = np.array([[np.cos(p_radian), -np.sin(p_radian)],[np.sin(p_radian), np.cos(p_radian)]])
-        
-        n_rotated = n
-        m_rotated = m
-        offset_x = 0
-        offset_y = 0
-        for i_c in [0,n-1] :
-            for j_c in [0,m-1] :
-                i = i_c-center[0]
-                j = j_c-center[1]
-                index_centered = np.array([i, j])
-                rotated_ind_centered = np.floor(rotation_matrix @ index_centered).astype(int)
-                rotated_ind = rotated_ind_centered + center
-                
-                if rotated_ind[0]>n_rotated :
-                    n_rotated = rotated_ind[0]
-                elif rotated_ind[0] < -offset_x:
-                    offset_x = -rotated_ind[0]
-                
-                if rotated_ind[1]>m_rotated :
-                    m_rotated = rotated_ind[1]
-                elif rotated_ind[1] < -offset_y:
-                    offset_y = -rotated_ind[1]
-
-        print(offset_x,offset_y)
-        print(n_rotated,m_rotated)
-
-        tmp = np.copy(self.__data)
-        self.__data = np.ones((n_rotated + offset_x, m_rotated + offset_y))
-
-        for i_c in range(0,n_rotated + offset_x):
-            for j_c in range(0,m_rotated + offset_y):
-                i = i_c-center[0] - offset_x
-                j = j_c-center[1] - offset_y
-                index_centered = np.array([i, j])
-                rotated_ind = np.floor(rotation_matrix @ index_centered).astype(int)
-                # print(rotated_ind)
-                if (0 <= rotated_ind[0] + center[0] < n) and (0 <=rotated_ind[1] + center[1]  < m):
-                    self.__data[i_c][j_c] = tmp[rotated_ind[0] + center[0] ][rotated_ind[1] + center[1]]
-
-
-    def rotate2(self, p, center_normalized):
-        ''' 2D rotation of the img matrix in a p angle
-         Keeps the image size constant '''
-        # Get the pixel which will be the center of the rotation
-        center = np.array([self.__data.shape[0]//(1/center_normalized[0]),self.__data.shape[1]//(1/center_normalized[1])]).astype(int)
-        # Convert p to radian
-        p_radian = p * np.pi/180
-        n, m = self.__data.shape
-        # rotatation matrix
-        rotation_matrix = np.array([[np.cos(p_radian), -np.sin(p_radian)],[np.sin(p_radian), np.cos(p_radian)]])
-        
-        # temporary copy of the grid
-        tmp = np.copy(self.__data)
-        self.__data = np.ones((n,m))
-
-        # calculate the new coordinates of each pixel (keeping the same intensity)
-        for i in range(0,n):
-            for j in range(0,m):
-                # adapt coordinates to the center of rotation
-                i_centered = i-center[0]
-                j_centered = j-center[1]
-                index_centered = np.array([i_centered, j_centered])
-                # compute the rotation of the pixel
-                rotated_ind = np.floor(rotation_matrix @ index_centered).astype(int)
-                # initialize the image by the rotation to the new pixel intensity, if in the boundaries of the image
-                if (0 <= rotated_ind[0] + center[0] < n) and (0 <=rotated_ind[1] + center[1]  < m):
-                    self.__data[i][j] = tmp[rotated_ind[0] + center[0]][rotated_ind[1] + center[1]]
-
-    def linear_interp(self, x, x1, x2, vx1, vx2, axis="vertical"):
-        ''' Perorm the linear interpolation between the points x1 and x2, of values vx1 and vx2 
-        NB : we have ||x1 - x2|| = 1
-            Parameters:
-                - x : point of which we want to calculate the value threw interpolation (we assume that x is in [x1, x2])
-                - x1, x2 : points from which we know the values
-                - vx1, vx2 : values at points x1 and x2
-                - axis : string, taking two possible values : "vertical" or "horizontal", in order to know if the highest bound of x2 is n or m
-            Return the value vx, of the point x  '''
-
-        if axis == "vertical":
-            bound_sup = self.__m
-        elif axis == "horizontal":
-            bound_sup = self.__n
-        # Cases where x belongs to the surroundings (of margin length 0.5) of the image
-        if x1 < 0:
-            return vx2
-        if x2 > bound_sup:
-            return vx1
-        
-        alpha = x - x1
-        beta = 1 - alpha
-        return vx1 * beta + vx2 * alpha # since we are in the case where ||x1 - x2|| = 1, then this expression is equivalent to : vx1 * (1-alpha) + vx2 * (1-beta)
-
-    def bilinear_interp(self, point, image):
-        ''' Perform the bilinear interpolation of the coordinate point in the image image 
-            Parameters :
-                - point : tuple of float, belonging to [0;n]x[0;m]
-                - image : bi-dimensionnal of size n x m retpresenting the pixel intensity of the image '''
-        # find the four points to perform the bi-linear interpolation
-        # find their vertical axis value
-        if point[0] - np.floor(point[0]) > 0.5:
-            x1_0 = np.floor(point[0]) + 0.5
-            x3_0 = np.ceil(point[0]) + 0.5
-        else:
-            x1_0 = np.floor(point[0]) - 0.5
-            x3_0 = np.floor(point[0]) + 0.5
-        x2_0 = x1_0
-        x4_0 = x3_0
-        
-        # find their horizontal axis value
-        if point[1] - np.floor(point[1]) > 0.5:
-            x1_1 = np.floor(point[1]) + 0.5
-            x2_1 = np.ceil(point[1]) + 0.5
-        else:
-            x1_1 = np.floor(point[1]) - 0.5
-            x2_1 = np.floor(point[1]) + 0.5
-        x3_1 = x1_1
-        x4_1 = x2_1
-
-        x1 = np.array([x1_0, x1_1])
-        x2 = np.array([x2_0, x2_1])
-        x3 = np.array([x3_0, x3_1])
-        x4 = np.array([x4_0, x4_1])
-
-        # first, we compute the linear interpolation according to the vertical axis
-        v13 = self.linear_interp(point[0], x1_0, x3_0, image.intensity_of_center(x1), image.intensity_of_center(x3), axis="vertical")
-        v24 = self.linear_interp(point[0], x2_0, x4_0, image.intensity_of_center(x2), image.intensity_of_center(x4), axis="horizontal")
-        
-        # secondly, we compute the linear interpolation according to the horizontal axis, with the value obtained above
-        return self.linear_interp(point[1], x1_1, x2_1, v13, v24)
 
 
     def rotate_translate(self, p, center, offset):
@@ -283,18 +129,21 @@ class Image:
         p_radian = p * np.pi/180
         # compute the inverse rotatation matrix
         inverse_rotation_matrix = np.array([[np.cos(p_radian), np.sin(p_radian)],[-np.sin(p_radian), np.cos(p_radian)]])
+        # center of rotation coordiantes (coordinates of the center of the pixel "center", given as parameter)
+        coord_center_of_rotation = Starter_2.pixel_center(center[0], center[1])
         for i in range(0, self.__n):
             for j in range(0, self.__m):
                 # for each pixel of the result image, calculate its coordinates by the inverse rotation matrix
+                # get the coordinates of the center of the pixel
+                pixel_center = Starter_2.pixel_center(i, j)
                 # adapt coordinates to the center of rotation
-                i_centered = i - center[0]
-                j_centered = j - center[1]
-                pixel_center = self.pixel_center(i_centered, j_centered)
-                inverse_coord = np.dot(inverse_rotation_matrix, pixel_center)
-                if (0 <= inverse_coord[0] + center[0] <= self.__n) and (0 <= inverse_coord[1] + center[1] <= self.__m):
+                pixel_to_rotate = np.array([pixel_center[0] - coord_center_of_rotation[0], pixel_center[1] - coord_center_of_rotation[1]])
+                # calculate the inverse image by the rotation
+                inverse_coord = np.dot(inverse_rotation_matrix, pixel_to_rotate)
+                if (0 <= inverse_coord[0] + coord_center_of_rotation[0] <= self.__n) and (0 <= inverse_coord[1] + coord_center_of_rotation[1] <= self.__m):
                     # if the coordinates of the pixel by the inverse rotation matrix is in the range of the original image
                     # let's perform a bi-linear interpolation to compute the intensity of the rotated pixel
-                    self.__data[i][j] = self.bilinear_interp(np.array([inverse_coord[0] + center[0], inverse_coord[1] + center[1]]), tmp)
+                    self.__data[i][j] = Starter_2.bilinear_interp(np.array([inverse_coord[0] + coord_center_of_rotation[0], inverse_coord[1] + coord_center_of_rotation[1]]), tmp)
                 # otherwise the pixel intensity is set to 1 
         # free up memory space occupied by tmp
         del tmp
@@ -312,17 +161,6 @@ class Image:
         # free up memory space occupied by tmp
         del tmp
        
-
-    def pixel_center(self, i, j):
-        ''' Return the exact value of the center of the pixel of coordinates (i,j) '''
-        return np.array([int(i+0.5), int(j+0.5)])
-    
-    def intensity_of_center(self, point):
-        ''' Return the pixel intensity of the pixel of center point=(i, j) '''
-        if (0 <= point[0]-0.5 < self.__n) and (0 <= point[1]-0.5 < self.__m):
-            return self.__data[int(point[0]-0.5)][int(point[1]-0.5)]
-        else:
-            return 1
 
     def blur(self, kernel_size):
         """
