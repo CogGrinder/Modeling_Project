@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 from image import Image
 
-# kernel = np.ones((15, 15))/225
-img = Image("images/clean_finger.png")
-img.conv_2d(200, 125)
+img = Image("images/moist_finger.png")
+img.display()
+img.symmetry()
 img.display()

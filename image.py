@@ -267,21 +267,23 @@ class Image:
                     np.linalg.norm(np.array([i,j]) - np.array([self.__n, 0])),
                     np.linalg.norm(np.array([i,j]) - np.array([self.__n, self.__m])))
         
-        # we chose 8 because 15 // 2 + 1 = 8 (15 is the max size of our kernel)
-        N = int(np.floor(((8-1)/dist_max) * np.linalg.norm(np.array([i,j]) - np.array([xc,yc])))+1)
-        
-        N_float = ((8-1)/dist_max) * np.linalg.norm(np.array([i,j]) - np.array([xc,yc])) + 1
-        N_int = math.floor(N_float)
+        # we normalize distance to the center d((i,j), (x_c,y_c)) => (float between 0 and 1)
+        normalized_dist = np.linalg.norm(np.array([i,j]) - np.array([xc,yc]))/dist_max
 
-        if N_float - N_int > 0:
-            matrix = np.eye(2*N_int+1)[::-1]
-            matrix[0][-1] = N_float - N_int
-            matrix[-1][0] = N_float - N_int
-        else:
-            matrix = np.eye(2*N_int-1)[::-1]
-
+        # renormalize to the interval [1, 15] (15 is the max size of our kernel)
+        N_float = normalized_dist * (15-1) + 1
         
-         
+        # round N_float to the previous odd integer
+        N_odd = math.floor((N_float-1)/2)*2 + 1
+
+        # create a N_odd + 2 size matrix
+        matrix = np.eye(N_odd+2)[::-1]
+
+        # fill diagonal corners
+        matrix[0][-1] = (N_float - N_odd)/2 # normalization to [0,1]
+        matrix[-1][0] = (N_float - N_odd)/2
+
+        # preserve the intensity of the image
         return matrix/np.sum(matrix)
 
     def conv_2d(self, xc, yc):
