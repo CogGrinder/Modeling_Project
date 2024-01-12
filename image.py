@@ -17,6 +17,7 @@ class Image:
             Display the image
         """
         plt.imshow(self._data, cmap='gray')
+        plt.imshow(self._data, cmap='gray')
         plt.show()
 
     def save(self, filename):
@@ -25,6 +26,7 @@ class Image:
         """
         self.__denormalize()
         cv2.imwrite(filename, self._data)
+        cv2.imwrite(filename, self._data)
         self.__normalize()
 
     def max(self):
@@ -32,11 +34,13 @@ class Image:
             Returns the maximum intensity of the image
         """
         return np.max(self._data)
+        return np.max(self._data)
 
     def min(self):
         """
             Returns the minimum intensity of the image
         """
+        return np.min(self._data)
         return np.min(self._data)
 
     def __normalize(self):
@@ -46,6 +50,7 @@ class Image:
         """
         min = self.min()
         max = self.max()
+        self._data = (self._data - min)/(max - min)
         self._data = (self._data - min)/(max - min)
 
     def __denormalize(self, original_min=-1, original_max=-1):
@@ -57,9 +62,12 @@ class Image:
         """
         if original_max == -1 and original_min == -1:
             self._data *= 256
+            self._data *= 256
         else:
             self._data = self._data * \
+            self._data = self._data * \
                 (original_max - original_min) + original_min
+        self._data = self._data.astype(int)
         self._data = self._data.astype(int)
 
     def create_rectangle(self, corner, width, length, color):
@@ -74,16 +82,21 @@ class Image:
                 raise ValueError("invalid color")
 
         self._data[corner[0]: corner[0] + width, corner[1]: corner[1] + length] = value
+        self._data[corner[0]: corner[0] + width, corner[1]: corner[1] + length] = value
 
     def symmetry(self, axis = 0):
         ''' Create and return the symetric of img with respect to the y axis '''
+        n, m = self._data.shape
+        tmp=np.copy(self._data)
         n, m = self._data.shape
         tmp=np.copy(self._data)
         for x in range(n):
             for y in range(m):
                 if axis == 0:
                     self._data[x][y] = tmp[n - 1 - x][y]
+                    self._data[x][y] = tmp[n - 1 - x][y]
                 else:
+                    self._data[x][y] = tmp[x][m - 1 - y]
                     self._data[x][y] = tmp[x][m - 1 - y]
 
     def linear_interp(self, x, x1, x2, vx1, vx2):
@@ -213,6 +226,7 @@ class Image:
         """
             Return an array of the 2D fast Fourier transform applied on the image
         """
+        ft = np.fft.ifftshift(self._data)
         ft = np.fft.ifftshift(self._data)
         ft = np.fft.fft2(ft)
         return np.fft.fftshift(ft)
