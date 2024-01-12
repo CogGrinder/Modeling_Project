@@ -3,8 +3,9 @@ import math
 from scipy import signal
 import cv2
 import matplotlib.pyplot as plt
-
-from starter3 import Starter_3
+import copy
+from starter2 import Starter_2
+from main_course_1 import Main_Course_1
 
 class Image:
     def __init__(self, filename):
@@ -16,8 +17,7 @@ class Image:
         """
             Display the image
         """
-        plt.imshow(self._data, cmap='gray')
-        plt.imshow(self._data, cmap='gray')
+        plt.imshow(self.__data, cmap='gray', vmin=0, vmax=1)
         plt.show()
 
     def save(self, filename):
@@ -83,74 +83,43 @@ class Image:
         self._data[corner[0]: corner[0] + width, corner[1]: corner[1] + length] = value
         self._data[corner[0]: corner[0] + width, corner[1]: corner[1] + length] = value
 
-    def symmetry(self, axis = 0):
-        ''' Create and return the symetric of img with respect to the y axis '''
-        n, m = self._data.shape
-        tmp=np.copy(self._data)
-        n, m = self._data.shape
-        tmp=np.copy(self._data)
-        for x in range(n):
-            for y in range(m):
+    def symmetry(self, axis=0):
+        ''' Return the symetric of img with respect to the x axis if axis=0,
+                                                    to the y axis if axis=1 '''
+        tmp=np.copy(self.__data)
+        for x in range(self.__n):
+            for y in range(self.__m):
                 if axis == 0:
                     self._data[x][y] = tmp[n - 1 - x][y]
                     self._data[x][y] = tmp[n - 1 - x][y]
                 else:
-                    self._data[x][y] = tmp[x][m - 1 - y]
-                    self._data[x][y] = tmp[x][m - 1 - y]
+                    self.__data[x][y] = tmp[x][m - 1 - y]
 
-    def linear_interp(self, x, x1, x2, vx1, vx2):
-        ''' Perorm the linear interpolation between the points x1 and x2, of values vx1 and vx2 
-        NB : we have ||x1 - x2|| = 1
-            Parameters:
-                - x : point of which we want to calculate the value threw interpolation (we assume that x is in [x1, x2])
-                - x1, x2 : points from which we know the values
-                - vx1, vx2 : values at points x1 and x2
-            Return the value vx, of the point x  '''
-        # Cases where x belongs to the surroundings (of margin length 0.5) of the image
-        if x1 < 0:
-            return vx2
-        if x2 > self.__n:
-            return vx1
-        
-        alpha = x - x1
-        beta = 1 - alpha
-        return vx1 * (1 - alpha) + vx2 * (1 - beta)
+    def symmetry_diagonal(self, axis=0):
+        ''' Return the symmetric of the image with respect to the diagonal going from bottom left corner to top right corner if axis=0
+                                                                           going from top left corner to bottom right corner if axis=1 '''
+        tmp = np.copy(self.__data)
+        self.__data = np.ones((self.__m, self.__n))
+        for x in range(self.__n):
+            for y in range(self.__m):
+                if axis == 0:
+                    self.__data[x][y] = tmp[y][x]
+                else:
+                    self.__data[x][y] = tmp[self.__n - y][self.__m - x]
 
-    def bilinear_interp(self, point, image):
-        ''' Perform the bilinear interpolation of the coordinate point in the image image 
+
+    def simulate_low_pressure(self, center, c):
+        ''' Return the image at which we have simulate a low pressure of center center.
             Parameters :
-                - point : tuple of float, belonging to [0;n]x[0;m]
-                - image : bi-dimensionnal of size n x m retpresenting the pixel intensity of the image '''
-        # find the four points to perform the bi-linear interpolation
-        if point[0] - np.floor(point[0]) > 0.5:
-            x1_0 = np.floor(point[0]) + 0.5
-            x3_0 = np.ceil(point[0]) + 0.5
-        else:
-            x1_0 = np.floor(point[0]) - 0.5
-            x3_0 = np.floor(point[0]) + 0.5
-        x2_0 = x1_0
-        x4_0 = x3_0
-        
-        if point[1] - np.floor(point[1]) > 0.5:
-            x1_1 = np.floor(point[1]) + 0.5
-            x2_1 = np.ceil(point[1]) + 0.5
-        else:
-            x1_1 = np.floor(point[1]) - 0.5
-            x2_1 = np.floor(point[1]) + 0.5
-        x3_1 = x1_1
-        x4_1 = x2_1
-
-        x1 = np.array([x1_0, x1_1])
-        x2 = np.array([x2_0, x2_1])
-        x3 = np.array([x3_0, x3_1])
-        x4 = np.array([x4_0, x4_1])
-
-        # first, we compute the linear interpolation according to the vertical axis
-        v13 = self.linear_interp(point[0], x1_0, x3_0, self.intensity_of_center(x1), self.intensity_of_center(x3))
-        v24 = self.linear_interp(point[0], x2_0, x4_0, self.intensity_of_center(x2), self.intensity_of_center(x4))
-        
-        # secondly, we compute the linear interpolation according to the horizontal axis, with the value obtained above
-        return self.linear_interp(point[1], x1_1, x2_1, v13, v24)
+                - center : coordinates of the pixel center of the low pressure (tuple of two int values)
+                - c : mathematical function of one argument (c(r)), monotonically decreasing as r tends to infinity, with c(0)=1 and c(r)=0 the limit when
+                r tends to infinity.
+        '''
+        center_coord = Starter_2.pixel_center(center[0], center[1])
+        for x in range(self.__n):
+            for y in range(self.__m):
+                distance = Main_Course_1.distance_between_pixels((x, y), center_coord)
+                self.__data[x][y] *= c(distance)
 
 
     def rotate_translate(self, p, center, offset):
@@ -160,33 +129,47 @@ class Image:
                 - center : rotation center, tuple of two int values (supposed to be contained in the image shape), eg: (150, 200), for an image of shape 300x500
                 - offset : parameters of the translation, tuple of int values, eg: (2, -3) --> translation : (x', y') = (x + 2, y - 3)
         '''
-
-        # temporary copy of the grid
-        tmp = np.copy(self._data)
-        self._data = np.ones((self.__n,self.__m))
-
+        # create a deepcopy of the self instance
+        tmp = copy.deepcopy(self)
+        self.__data = np.ones((self.__n,self.__m))
+        
         # Part 1 : perform the rotation
         # Convert p to radian
         p_radian = p * np.pi/180
         # compute the inverse rotatation matrix
         inverse_rotation_matrix = np.array([[np.cos(p_radian), np.sin(p_radian)],[-np.sin(p_radian), np.cos(p_radian)]])
+        # center of rotation coordiantes (coordinates of the center of the pixel "center", given as parameter)
+        coord_center_of_rotation = Starter_2.pixel_center(center[0], center[1])
         for i in range(0, self.__n):
             for j in range(0, self.__m):
                 # for each pixel of the result image, calculate its coordinates by the inverse rotation matrix
-                pixel_center = self.pixel_center(i, j)
-                inverse_coord = np.dot(inverse_rotation_matrix, pixel_center)
-                # perform a bi-linear interpolation to compute the intensity of the rotated pixel
-                new_intensity = self.bilinear_interp(inverse_coord, tmp)
+                # get the coordinates of the center of the pixel
+                pixel_center = Starter_2.pixel_center(i, j)
+                # adapt coordinates to the center of rotation
+                pixel_to_rotate = np.array([pixel_center[0] - coord_center_of_rotation[0], pixel_center[1] - coord_center_of_rotation[1]])
+                # calculate the inverse image by the rotation
+                inverse_coord = np.dot(inverse_rotation_matrix, pixel_to_rotate)
+                if (0 <= inverse_coord[0] + coord_center_of_rotation[0] <= self.__n) and (0 <= inverse_coord[1] + coord_center_of_rotation[1] <= self.__m):
+                    # if the coordinates of the pixel by the inverse rotation matrix is in the range of the original image
+                    # let's perform a bi-linear interpolation to compute the intensity of the rotated pixel
+                    self.__data[i][j] = Starter_2.bilinear_interp(np.array([inverse_coord[0] + coord_center_of_rotation[0], inverse_coord[1] + coord_center_of_rotation[1]]), tmp)
+                # otherwise the pixel intensity is set to 1 
+        # free up memory space occupied by tmp
+        del tmp
 
-    @staticmethod
-    def pixel_center(i, j):
-        ''' Return the exact value of the center of the pixel of coordinates (i,j) '''
-        return np.array([int(i+0.5), int(j+0.5)])
-    
-    @staticmethod
-    def intensity_of_center(point):
-        ''' Return the pixel intensity of the pixel of center point=(i, j) '''
-        return self._data[int(point[0]-0.5), int(point[1]-0.5)]
+        # Part 2 : perform the translation
+        # create a deepcopy of the self instance
+        tmp = copy.deepcopy(self)
+        self.__data = np.ones((self.__n,self.__m))
+        for i in range(0, self.__n):
+            for j in range(0, self.__m):
+                if (0 <= i - offset[0] < self.__n) and (0 <= j - offset[1] < self.__m):
+                    self.__data[i][j] = tmp.__data[i - offset[0]][j - offset[1]]
+                else:
+                    self.__data[i][j] = 1
+        # free up memory space occupied by tmp
+        del tmp
+       
 
     def blur(self, kernel_size):
         """

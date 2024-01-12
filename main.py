@@ -48,10 +48,10 @@ img.display()
 # img.rotate(-45,(0.5,0.5))
 # img.display()
 
-# img.rotate2(45,(0.55,0.6))
+img.rotate2(45,(0.55,0.6))
 
-# img.save("warp1_finger_edit.png")
-# #img.display()
+img.save("warp1_finger_edit.png")
+#img.display()
 
 # img.rotate2(-45,(0.5,0.5))
 # #img.display()
