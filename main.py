@@ -42,42 +42,42 @@ img.create_rectangle((175,125),25,50,"black")
 # img.symmetry(1)
 # img.rotate(45,(0.55,0.6))
 
-# img.save("warp1_finger_edit.png")
-# img.display()
+img.save("warp1_finger_edit.png")
+img.display()
 
 # img.rotate(-45,(0.5,0.5))
 # img.display()
 
-img.rotate2(45,(0.55,0.6))
+# img.rotate2(45,(0.55,0.6))
 
-img.save("warp1_finger_edit.png")
-#img.display()
+# img.save("warp1_finger_edit.png")
+# #img.display()
 
-img.rotate2(-45,(0.5,0.5))
-#img.display()
+# img.rotate2(-45,(0.5,0.5))
+# #img.display()
 
 
-# Testing for convolution
-# img = Image("images/warp1_finger.png")
+# # Testing for convolution
+# # img = Image("images/warp1_finger.png")
 
-# kernel = np.array([[-1,-1,-1],[-1,8,-1],[-1,-1,-1]])
+# # kernel = np.array([[-1,-1,-1],[-1,8,-1],[-1,-1,-1]])
+# # img.conv_2d(kernel)
+# # img.display()
+
+# img = Image("images/moist_finger.png")
+# kernel = np.array([[0,-1,0], [-1,4,-1], [0,-1,0]])
 # img.conv_2d(kernel)
 # img.display()
 
-img = Image("images/moist_finger.png")
-kernel = np.array([[0,-1,0], [-1,4,-1], [0,-1,0]])
-img.conv_2d(kernel)
-img.display()
+# #testing with black image
+# # img.test_black(5)
 
-#testing with black image
-# img.test_black(5)
+# # Testing 2D FFT
+# img = Image("images/moist_finger.png")
+# img_fft = img.fft_2d()
+# plt.imshow(abs(img_fft))
+# plt.show()
 
-# Testing 2D FFT
-img = Image("images/moist_finger.png")
-img_fft = img.fft_2d()
-plt.imshow(abs(img_fft))
-plt.show()
-
-img_ifft = img.ifft_2d(img_fft)
-plt.imshow(abs(img_ifft), cmap="gray")
-plt.show()
+# img_ifft = img.ifft_2d(img_fft)
+# plt.imshow(abs(img_ifft), cmap="gray")
+# plt.show()

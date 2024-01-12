@@ -4,6 +4,8 @@ from scipy import signal
 import cv2
 import matplotlib.pyplot as plt
 
+from starter3 import Starter_3
+
 class Image:
     def __init__(self, filename):
         self._data = cv2.imread(filename, 0)
@@ -83,82 +85,6 @@ class Image:
                     self._data[x][y] = tmp[n - 1 - x][y]
                 else:
                     self._data[x][y] = tmp[x][m - 1 - y]
-
-    def rotate(self, p, center_normalized):
-        ''' 2D rotation of the img matrix in a p angle
-        Makes the image bigger to compensate'''
-        center = np.array([self._data.shape[0]//(1/center_normalized[0]),self._data.shape[1]//(1/center_normalized[1])]).astype(int)
-        print(center)
-        p_radian = p * np.pi/180
-        n, m = self._data.shape
-        rotation_matrix = np.array([[np.cos(p_radian), -np.sin(p_radian)],[np.sin(p_radian), np.cos(p_radian)]])
-        
-        n_rotated = n
-        m_rotated = m
-        offset_x = 0
-        offset_y = 0
-        for i_c in [0,n-1] :
-            for j_c in [0,m-1] :
-                i = i_c-center[0]
-                j = j_c-center[1]
-                index_centered = np.array([i, j])
-                rotated_ind_centered = np.floor(rotation_matrix @ index_centered).astype(int)
-                rotated_ind = rotated_ind_centered + center
-                
-                if rotated_ind[0]>n_rotated :
-                    n_rotated = rotated_ind[0]
-                elif rotated_ind[0] < -offset_x:
-                    offset_x = -rotated_ind[0]
-                
-                if rotated_ind[1]>m_rotated :
-                    m_rotated = rotated_ind[1]
-                elif rotated_ind[1] < -offset_y:
-                    offset_y = -rotated_ind[1]
-
-        print(offset_x,offset_y)
-        print(n_rotated,m_rotated)
-
-        tmp = np.copy(self._data)
-        self._data = np.ones((n_rotated + offset_x, m_rotated + offset_y))
-
-        for i_c in range(0,n_rotated + offset_x):
-            for j_c in range(0,m_rotated + offset_y):
-                i = i_c-center[0] - offset_x
-                j = j_c-center[1] - offset_y
-                index_centered = np.array([i, j])
-                rotated_ind = np.floor(rotation_matrix @ index_centered).astype(int)
-                # print(rotated_ind)
-                if (0 <= rotated_ind[0] + center[0] < n) and (0 <=rotated_ind[1] + center[1]  < m):
-                    self._data[i_c][j_c] = tmp[rotated_ind[0] + center[0] ][rotated_ind[1] + center[1]]
-
-
-    def rotate2(self, p, center_normalized):
-        ''' 2D rotation of the img matrix in a p angle
-         Keeps the image size constant '''
-        # Get the pixel which will be the center of the rotation
-        center = np.array([self._data.shape[0]//(1/center_normalized[0]),self._data.shape[1]//(1/center_normalized[1])]).astype(int)
-        # Convert p to radian
-        p_radian = p * np.pi/180
-        n, m = self._data.shape
-        # rotatation matrix
-        rotation_matrix = np.array([[np.cos(p_radian), -np.sin(p_radian)],[np.sin(p_radian), np.cos(p_radian)]])
-        
-        # temporary copy of the grid
-        tmp = np.copy(self._data)
-        self._data = np.ones((n,m))
-
-        # calculate the new coordinates of each pixel (keeping the same intensity)
-        for i in range(0,n):
-            for j in range(0,m):
-                # adapt coordinates to the center of rotation
-                i_centered = i-center[0]
-                j_centered = j-center[1]
-                index_centered = np.array([i_centered, j_centered])
-                # compute the rotation of the pixel
-                rotated_ind = np.floor(rotation_matrix @ index_centered).astype(int)
-                # initialize the image by the rotation to the new pixel intensity, if in the boundaries of the image
-                if (0 <= rotated_ind[0] + center[0] < n) and (0 <=rotated_ind[1] + center[1]  < m):
-                    self._data[i][j] = tmp[rotated_ind[0] + center[0]][rotated_ind[1] + center[1]]
 
     def linear_interp(self, x, x1, x2, vx1, vx2):
         ''' Perorm the linear interpolation between the points x1 and x2, of values vx1 and vx2 
@@ -240,11 +166,13 @@ class Image:
                 # perform a bi-linear interpolation to compute the intensity of the rotated pixel
                 new_intensity = self.bilinear_interp(inverse_coord, tmp)
 
-    def pixel_center(self, i, j):
+    @staticmethod
+    def pixel_center(i, j):
         ''' Return the exact value of the center of the pixel of coordinates (i,j) '''
         return np.array([int(i+0.5), int(j+0.5)])
     
-    def intensity_of_center(self, point):
+    @staticmethod
+    def intensity_of_center(point):
         ''' Return the pixel intensity of the pixel of center point=(i, j) '''
         return self._data[int(point[0]-0.5), int(point[1]-0.5)]
 
@@ -259,33 +187,6 @@ class Image:
         # Convolve the image with a blur kernel
         self._data = cv2.filter2D(src=self._data, ddepth=-1, kernel=k)
 
-    def kernel(self,i,j,xc,yc):
-
-        # maximum distance from (i,j) point to each corners of the image
-        dist_max = max(np.linalg.norm(np.array([i,j]) - np.array([0,0])),
-                    np.linalg.norm(np.array([i,j]) - np.array([0,self.__m])),
-                    np.linalg.norm(np.array([i,j]) - np.array([self.__n, 0])),
-                    np.linalg.norm(np.array([i,j]) - np.array([self.__n, self.__m])))
-        
-        # we normalize distance to the center d((i,j), (x_c,y_c)) => (float between 0 and 1)
-        normalized_dist = np.linalg.norm(np.array([i,j]) - np.array([xc,yc]))/dist_max
-
-        # renormalize to the interval [1, 15] (15 is the max size of our kernel)
-        N_float = normalized_dist * (15-1) + 1
-        
-        # round N_float to the previous odd integer
-        N_odd = math.floor((N_float-1)/2)*2 + 1
-
-        # create a N_odd + 2 size matrix
-        matrix = np.eye(N_odd+2)[::-1]
-
-        # fill diagonal corners
-        matrix[0][-1] = (N_float - N_odd)/2 # normalization to [0,1]
-        matrix[-1][0] = (N_float - N_odd)/2
-
-        # preserve the intensity of the image
-        return matrix/np.sum(matrix)
-
     def conv_2d(self, xc, yc):
         
         n,m = self._data.shape
@@ -299,7 +200,7 @@ class Image:
         
         for i in range(0, n):
             for j in range(0, m):
-                K = self.kernel(i,j,xc,yc)
+                K = Starter_3.kernel(i,j,xc,yc,self.__m,self.__n)
                 N = K.shape[0]
                 result = 0
                 for N_i in range(-(N-1)//2, (N-1)//2 + 1):
@@ -336,6 +237,6 @@ class Image:
         # return np.fft.fftshift(ift_fg)
         self._data = signal.fftconvolve(self._data, g, mode="same")
 
-    def test_black(self, n=5):
-        np.set_printoptions(precision=1)
-        self._data = np.ones((n,n))
+    # def test_black(self, n=5):
+    #     np.set_printoptions(precision=1)
+    #     self._data = np.ones((n,n))
