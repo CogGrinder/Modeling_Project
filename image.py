@@ -6,7 +6,7 @@ import copy
 
 from starter2 import Starter_2
 from starter3 import Starter_3
-# from main_course_1 import Main_Course_1
+from main_course_1 import Main_Course_1
 
 class Image:
     def __init__(self, filename):
@@ -67,13 +67,12 @@ class Image:
     def create_rectangle(self, corner, width, length, color):
         ''' Create and return a version of the image, where has been included a rectangle of origin (top-left corner) origin (tuple of 2 int values, coordinates
         of the origin), of width witdth and lenght lenght, with pixel value value (normalized) '''
-        match color:
-            case "black":
-                value = 0
-            case "white":
-                value = 1
-            case _:
-                raise ValueError("invalid color")
+        if (color == "black"):
+            value = 0
+        elif (color == "white"):
+            value = 1
+        else:
+            raise ValueError("invalid color")
 
         self._data[corner[0]: corner[0] + width, corner[1]: corner[1] + length] = value
 
