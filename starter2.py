@@ -110,15 +110,18 @@ if __name__ == "__main__":
 
     from image import Image
     
-    Starter_2.unit_test_bilinear_interp()
+    # Starter_2.unit_test_bilinear_interp()
 
-    # img = Image("images/clean_finger.png")
-    # img.display()
+    img = Image("images/clean_finger.png")
+    img.display()
+    print("Image size :", img.n, "x", img.m)
+    img.rotate_translate(76, (46, 25), (-122,38), data_conservation=True)
 
-    # img.rotate_translate(16, (100, 100), (-50,15))
+    img.display()
+    print("Image size :", img.n, "x", img.m)
 
-    # img.display()
+    img.rotate_translate(-76, (46, 25), (122,-38), data_conservation=True)
 
-    # img.rotate_translate(-16, (100, 100), (50,-15))
-
-    # img.display()
+    img.display()
+    print("Image size :", img.n, "x", img.m)
+    

@@ -28,6 +28,41 @@ class Image:
         self.__denormalize()
         cv2.imwrite(filename, self.data)
         self.normalize()
+        
+    def add_rows_of_pixels(self, num_rows=1, at_beginning=True):
+        """
+        Add rows of ones to the data array.
+
+        Parameters:
+        - num_rows: Number of lines to add.
+        - at_beginning: If True, add rows at the beginning; otherwise, add at the end.
+        """
+        ones_rows = np.ones((num_rows, self.m))
+        if at_beginning:
+            self.data = np.vstack([ones_rows, self.data])
+        else:
+            self.data = np.vstack([self.data, ones_rows])
+            
+        # Update the number of rows (self.n) after adding lines
+        self.n += num_rows
+        
+        
+    def add_columns_of_pixels(self, num_columns=1, at_beginning=True):
+        """
+        Add columns of ones to the data array.
+
+        Parameters:
+        - num_columns: Number of columns to add.
+        - at_beginning: If True, add columns at the beginning; otherwise, add at the end.
+        """
+        ones_columns = np.ones((self.n, num_columns), dtype=np.uint8)
+        if at_beginning:
+            self.data = np.hstack([ones_columns, self.data])
+        else:
+            self.data = np.hstack([self.data, ones_columns])
+
+        # Update the number of columns (self.m) after adding columns
+        self.m += num_columns
 
     def max(self):
         """
@@ -114,53 +149,113 @@ class Image:
                 self.data[x][y] *= c(distance)
 
 
-    def rotate_translate(self, p, center, offset):
-        ''' Complete the rotation-translation operation on the image
+    def rotate_translate(self, p, center, offset, data_conservation=False):
+        ''' Complete the rotation-translation operation on the image (perform the rotation and then, the translation !!! Operation not commutative !)
             Parameters :
                 - p : rotation angle, in degree
                 - center : rotation center, tuple of two int values (supposed to be contained in the image shape), eg: (150, 200), for an image of shape 300x500
                 - offset : parameters of the translation, tuple of int values, eg: (2, -3) --> translation : (x', y') = (x + 2, y - 3)
-        '''
+                - data_conservation : boolean, if true, then no data is lost during the transformation, meaning that the imga is redimensionned to keep all the data of the original image in the transformed image. Set to False by default
+        '''     
         # create a deepcopy of the self instance
         tmp = copy.deepcopy(self)
-        self.data = np.ones((self.n,self.m))
-        
-        # Part 1 : perform the rotation
+        self.data = np.ones((self.n,self.m)) 
+           
         # Convert p to radian
         p_radian = p * np.pi/180
-        # compute the inverse rotatation matrix
-        inverse_rotation_matrix = np.array([[np.cos(p_radian), np.sin(p_radian)],[-np.sin(p_radian), np.cos(p_radian)]])
-        # center of rotation coordiantes (coordinates of the center of the pixel "center", given as parameter)
+        # center of rotation coordinates (coordinates of the center of the pixel "center", given as parameter)
         coord_center_of_rotation = Starter_2.pixel_center(center[0], center[1])
-        for i in range(0, self.n):
-            for j in range(0, self.m):
-                # for each pixel of the result image, calculate its coordinates by the inverse rotation matrix
+        
+        # range of pixels to browse in the transformed image
+        # if no data conservation, it's image size
+        min_vert_range = 0
+        min_hori_range = 0
+        max_vert_range = self.n
+        max_hori_range = self.m
+        origin = np.array([0, 0])
+        
+        # image size redimensionning in case of data conservation
+        if data_conservation:
+            # calculate the rectangle (oriented according to the axis --> here it's a possibility to improve : get a data frame that fits more the data than a rectangle axis oriented) that contains all the data
+            # i.e : calculate min and max index, for both axis, in which all the information is contained
+            # browse all the image
+            min_vert = self.n
+            min_hori = self.m
+            max_vert = 0
+            max_hori = 0
+            for i in range(0, self.n):
+                for j in range(0, self.m):
+                    # if there is information, then pixel value is different than white (i.e : value below 1)
+                    if tmp.data[i][j] < 1:
+                        if i < min_vert:
+                            min_vert = i
+                        if i > max_vert:
+                            max_vert = i
+                        if j < min_hori:
+                            min_hori = j
+                        if j > max_hori:
+                            max_hori = j
+            # calculate the coordinates of the four vertices
+            x1 = Starter_2.pixel_center(min_vert, min_hori)
+            x2 = Starter_2.pixel_center(min_vert, max_hori)
+            x3 = Starter_2.pixel_center(max_vert, min_hori)
+            x4 = Starter_2.pixel_center(max_vert, max_hori)
+            # calculate the image of the rectangle by the transformation 
+            # compute the matrix of the transformation
+            # using 3x3 matrix to be able to make the product of matrix to compose transformations (homogeneous coordinates)
+            translation_matrix = np.array([[1, 0, offset[0]], [0, 1, offset[1]], [0, 0, 1]])
+            rotation_matrix = np.array([[np.cos(p_radian), -np.sin(p_radian), (1-np.cos(p_radian)) * coord_center_of_rotation[0] + coord_center_of_rotation[1] * np.sin(p_radian)], [np.sin(p_radian), np.cos(p_radian), -coord_center_of_rotation[0] * np.sin(p_radian) + coord_center_of_rotation[1] * (1-np.cos(p_radian))], [0, 0, 1]])
+            transformation_matrix = np.dot(translation_matrix, rotation_matrix)
+            image_x1 = np.dot(transformation_matrix, np.array([x1[0], x1[1], 1]))
+            image_x2 = np.dot(transformation_matrix, np.array([x2[0], x2[1], 1]))
+            image_x3 = np.dot(transformation_matrix, np.array([x3[0], x3[1], 1]))
+            image_x4 = np.dot(transformation_matrix, np.array([x4[0], x4[1], 1]))
+            # find the extreme values of the image
+            min_vert = int(np.floor(np.min(np.array([image_x1[0], image_x2[0], image_x3[0], image_x4[0]]))))
+            max_vert = int(np.ceil(np.max(np.array([image_x1[0], image_x2[0], image_x3[0], image_x4[0]]))))
+            min_hori = int(np.floor(np.min(np.array([image_x1[1], image_x2[1], image_x3[1], image_x4[1]]))))
+            max_hori = int(np.ceil(np.max(np.array([image_x1[1], image_x2[1], image_x3[1], image_x4[1]]))))
+            # redimension by adding blank data in the image if necessary
+            if max_vert > self.n:
+                self.add_rows_of_pixels(max_vert - self.n, at_beginning=False)
+            if min_vert < 0:
+                    self.add_rows_of_pixels(np.abs(min_vert), at_beginning=True)
+                    # if we add rows at the beginning, the original origin is evolving like this (taking +np.abs(min_vert) rows):
+                    origin[0] += np.abs(min_vert)
+            if max_hori > self.m:
+                self.add_columns_of_pixels(max_hori - self.m, at_beginning=False)
+            if min_hori < 0:
+                self.add_columns_of_pixels(np.abs(min_vert), at_beginning=True)  
+                # if we add columns at the beginning, the original origin is evolving like this (taking +np.abs(min_hori) columns):
+                origin[1] += np.abs(min_hori)
+            
+            # update of the range of pixels to browse in the transformed image
+            min_vert_range = min_vert
+            min_hori_range = min_hori
+            max_vert_range =  max_vert
+            max_hori_range = max_hori
+            
+        
+        # calculate the inverse operation : (rotation --> translation)^(-1) = translation^(-1) --> rotation^(-1)
+        # using 3x3 matrix to be able to make the product of matrix to compose transformations (homogeneous coordinates)
+        inverse_translation_matrix = np.array([[1, 0, -offset[0]], [0, 1, -offset[1]], [0, 0, 1]])
+        inverse_rotation_matrix = np.array([[np.cos(p_radian), np.sin(p_radian), (1-np.cos(p_radian)) * coord_center_of_rotation[0] - coord_center_of_rotation[1] * np.sin(p_radian)], [-np.sin(p_radian), np.cos(p_radian), coord_center_of_rotation[0] * np.sin(p_radian) + coord_center_of_rotation[1] * (1-np.cos(p_radian))], [0, 0, 1]])
+        inverse_transformation_matrix = np.dot(inverse_rotation_matrix, inverse_translation_matrix)             
+             
+        # for each pixel of the finished image, calculate its counter image by the rotation translation
+        for i in range(min_vert_range, max_vert_range):
+            for j in range(min_hori_range, max_hori_range):
                 # get the coordinates of the center of the pixel
                 pixel_center = Starter_2.pixel_center(i, j)
-                # adapt coordinates to the center of rotation
-                pixel_to_rotate = np.array([pixel_center[0] - coord_center_of_rotation[0], pixel_center[1] - coord_center_of_rotation[1]])
-                # calculate the inverse image by the rotation
-                inverse_coord = np.dot(inverse_rotation_matrix, pixel_to_rotate)
-                if (0 <= inverse_coord[0] + coord_center_of_rotation[0] <= self.n) and (0 <= inverse_coord[1] + coord_center_of_rotation[1] <= self.m):
+                counter_image_coord = np.dot(inverse_transformation_matrix, np.array([pixel_center[0], pixel_center[1], 1]))
+                if (0 <= counter_image_coord[0] <= tmp.n) and (0 <= counter_image_coord[1] <= tmp.m):
                     # if the coordinates of the pixel by the inverse rotation matrix is in the range of the original image
                     # let's perform a bi-linear interpolation to compute the intensity of the rotated pixel
-                    self.data[i][j] = Starter_2.bilinear_interp(np.array([inverse_coord[0] + coord_center_of_rotation[0], inverse_coord[1] + coord_center_of_rotation[1]]), tmp)
+                    self.data[i+origin[0]][j+origin[1]] = Starter_2.bilinear_interp(np.array([counter_image_coord[0], counter_image_coord[1]]), tmp)
                 # otherwise the pixel intensity is set to 1 
         # free up memory space occupied by tmp
         del tmp
-
-        # Part 2 : perform the translation
-        # create a deepcopy of the self instance
-        tmp = copy.deepcopy(self)
-        self.data = np.ones((self.n,self.m))
-        for i in range(0, self.n):
-            for j in range(0, self.m):
-                if (0 <= i - offset[0] < self.n) and (0 <= j - offset[1] < self.m):
-                    self.data[i][j] = tmp.data[i - offset[0]][j - offset[1]]
-                else:
-                    self.data[i][j] = 1
-        # free up memory space occupied by tmp
-        del tmp
+                
 
     def intensity_of_center(self, point):
         ''' Return the pixel intensity of the pixel of center point=(i, j) '''
