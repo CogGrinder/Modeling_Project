@@ -326,11 +326,11 @@ class Image:
         # print("ft_g:", ft_g.shape)
         # ift_fg = np.fft.ifft2(np.multiply(ft_f, ft_g))
         # return np.fft.fftshift(ift_fg)
-        self.data = signal.fftconvolve(self.__data, g, mode="same")
+        self.data = signal.fftconvolve(self.data, g, mode="same")
 
     def test_black(self, n=5):
         np.set_printoptions(precision=1)
-        self.__data = np.ones((n,n))
+        self.data = np.ones((n,n))
 
     @staticmethod
     def otsu_intraclass_variance(image, threshold):
@@ -353,8 +353,8 @@ class Image:
         image.__denormalize()
         
         otsu_threshold = min(
-		    range( np.min(image.__data)+1, np.max(image.__data) ),
-		    key = lambda th: self.otsu_intraclass_variance(image.__data, th)
+		    range( np.min(image.data)+1, np.max(image.data) ),
+		    key = lambda th: self.otsu_intraclass_variance(image.data, th)
 	    )  
         mini = self.min()
         maxi = self.max()
@@ -366,20 +366,20 @@ class Image:
             Plot the grayscale histogram of the image
         """
         # create the histogram
-        hist,bins = np.histogram(self.__data.ravel(),256,[0,1])
+        hist,bins = np.histogram(self.data.ravel(),256,[0,1])
         # configure and draw the histogram figure
-        plt.hist(self.__data.ravel(),256,[0,1]); plt.show()
+        plt.hist(self.data.ravel(),256,[0,1]); plt.show()
 
     def binarize(self, threshold):
         """
             Binarize the image(pixels either 1 or 0) given a threshold
         """
-        for i in range(self.__data.shape[0]):
-            for j in range(self.__data.shape[1]):
-                if self.__data[i][j] < threshold:
-                    self.__data[i][j] = 0
+        for i in range(self.data.shape[0]):
+            for j in range(self.data.shape[1]):
+                if self.data[i][j] < threshold:
+                    self.data[i][j] = 0
                 else:
-                    self.__data[i][j] = 1
+                    self.data[i][j] = 1
 
 
     def dilation(self, structuring_element = "Square", size = 3):
@@ -394,11 +394,11 @@ class Image:
         """
         if structuring_element=='Square':
             kernel = np.ones((size, size), np.uint8)
-            orig_shape = self.__data.shape
+            orig_shape = self.data.shape
             pad_width = size - 2 
 
             # pad the image with pad_width
-            image_pad = np.pad(array=self.__data, pad_width=pad_width, mode='constant')
+            image_pad = np.pad(array=self.data, pad_width=pad_width, mode='constant')
             pimg_shape = image_pad.shape
             h_reduce, w_reduce = (pimg_shape[0] - orig_shape[0]), (pimg_shape[1] - orig_shape[1])
             
@@ -409,15 +409,15 @@ class Image:
             # replace the values either 1 or 0 by dilation condition
             image_dilate = np.array([1 if (i == kernel).any() else 0 for i in flat_submatrices])
             # obtain new matrix whose shape is equal to the original image size
-            self.__data = image_dilate.reshape(orig_shape)
+            self.data = image_dilate.reshape(orig_shape)
         
         if structuring_element=='Horizontal Rectangle':
             kernel = np.ones((2, size), np.uint8)
-            orig_shape = self.__data.shape
+            orig_shape = self.data.shape
             pad_width = size - 2
 
             # pad the image with pad_width
-            image_pad = np.pad(array=self.__data, pad_width=pad_width, mode='constant')
+            image_pad = np.pad(array=self.data, pad_width=pad_width, mode='constant')
             pimg_shape = image_pad.shape
             h_reduce, w_reduce = (pimg_shape[0] - orig_shape[0]), (pimg_shape[1] - orig_shape[1])
             
@@ -428,18 +428,18 @@ class Image:
             # replace the values either 1 or 0 by dilation condition
             image_dilate = np.array([1 if (i == kernel).any() else 0 for i in flat_submatrices])
             # obtain new matrix whose shape is equal to the original image size
-            self.__data = image_dilate.reshape(orig_shape)
+            self.data = image_dilate.reshape(orig_shape)
 
             for i in range(pad_width):
-                self.__data[i, :] = 1
+                self.data[i, :] = 1
         
         if structuring_element=='Vertical Rectangle':
             kernel = np.ones((size, 2), np.uint8)
-            orig_shape = self.__data.shape
+            orig_shape = self.data.shape
             pad_width = size - 2
 
             # pad the image with pad_width
-            image_pad = np.pad(array=self.__data, pad_width=pad_width, mode='constant')
+            image_pad = np.pad(array=self.data, pad_width=pad_width, mode='constant')
             pimg_shape = image_pad.shape
             h_reduce, w_reduce = (pimg_shape[0] - orig_shape[0]), (pimg_shape[1] - orig_shape[1])
             
@@ -450,10 +450,10 @@ class Image:
             # replace the values either 1 or 0 by dilation condition
             image_dilate = np.array([1 if (i == kernel).any() else 0 for i in flat_submatrices])
             # obtain new matrix whose shape is equal to the original image size
-            self.__data = image_dilate.reshape(orig_shape)
+            self.data = image_dilate.reshape(orig_shape)
             
             for i in range(pad_width):
-                self.__data[:, i] = 1
+                self.data[:, i] = 1
 
             
     def erosion(self, structuring_element = "Square", size = 3):
@@ -468,11 +468,11 @@ class Image:
         """
         if structuring_element=='Square':
             kernel = np.ones((size, size), np.uint8)
-            orig_shape = self.__data.shape
+            orig_shape = self.data.shape
             pad_width = size - 2 
 
             # pad the image with pad_width
-            image_pad = np.pad(array=self.__data, pad_width=pad_width, mode='constant')
+            image_pad = np.pad(array=self.data, pad_width=pad_width, mode='constant')
             pimg_shape = image_pad.shape
             h_reduce, w_reduce = (pimg_shape[0] - orig_shape[0]), (pimg_shape[1] - orig_shape[1])
             
@@ -483,15 +483,15 @@ class Image:
             # replace the values either 1 or 0 by erosion condition
             image_erode = np.array([0 if (i != kernel).any() else 1 for i in flat_submatrices])
             # obtain new matrix whose shape is equal to the original image size
-            self.__data = image_erode.reshape(orig_shape)
+            self.data = image_erode.reshape(orig_shape)
 
         if structuring_element=='Horizontal Rectangle':
             kernel = np.ones((2, size), np.uint8)
-            orig_shape = self.__data.shape
+            orig_shape = self.data.shape
             pad_width = size - 2 
 
             # pad the image with pad_width
-            image_pad = np.pad(array=self.__data, pad_width=pad_width, mode='constant')
+            image_pad = np.pad(array=self.data, pad_width=pad_width, mode='constant')
             pimg_shape = image_pad.shape
             h_reduce, w_reduce = (pimg_shape[0] - orig_shape[0]), (pimg_shape[1] - orig_shape[1])
             
@@ -502,19 +502,19 @@ class Image:
             # replace the values either 1 or 0 by erosion condition
             image_erode = np.array([0 if (i != kernel).any() else 1 for i in flat_submatrices])
             # obtain new matrix whose shape is equal to the original image size
-            self.__data = image_erode.reshape(orig_shape)
+            self.data = image_erode.reshape(orig_shape)
 
             for i in range(pad_width):
-                self.__data[:, i] = 1
-                self.__data[i+1, :] = 1
+                self.data[:, i] = 1
+                self.data[i+1, :] = 1
         
         if structuring_element=='Vertical Rectangle':
             kernel = np.ones((size, 2), np.uint8)
-            orig_shape = self.__data.shape
+            orig_shape = self.data.shape
             pad_width = size - 2 
 
             # pad the image with pad_width
-            image_pad = np.pad(array=self.__data, pad_width=pad_width, mode='constant')
+            image_pad = np.pad(array=self.data, pad_width=pad_width, mode='constant')
             pimg_shape = image_pad.shape
             h_reduce, w_reduce = (pimg_shape[0] - orig_shape[0]), (pimg_shape[1] - orig_shape[1])
             
@@ -525,10 +525,10 @@ class Image:
             # replace the values either 1 or 0 by erosion condition
             image_erode = np.array([0 if (i != kernel).any() else 1 for i in flat_submatrices])
             # obtain new matrix whose shape is equal to the original image size
-            self.__data = image_erode.reshape(orig_shape)
+            self.data = image_erode.reshape(orig_shape)
             for i in range(pad_width):
-                self.__data[:, i] = 1
-                self.__data[i+1, :] = 1
+                self.data[:, i] = 1
+                self.data[i+1, :] = 1
 
             
              
