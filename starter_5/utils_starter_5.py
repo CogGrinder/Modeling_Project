@@ -16,16 +16,16 @@ class Utils_starter_5:
         return
 
     def get_pix_at_translated(self, x : int, y : int, p : list):
-        n,m = self._img2._data.shape
+        n,m = self._img2.data.shape
         int_px = math.floor(p[0]) #beware indexation
         int_py = math.floor(p[1]) #beware indexation
         if 1<=x-int_px<n and 1<=y-int_py<m:
             float_px = p[0] - int_px #TODO probably bugs here with indexation
             float_py = p[1] - int_py
-            return    (1-float_px)*(1-float_py) *self._img2._data[x-int_px][y-int_py] \
-                    + float_px*(1-float_py)     *self._img2._data[x-int_px-1][y-int_py] \
-                    + (1-float_px)*float_py     *self._img2._data[x -int_px][y-int_py-1] \
-                    + float_px*float_py         *self._img2._data[x -int_px-1][y-int_py-1] #TODO probably bugs here with indexation
+            return    (1-float_px)*(1-float_py) *self._img2.data[x-int_px][y-int_py] \
+                    + float_px*(1-float_py)     *self._img2.data[x-int_px-1][y-int_py] \
+                    + (1-float_px)*float_py     *self._img2.data[x -int_px][y-int_py-1] \
+                    + float_px*float_py         *self._img2.data[x -int_px-1][y-int_py-1] #TODO probably bugs here with indexation
 
         else:
             return 1 #white padding TODO check this condition when calculating loss
@@ -38,8 +38,8 @@ class Utils_starter_5:
                 p = kwargs['p']
             if params == 'warp':
                 warp = kwargs['warp']
-        warped_img2 = np.array([[warp(i,j,p) for j in range(self._img2._data.shape[1])] for i in range(self._img2._data.shape[0])])
-        return np.sum((self._img1._data - warped_img2)**2)
+        warped_img2 = np.array([[warp(i,j,p) for j in range(self._img2.data.shape[1])] for i in range(self._img2.data.shape[0])])
+        return np.sum((self._img1.data - warped_img2)**2)
     
     def loss_function_2(self,**kwargs):#(self, p : list, warp : callable = get_pix_at_translated):
         p = 0
@@ -59,7 +59,7 @@ class Utils_starter_5:
         """
         print("test_plot_loss")
 
-        n,m = self._img2._data.shape
+        n,m = self._img2.data.shape
         
         ax = plt.figure().add_subplot(projection='3d')
         
@@ -121,7 +121,7 @@ class Utils_starter_5:
 
         for key,value in kwargs.items() :
             print(key,": ",value)
-        n,m = self._img2._data.shape
+        n,m = self._img2.data.shape
 
         l_min   = sys.float_info.max
         l_list  = np.zeros(n+1) #used to return the loss function for plotting
@@ -190,6 +190,8 @@ class Utils_starter_5:
         plot = False
         loss_function = self.loss_function_1
         epsilon = 10 #arbitrary default
+        epsilon2 = 0.05 #arbitrary default
+
 
         for key,value in kwargs.items():
             if key == "loss_function":
@@ -208,6 +210,11 @@ class Utils_starter_5:
                     raise ValueError("epsilon must be positive")
                 else:
                     epsilon = value
+            elif key == "epsilon2":
+                if value<0:
+                    raise ValueError("epsilon must be positive")
+                else:
+                    epsilon2 = value
             elif key == "p0":
                 p0 = value
             elif key == "alpha0":
@@ -235,7 +242,7 @@ class Utils_starter_5:
         print(discrete_gradient)
         print(alpha)
 
-        while abs(l_previous-l) > epsilon and alpha > epsilon/1000 : #TODO : change conditional
+        while abs(l_previous-l) > epsilon and alpha > epsilon2 : #TODO : change conditional
             print("l_previous,l: ",l_previous,l)
             
             if l < l_previous : #updates l and alpha
@@ -322,10 +329,14 @@ if __name__ == '__main__' :
     if True:
         utils = Utils_starter_5(Image("images/clean_finger.png"),Image("images/tx_finger.png"))
 
-        utils._img1.display()
-        utils._img2.display()
+        # utils._img1.display()
+        # utils._img2.display()
 
-        p, l_list = utils.coordinate_descent_optimization_xy(plot = True)
+        p, l_list = utils.coordinate_descent_optimization_xy(plot = True, alpha0 = 0.1, epsilon = 100, epsilon2 = 0.001)
+        p, l_list = utils.coordinate_descent_optimization_xy(plot = True, alpha0 = 0.2, epsilon = 10, epsilon2 = 0.01) #diverge
+        # p, l_list = utils.coordinate_descent_optimization_xy(plot = True, alpha0 = 0.1, epsilon = 100, epsilon2 = 0.01)
+
+
 
 
 
