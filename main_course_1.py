@@ -20,8 +20,6 @@ class Main_Course_1:
     @staticmethod
     def c1(r):
         return 1 / (r*(1/500)+1)
-        ''' Mathematical function 1 / (x+1) '''
-        return 1 / (r+1)
 
     @staticmethod
     def c2(r):
@@ -48,34 +46,8 @@ class Main_Course_1:
         
         return 1 - (1 / (1 + np.exp(-(r+100))))
     
-    
-if __name__ == "__main__":
-
-    from image import Image
-
-    img = Image("images/clean_finger.png")
-    img.display()
-
-    img.simulate_low_pressure((175, 125), Main_Course_1.c3)
-
-    img.display()
-        u = 5
-        s = np.sqrt(0.2)
-        return 1/2 * (1 + math.erf((r - u)/(s*np.sqrt(2))))
-    
-    @staticmethod
-    def c4(r):
-        if r < 1:
-            return 1/(1+np.exp(6*(2*r-1)))
-        else:
-            return 0
-        
     @staticmethod
     def c5(r):
-        return np.exp(-r**2)
-    
-    @staticmethod
-    def c6(r):
         return 1/(1+np.exp((r-1)*50))
     
     @staticmethod
@@ -111,7 +83,7 @@ if __name__ == "__main__":
     img = Image("images/clean_finger.png")
     img.display()
 
-    low_pressure_img = Main_Course_1.simulate_low_pressure(img, 200, 125, Main_Course_1.c6)
+    low_pressure_img = Main_Course_1.simulate_low_pressure(img, 200, 125, Main_Course_1.c5)
     low_pressure_img.display()
 
     low_pressure_img.binarize(low_pressure_img.compute_threshold())
