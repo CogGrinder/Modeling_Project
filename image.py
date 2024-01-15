@@ -149,7 +149,7 @@ class Image:
         for x in range(self.n):
             for y in range(self.m):
                 distance = Main_Course_1.distance_between_pixels((x, y), center_coord)
-                self.data[x][y] *= c(distance)
+                self.data[x][y] = 1 - ((1-self.data[x][y])*c(distance)) # mulptiply (1 - pixel_value) by c(distance) and then substract the obteined value to 1 and not multiplying c(distance) directly since we want the image to become whiter (so close to 1) and not darker
 
 
     def rotate_translate(self, p, center, offset, data_conservation=False):
