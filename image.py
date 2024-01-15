@@ -3,6 +3,7 @@ from scipy import signal
 import cv2
 import matplotlib.pyplot as plt
 import copy
+from pathlib import Path #for extracting name from filename
 
 from starter2 import Starter_2
 from starter3 import Starter_3
@@ -12,6 +13,7 @@ class Image:
     def __init__(self, filename):
         self.data = cv2.imread(filename, 0)
         self.n, self.m = self.data.shape
+        self.name = Path(filename).stem
         self.normalize()
 
     def display(self):
