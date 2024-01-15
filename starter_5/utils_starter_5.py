@@ -15,6 +15,11 @@ class Utils_starter_5:
         
         return
 
+    def display_all(self) :
+        self._img1.display()
+        self._img2.display()
+        return
+
     def get_pix_at_translated(self, x : int, y : int, p : list):
         n,m = self._img2.data.shape
         int_px = math.floor(p[0]) #beware indexation
@@ -51,23 +56,49 @@ class Utils_starter_5:
         """
         pass #TODO
 
-    def test_plot_loss(self, loss_function : callable) : #TODO : vary the ranges and shapes for p, maybe with relation to loss function and image data
+    
+    def plot_loss(self, **kwargs) : #TODO : vary the ranges and shapes for p, maybe with relation to loss function and image data
         """Function used to greedily calculate all the loss_function returns for a certain range of p
 
         Args:
-            loss_function (callable): function treated as loss function with a parameter p
+            kwargs :
+                loss_function (callable): function treated as loss function with a parameter p
+                save : bool, saves as .txt
+                show : bool, plots the function
+                span : "all" for whole span of p
+
         """
         print("test_plot_loss")
 
+        loss_function = self.loss_function_1
+
+        save = True
+        show = True
+        
         n,m = self._img2.data.shape
         
         ax = plt.figure().add_subplot(projection='3d')
         
         translate_span_x = 1
         translate_span_y = m//3
+        
+        
+        for key, value in kwargs.items() :
+            if key == "loss_function" :
+                loss_function = value
+            if key == "save":
+                save = bool(value)
+            if key == "show":
+                show = bool(value)
+            if key == "span":
+                if value == "all" :
+                    translate_span_x = n//2
+                    translate_span_y = m//2
+                else:
+                    raise ValueError("unknown value for span")
 
-        # px, py = np.meshgrid(np.linspace(-translate_span_x,translate_span_x, translate_span_x * 2 + 1).astype(int),np.linspace(-translate_span_y,translate_span_y, translate_span_y * 2 + 1).astype(int))
-        px, py = np.meshgrid(np.linspace(-translate_span_x,translate_span_x, 2).astype(int),np.linspace(-translate_span_y,translate_span_y, translate_span_y * 2 + 1).astype(int))
+        px, py = np.meshgrid(np.linspace(-translate_span_x,translate_span_x, translate_span_x * 2, endpoint=False).astype(int),
+                             np.linspace(-translate_span_y,translate_span_y, translate_span_y * 2, endpoint=False).astype(int))
         #arbitrary range for p, beware the endpoint is True
 
         loss_grid = np.zeros(px.shape)
@@ -80,7 +111,21 @@ class Utils_starter_5:
         print("loss computation done")
 
         ax.plot_surface(px,py,loss_grid)
-        plt.show()
+        if save :
+            save_filename = self._img1.name + "_" + self._img2.name + "_" + str(loss_function.__name__) + ".txt"
+            with open(save_filename, "w") as f :
+                f.write(["span_x", -translate_span_x, translate_span_x,
+                         "span_y ", -translate_span_y, translate_span_y,
+                         "step ", 1].join(" ")) #add step
+
+                for i in range(loss_grid.shape[0]) :
+                    for j in range(loss_grid.shape[1]) :
+                        f.write(str(loss_grid[i,j]) + " ")
+                    f.write("\n")
+
+
+        if show :
+            plt.show()
 
     def greedy_optimization_xy(self, **kwargs) : #TODO : vary the ranges and shapes for p, maybe with relation to loss function and image data
         """greedy brute force strategy to find the optimal value of p_x or of [p_x,p_y]
@@ -329,8 +374,7 @@ if __name__ == '__main__' :
     if True:
         utils = Utils_starter_5(Image("images/clean_finger.png"),Image("images/tx_finger.png"))
 
-        # utils._img1.display()
-        # utils._img2.display()
+        utils.plot_loss(span = "all")
 
         p, l_list = utils.coordinate_descent_optimization_xy(plot = True, alpha0 = 0.1, epsilon = 100, epsilon2 = 0.001)
         p, l_list = utils.coordinate_descent_optimization_xy(plot = True, alpha0 = 0.2, epsilon = 10, epsilon2 = 0.01) #diverge

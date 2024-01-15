@@ -4,6 +4,7 @@ import cv2
 import matplotlib.pyplot as plt
 from collections import OrderedDict
 import copy
+from pathlib import Path #for extracting name from filename
 
 from starter2 import Starter_2
 from starter3 import Starter_3
@@ -13,6 +14,7 @@ class Image:
     def __init__(self, filename):
         self.data = cv2.imread(filename, 0)
         self.n, self.m = self.data.shape
+        self.name = Path(filename).stem
         self.normalize()
 
     def display(self):
@@ -136,18 +138,18 @@ class Image:
                     self.data[x][y] = tmp[self.n - y][self.m - x]
 
 
-    def simulate_low_pressure(self, center, c):
-        ''' Return the image at which we have simulate a low pressure of center center.
-            Parameters :
-                - center : coordinates of the pixel center of the low pressure (tuple of two int values)
-                - c : mathematical function of one argument (c(r)), monotonically decreasing as r tends to infinity, with c(0)=1 and c(r)=0 the limit when
-                r tends to infinity.
-        '''
-        center_coord = Starter_2.pixel_center(center[0], center[1])
-        for x in range(self.n):
-            for y in range(self.m):
-                distance = Main_Course_1.distance_between_pixels((x, y), center_coord)
-                self.data[x][y] *= c(distance)
+    # def simulate_low_pressure(self, center, c):
+    #     ''' Return the image at which we have simulate a low pressure of center center.
+    #         Parameters :
+    #             - center : coordinates of the pixel center of the low pressure (tuple of two int values)
+    #             - c : mathematical function of one argument (c(r)), monotonically decreasing as r tends to infinity, with c(0)=1 and c(r)=0 the limit when
+    #             r tends to infinity.
+    #     '''
+    #     center_coord = Starter_2.pixel_center(center[0], center[1])
+    #     for x in range(self.n):
+    #         for y in range(self.m):
+    #             distance = Main_Course_1.distance_between_pixels((x, y), center_coord)
+    #             self.data[x][y] = 1 - ((1-self.data[x][y])*c(distance)) # mulptiply (1 - pixel_value) by c(distance) and then substract the obteined value to 1 and not multiplying c(distance) directly since we want the image to become whiter (so close to 1) and not darker
 
 
     def rotate_translate(self, p, center, offset, data_conservation=False):
