@@ -95,7 +95,7 @@ class Image:
         if original_max == -1 and original_min == -1:
             self.data *= 256
         else:
-            self._data = self._data * \
+            self.data = self.data * \
                 (original_max - original_min) + original_min
         self.data = self.data.astype(int)
 
@@ -109,7 +109,7 @@ class Image:
         else:
             raise ValueError("invalid color")
 
-        self._data[corner[0]: corner[0] + width, corner[1]: corner[1] + length] = value
+        self.data[corner[0]: corner[0] + width, corner[1]: corner[1] + length] = value
 
     def symmetry(self, axis=0):
         ''' Return the symetric of img with respect to the x axis if axis=0,
