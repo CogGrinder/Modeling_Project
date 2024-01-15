@@ -18,14 +18,42 @@ class Main_Course_1:
     
     @staticmethod
     def c1(r):
+        ''' Mathematical function 1 / (x+1) '''
         return 1 / (r+1)
 
     @staticmethod
     def c2(r):
+        ''' Mathematical function exp(-x) '''
         return np.exp(-r)
 
     @staticmethod
     def c3(r):
-        u = 5
-        s = np.sqrt(0.2)
-        return 1/2 * (1 + math.erf((r - u)/(s*np.sqrt(2))))
+        ''' 1 - phi, with phi the c.d.f of a gaussian random variable following a N(5, 0.2) (which have the properties c(r) --> 1 when r --> 0 (instead of c(0)=1) and c(r) --> 0 when r --> +inf)'''
+        if r == 0:
+            return 1
+        # here u corresponds to the distance from the center of data being kept
+        u = 100
+        # s corresponds here to the width of the "blur" data, i.e : the width of the blur bound at the edge of the circle of low pressure"
+        # link with the density function of an N(u, s²)
+        s = np.sqrt(10)
+        return 1 - (1/2 * (1 + math.erf((r - u)/(s*np.sqrt(2)))))
+    
+    @staticmethod
+    def c4(r):
+        ''' Sigmoid function (logistic function) : 1 / (1 + exp(-x)) '''
+        if r == 0:
+            return 1
+        
+        return 1 - (1 / (1 + np.exp(-(r+100))))
+    
+    
+if __name__ == "__main__":
+
+    from image import Image
+
+    img = Image("images/clean_finger.png")
+    img.display()
+
+    img.simulate_low_pressure((175, 125), Main_Course_1.c3)
+
+    img.display()
