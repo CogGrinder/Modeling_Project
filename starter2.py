@@ -7,7 +7,7 @@ class Starter_2:
 
     @staticmethod
     def linear_interp(x, x1, x2, vx1, vx2, bound_sup):
-        ''' Perorm the linear interpolation between the points x1 and x2, of values vx1 and vx2 
+        ''' Perform the linear interpolation between the points x1 and x2, of values vx1 and vx2 
         NB : we have ||x1 - x2|| = 1
             Parameters:
                 - x : point of which we want to calculate the value threw interpolation (we assume that x is in [x1, x2])
