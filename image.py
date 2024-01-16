@@ -275,6 +275,10 @@ class Image:
         # Definition of a blur kernel
         k = np.ones((kernel_size, kernel_size), np.float32) / (kernel_size**2)
 
+        # Convert to float values to be sure that filter2() will process the data
+        # it only handles float values
+        self.data = self.data/1.0
+
         # Convolve the image with a blur kernel
         self.data = cv2.filter2D(src=self.data, ddepth=-1, kernel=k)
 
