@@ -138,6 +138,7 @@ class Utils_starter_5:
                     if word == "step":
                         step = int(line1[i+1])
 
+                print(span_x,span_y)
                 translate_span_x = span_x[1]
                 translate_span_y = span_y[1]
 
@@ -148,7 +149,7 @@ class Utils_starter_5:
                 loss_grid = np.zeros((translate_span_y * 2,translate_span_x * 2) ) # TODO potential error: mixup between x,y and i,j
             
 
-                for i in range(span_x[0],span_x[1]):
+                for i in range(span_x[1]*2):
                     line =  f.readline().rstrip('\n').split(" ")
                     for j, word in enumerate(line) :
                         if word!="":
@@ -464,7 +465,7 @@ class Utils_starter_5:
 
             px_loss, py_loss, loss_data = self.import_plot(loss_function)
             if len(px_loss) != 0:
-                ax.plot_surface(px_loss,py_loss,loss_data,alpha=0.7)    
+                ax.plot_surface(px_loss,py_loss,loss_data,alpha=0.3)    
             p_list_np = np.array(p_list).transpose()
             l_list_np = np.array(l_list)
             ax.plot(p_list_np[0],p_list_np[1],l_list_np)
