@@ -61,7 +61,7 @@ class Main_Course_1:
         new_img = copy.deepcopy(img)
 
         # Ratio of the image
-        ratio = ((img.n + img.m)/2)*0.3
+        ratio = ((img.n + img.m)/2)*0.5
 
         # For each pixels of the image
         for x in range(img.n):
@@ -91,5 +91,5 @@ if __name__ == "__main__":
     low_pressure_img.dilation("Horizontal Rectangle", 3)
     low_pressure_img.display()
 
-    # low_pressure_img.blur(5)
-    # low_pressure_img.display()
+    low_pressure_img.blur(3)
+    low_pressure_img.display()
