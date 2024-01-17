@@ -554,10 +554,26 @@ class Image:
             Returns:
                 - list of patches (size x size numpy arrays)  
         """
-        # generate randomly the top left corner coordinate of a patch ranging in [0, m-size-1]
-        top_left_coord = np.random.randint(0, self.m - size - 1)
+        # list of patches to be returned
+        patches = []
 
-        print(top_left_coord)
+        # crop n patches from the image
+        for i in range(n):
+
+            # generate randomly the top left corner index of a patch ranging in [0, n-size-1] x [0, m-size-1]
+            top_left_coord_x = np.random.randint(0, self.n - size - 1)
+            top_left_coord_y = np.random.randint(0, self.m - size - 1)
+
+            # grab the corresponding patch of size x size from the image
+            patch = self.data[top_left_coord_x : top_left_coord_x+size, top_left_coord_y : top_left_coord_y+size]
+            patches.append(patch)
+
+        # print(top_left_coord_x, top_left_coord_y)
+        # print(patch)
+        # plt.imshow(patch, cmap='gray', vmin=0, vmax=1)
+        # plt.show()
+            
+        return patches
 
             
              
