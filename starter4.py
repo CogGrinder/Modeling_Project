@@ -7,7 +7,8 @@ if __name__ == "__main__":
 
     from image import Image
 
-    img = Image("images/clean_finger.png")
+    img = Image("images/test.png")
+    img.image_hist()
     img.display()
     print("Image size :", img.n, "x", img.m)
 
