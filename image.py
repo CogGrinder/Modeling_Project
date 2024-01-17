@@ -371,9 +371,15 @@ class Image:
             Plot the grayscale histogram of the image
         """
         # create the histogram
-        hist,bins = np.histogram(self.data.ravel(),256,[0,1])
+        hist,bins = np.histogram(self.data, bins=256, range=(0, 1))
         # configure and draw the histogram figure
-        plt.hist(self.data.ravel(),256,[0,1]); plt.show()
+        plt.figure()
+        plt.title("Grayscale Histogram")
+        plt.xlabel("grayscale value")
+        plt.ylabel("pixel count")
+        plt.xlim([0.0, 1.0])  # <- named arguments do not work here
+
+        plt.plot(bins[0:-1], hist)  # <- or here
 
   
     def binarize(self, threshold):
