@@ -283,7 +283,8 @@ class Utils_starter_5:
         xy_translate = "xy"
         plot = False
         loss_function = self.loss_function_1
-
+        
+        # reading kwargs
         for key,value in kwargs.items():
             if key == "loss_function":
                 if not (type(value) is callable):
@@ -301,6 +302,7 @@ class Utils_starter_5:
                     xy_translate = value
                 else:
                     raise ValueError("unknown translate_type")
+        
         print("~~~~~~~~~~~~")
         print("Parameters :")
         print("~~~~~~~~~~~~")
