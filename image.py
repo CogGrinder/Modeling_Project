@@ -542,5 +542,22 @@ class Image:
                 self.data[:, i] = 1
                 self.data[i+1, :] = 1
 
+    def crop_patches(self, n, size=9):
+        """
+            Collect randomly n patches of size x size pixels from the image and returns them
+            within a list. 
+
+            Parameters:
+                - n: number of patches to crop
+                - size : size of each patch (odd number, 9 by default)
+
+            Returns:
+                - list of patches (size x size numpy arrays)  
+        """
+        # generate randomly the top left corner coordinate of a patch ranging in [0, m-size-1]
+        top_left_coord = np.random.randint(0, self.m - size - 1)
+
+        print(top_left_coord)
+
             
              
