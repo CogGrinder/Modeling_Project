@@ -39,8 +39,8 @@ class Starter_4_Window(customtkinter.CTkToplevel):
         self.combobox1.set("Square")
         self.combobox1.grid(row=2, column=0)
 
-        self.combobox2 = customtkinter.CTkComboBox(self, values=['Dilation', 'Erosion'],
-                                            command=self.operation_select)
+        self.combobox2 = customtkinter.CTkComboBox(self, values=['Dilation', 'Erosion'], 
+                                                   command=self.operation_select)
         self.combobox2.set('Dilation')
         self.combobox2.grid(row=3, column=0)
 
