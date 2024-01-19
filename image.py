@@ -426,38 +426,35 @@ class Image:
         if structuring_element=='Horizontal Rectangle':
             kernel = np.ones((2, size), np.uint8)
             orig_shape = self.data.shape
-            pad_width = size - 2
+            pad_width = size - 1
 
             # pad the image with pad_width
             image_pad = np.pad(array=self.data, pad_width=pad_width, mode='constant')
+            image_pad = image_pad[pad_width-1:image_pad.shape[0]-pad_width, :image_pad.shape[1]-pad_width]
             pimg_shape = image_pad.shape
-            h_reduce, w_reduce = (pimg_shape[0] - orig_shape[0]), (pimg_shape[1] - orig_shape[1])
-            
             # obtain the submatrices according to the size of the kernel
             flat_submatrices = np.array([image_pad[i:(i + 2), j:(j + size)]
-                                         for i in range(pimg_shape[0] - h_reduce) for j in range(pimg_shape[1] - w_reduce)])
+                                         for i in range(pimg_shape[0] - 1) for j in range(pimg_shape[1] - size + 1)])
             
             # replace the values either 1 or 0 by dilation condition
             image_dilate = np.array([1 if (i == kernel).any() else 0 for i in flat_submatrices])
             # obtain new matrix whose shape is equal to the original image size
             self.data = image_dilate.reshape(orig_shape)
-
-            for i in range(pad_width):
-                self.data[i, :] = 1
         
         if structuring_element=='Vertical Rectangle':
             kernel = np.ones((size, 2), np.uint8)
             orig_shape = self.data.shape
-            pad_width = size - 2
+            pad_width = size - 1
 
             # pad the image with pad_width
             image_pad = np.pad(array=self.data, pad_width=pad_width, mode='constant')
+            image_pad = image_pad[:image_pad.shape[0]-pad_width, pad_width-1:image_pad.shape[1]-pad_width]
             pimg_shape = image_pad.shape
-            h_reduce, w_reduce = (pimg_shape[0] - orig_shape[0]), (pimg_shape[1] - orig_shape[1])
+            
             
             # obtain the submatrices according to the size of the kernel
             flat_submatrices = np.array([image_pad[i:(i + size), j:(j + 2)]
-                                         for i in range(pimg_shape[0] - h_reduce) for j in range(pimg_shape[1] - w_reduce)])
+                                         for i in range(pimg_shape[0] - size + 1) for j in range(pimg_shape[1] - 1)])
             
             # replace the values either 1 or 0 by dilation condition
             image_dilate = np.array([1 if (i == kernel).any() else 0 for i in flat_submatrices])
