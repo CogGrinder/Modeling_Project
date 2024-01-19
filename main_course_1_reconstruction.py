@@ -49,7 +49,17 @@ class Main_Course_1_Reconstruction:
                     p_s = np.array([])
                     dist_min = 1000
                     for P in patches:
-                        dist = Main_Course_1_Reconstruction.eucl_dist_matrices(p, P)
+
+                        # Get the pixels from P which are not in the mask
+                        # i.e. coords (i,j) s.t. mask[i][j] == False
+                        P_outmask = []
+                        for i in range(P.shape[0]):
+                            for j in range(P.shape[1]):
+                                if P[i][j] == False:
+                                    P_outmask.append(P[i][j])
+                        P_outmask = np.array(P_outmask)
+
+                        dist = Main_Course_1_Reconstruction.eucl_dist_matrices(p, P_outmask)
                         if dist < dist_min:
                             dist_min = dist
                             p_s = P
