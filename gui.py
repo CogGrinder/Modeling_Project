@@ -16,7 +16,7 @@ class Starter_4_Window(customtkinter.CTkToplevel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.title('Starter 4')
-        self.geometry("{0}x{1}+0+0".format(self.winfo_screenwidth(), self.winfo_screenheight()))
+        self.geometry("650x500")
         self.resizable(True, True)
         self.state('normal')
         self.configure(bg="black")
@@ -29,12 +29,12 @@ class Starter_4_Window(customtkinter.CTkToplevel):
                                             text="Here, you are about to either dilate or erode the binary version of an image." +
                                             "\n You first need to select your image:",
                                             fg_color="transparent", font=('Calibri', 14, 'bold'))
-        self.label.grid(row=0, column=0)
+        self.label.grid(row=0, column=0, sticky=E)
         self.button = customtkinter.CTkButton(self, text='Select file', width=120, height=40, 
                                                 font=('Cambria', 16), command=self.open_file_dialog)
         self.button.grid(row=1, column=0)
 
-        self.combobox1 = customtkinter.CTkComboBox(self, values=["Square", "Horizontal Rectangle", "Vertical Rectange"],
+        self.combobox1 = customtkinter.CTkComboBox(self, values=["Square", "Horizontal Rectangle", "Vertical Rectangle"],
                                             command=self.struct_element_shape)
         self.combobox1.set("Square")
         self.combobox1.grid(row=2, column=0)
@@ -44,16 +44,16 @@ class Starter_4_Window(customtkinter.CTkToplevel):
         self.combobox2.set('Dilation')
         self.combobox2.grid(row=3, column=0)
 
-        self.combobox3 = customtkinter.CTkComboBox(self, values=[3, 4, 5, 6, 7],
+        self.combobox3 = customtkinter.CTkComboBox(self, values=["3", "4", "5", "6", "7"],
                                             command=self.struct_element_size)
-        self.combobox3.set(3)
-        self.combobox3.grid(row=3, column=0)
+        self.combobox3.set("3")
+        self.combobox3.grid(row=4, column=0)
         
     def open_file_dialog(self):
         global filename
         filename = filedialog.askopenfilename()
     
-    def stuct_element_shape(self, choice):
+    def struct_element_shape(self, choice):
         global shape
         shape = choice
     
@@ -69,8 +69,10 @@ class Starter_4_Window(customtkinter.CTkToplevel):
         img.binarize(threshold)
         if operation == 'Erosion':
             img.erosion(shape, int(size))
+            img.display()
         if operation  == 'Dilation':
             img.dilation(shape, int(size))
+            img.display()
 
 
         
@@ -116,7 +118,7 @@ class SecondWindow(customtkinter.CTkToplevel):
             os.system('starter5.py')
         if choice == "Main course 1":
             os.system('main_course_1.py')
-        if choice == "Main vourse 5":
+        if choice == "Main course 5":
             print("combobox dropdown clicked:", choice)
 
 

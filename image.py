@@ -371,9 +371,15 @@ class Image:
             Plot the grayscale histogram of the image
         """
         # create the histogram
-        hist,bins = np.histogram(self.data.ravel(),256,[0,1])
+        hist,bins = np.histogram(self.data, bins=256, range=(0, 1))
         # configure and draw the histogram figure
-        plt.hist(self.data.ravel(),256,[0,1]); plt.show()
+        plt.figure()
+        plt.title("Grayscale Histogram")
+        plt.xlabel("grayscale value")
+        plt.ylabel("pixel count")
+        plt.xlim([0.0, 1.0])  # <- named arguments do not work here
+
+        plt.plot(bins[0:-1], hist)  # <- or here
 
   
     def binarize(self, threshold):
@@ -420,51 +426,44 @@ class Image:
         if structuring_element=='Horizontal Rectangle':
             kernel = np.ones((2, size), np.uint8)
             orig_shape = self.data.shape
-            pad_width = size - 2
+            pad_width = size - 1
 
             # pad the image with pad_width
             image_pad = np.pad(array=self.data, pad_width=pad_width, mode='constant')
+            image_pad = image_pad[pad_width-1:image_pad.shape[0]-pad_width, :image_pad.shape[1]-pad_width]
             pimg_shape = image_pad.shape
-            h_reduce, w_reduce = (pimg_shape[0] - orig_shape[0]), (pimg_shape[1] - orig_shape[1])
-            
             # obtain the submatrices according to the size of the kernel
             flat_submatrices = np.array([image_pad[i:(i + 2), j:(j + size)]
-                                         for i in range(pimg_shape[0] - h_reduce) for j in range(pimg_shape[1] - w_reduce)])
+                                         for i in range(pimg_shape[0] - 1) for j in range(pimg_shape[1] - size + 1)])
             
             # replace the values either 1 or 0 by dilation condition
             image_dilate = np.array([1 if (i == kernel).any() else 0 for i in flat_submatrices])
             # obtain new matrix whose shape is equal to the original image size
             self.data = image_dilate.reshape(orig_shape)
-
-            for i in range(pad_width):
-                self.data[i, :] = 1
         
         if structuring_element=='Vertical Rectangle':
             kernel = np.ones((size, 2), np.uint8)
             orig_shape = self.data.shape
-            pad_width = size - 2
+            pad_width = size - 1
 
             # pad the image with pad_width
             image_pad = np.pad(array=self.data, pad_width=pad_width, mode='constant')
+            image_pad = image_pad[:image_pad.shape[0]-pad_width, pad_width-1:image_pad.shape[1]-pad_width]
             pimg_shape = image_pad.shape
-            h_reduce, w_reduce = (pimg_shape[0] - orig_shape[0]), (pimg_shape[1] - orig_shape[1])
+            
             
             # obtain the submatrices according to the size of the kernel
             flat_submatrices = np.array([image_pad[i:(i + size), j:(j + 2)]
-                                         for i in range(pimg_shape[0] - h_reduce) for j in range(pimg_shape[1] - w_reduce)])
+                                         for i in range(pimg_shape[0] - size + 1) for j in range(pimg_shape[1] - 1)])
             
             # replace the values either 1 or 0 by dilation condition
             image_dilate = np.array([1 if (i == kernel).any() else 0 for i in flat_submatrices])
             # obtain new matrix whose shape is equal to the original image size
             self.data = image_dilate.reshape(orig_shape)
-            
-            for i in range(pad_width):
-                self.data[:, i] = 1
-
-         
-    def erosion(self, structuring_element = "Square", size = 3):
+    
+    def dilation_grayscale(self, structuring_element = "Square", size = 3):
         """
-            Erode the binary version of an image
+            Dilate the grayscale version of an image
             
             params : 
                 structuring element : Defined the shape of the structuring_element(geometrical shape) used to probe the image
@@ -486,6 +485,74 @@ class Image:
             flat_submatrices = np.array([image_pad[i:(i + size), j:(j + size)]
                                          for i in range(pimg_shape[0] - h_reduce) for j in range(pimg_shape[1] - w_reduce)])
             
+            # replace the values either 1 or 0 by dilation condition
+            image_dilate = np.array([np.max(i) for i in flat_submatrices])
+            # obtain new matrix whose shape is equal to the original image size
+            self.data = image_dilate.reshape(orig_shape)
+        
+        if structuring_element=='Horizontal Rectangle':
+            kernel = np.ones((2, size), np.uint8)
+            orig_shape = self.data.shape
+            pad_width = size - 1
+
+            # pad the image with pad_width
+            image_pad = np.pad(array=self.data, pad_width=pad_width, mode='constant')
+            image_pad = image_pad[pad_width-1:image_pad.shape[0]-pad_width, :image_pad.shape[1]-pad_width]
+            pimg_shape = image_pad.shape
+            # obtain the submatrices according to the size of the kernel
+            flat_submatrices = np.array([image_pad[i:(i + 2), j:(j + size)]
+                                         for i in range(pimg_shape[0] - 1) for j in range(pimg_shape[1] - size + 1)])
+            
+            # replace the values either 1 or 0 by dilation condition
+            image_dilate = np.array([np.max(i) for i in flat_submatrices])
+            # obtain new matrix whose shape is equal to the original image size
+            self.data = image_dilate.reshape(orig_shape)
+        
+        if structuring_element=='Vertical Rectangle':
+            kernel = np.ones((size, 2), np.uint8)
+            orig_shape = self.data.shape
+            pad_width = size - 1
+
+            # pad the image with pad_width
+            image_pad = np.pad(array=self.data, pad_width=pad_width, mode='constant')
+            image_pad = image_pad[:image_pad.shape[0]-pad_width, pad_width-1:image_pad.shape[1]-pad_width]
+            pimg_shape = image_pad.shape
+            
+            
+            # obtain the submatrices according to the size of the kernel
+            flat_submatrices = np.array([image_pad[i:(i + size), j:(j + 2)]
+                                         for i in range(pimg_shape[0] - size + 1) for j in range(pimg_shape[1] - 1)])
+            
+            # replace the values either 1 or 0 by dilation condition
+            image_dilate = np.array([np.max(i) for i in flat_submatrices])
+            # obtain new matrix whose shape is equal to the original image size
+            self.data = image_dilate.reshape(orig_shape)
+
+         
+    def erosion(self, structuring_element = "Square", size = 3):
+        """
+            Erode the binary version of an image
+            
+            params : 
+                structuring element : Defined the shape of the structuring_element(geometrical shape) used to probe the image
+                    Possible values : Square, Horizontal Rectangle, Vertical Horizontal
+
+                size : Defined the size of the structuring element
+        """
+        if structuring_element=='Square':
+            kernel = np.ones((size, size), np.uint8)
+            orig_shape = self.data.shape
+            pad_width = size - 2 
+
+            # pad the image with pad_width
+            image_pad = np.pad(array=self.data, pad_width=pad_width, mode='constant', constant_values=1)
+            pimg_shape = image_pad.shape
+            h_reduce, w_reduce = (pimg_shape[0] - orig_shape[0]), (pimg_shape[1] - orig_shape[1])
+            
+            # obtain the submatrices according to the size of the kernel
+            flat_submatrices = np.array([image_pad[i:(i + size), j:(j + size)]
+                                         for i in range(pimg_shape[0] - h_reduce) for j in range(pimg_shape[1] - w_reduce)])
+            
             # replace the values either 1 or 0 by erosion condition
             image_erode = np.array([0 if (i != kernel).any() else 1 for i in flat_submatrices])
             # obtain new matrix whose shape is equal to the original image size
@@ -494,47 +561,144 @@ class Image:
         if structuring_element=='Horizontal Rectangle':
             kernel = np.ones((2, size), np.uint8)
             orig_shape = self.data.shape
-            pad_width = size - 2 
+            pad_width = size - 1
 
             # pad the image with pad_width
-            image_pad = np.pad(array=self.data, pad_width=pad_width, mode='constant')
+            image_pad = np.pad(array=self.data, pad_width=pad_width, mode='constant', constant_values=1)
+            image_pad = image_pad[pad_width-1:image_pad.shape[0]-pad_width, :image_pad.shape[1]-pad_width]
             pimg_shape = image_pad.shape
-            h_reduce, w_reduce = (pimg_shape[0] - orig_shape[0]), (pimg_shape[1] - orig_shape[1])
-            
             # obtain the submatrices according to the size of the kernel
             flat_submatrices = np.array([image_pad[i:(i + 2), j:(j + size)]
-                                         for i in range(pimg_shape[0] - h_reduce) for j in range(pimg_shape[1] - w_reduce)])
+                                         for i in range(pimg_shape[0] - 1) for j in range(pimg_shape[1] - size + 1)])
             
-            # replace the values either 1 or 0 by erosion condition
+            # replace the values either 1 or 0 by dilation condition
             image_erode = np.array([0 if (i != kernel).any() else 1 for i in flat_submatrices])
             # obtain new matrix whose shape is equal to the original image size
             self.data = image_erode.reshape(orig_shape)
-
-            for i in range(pad_width):
-                self.data[:, i] = 1
-                self.data[i+1, :] = 1
         
         if structuring_element=='Vertical Rectangle':
             kernel = np.ones((size, 2), np.uint8)
             orig_shape = self.data.shape
+            pad_width = size - 1
+
+            # pad the image with pad_width
+            image_pad = np.pad(array=self.data, pad_width=pad_width, mode='constant', constant_values=1)
+            image_pad = image_pad[:image_pad.shape[0]-pad_width, pad_width-1:image_pad.shape[1]-pad_width]
+            pimg_shape = image_pad.shape
+            
+            
+            # obtain the submatrices according to the size of the kernel
+            flat_submatrices = np.array([image_pad[i:(i + size), j:(j + 2)]
+                                         for i in range(pimg_shape[0] - size + 1) for j in range(pimg_shape[1] - 1)])
+            
+            # replace the values either 1 or 0 by dilation condition
+            image_erode = np.array([0 if (i != kernel).any() else 1 for i in flat_submatrices])
+            # obtain new matrix whose shape is equal to the original image size
+            self.data = image_erode.reshape(orig_shape)
+        
+    def erosion_grayscale(self, structuring_element = "Square", size = 3):
+        """
+            Erode the binary version of an image
+            
+            params : 
+                structuring element : Defined the shape of the structuring_element(geometrical shape) used to probe the image
+                    Possible values : Square, Horizontal Rectangle, Vertical Horizontal
+
+                size : Defined the size of the structuring element
+        """
+        if structuring_element=='Square':
+            kernel = np.ones((size, size), np.uint8)
+            orig_shape = self.data.shape
             pad_width = size - 2 
 
             # pad the image with pad_width
-            image_pad = np.pad(array=self.data, pad_width=pad_width, mode='constant')
+            image_pad = np.pad(array=self.data, pad_width=pad_width, mode='constant', constant_values=1)
             pimg_shape = image_pad.shape
             h_reduce, w_reduce = (pimg_shape[0] - orig_shape[0]), (pimg_shape[1] - orig_shape[1])
             
             # obtain the submatrices according to the size of the kernel
-            flat_submatrices = np.array([image_pad[i:(i + size), j:(j + 2)]
+            flat_submatrices = np.array([image_pad[i:(i + size), j:(j + size)]
                                          for i in range(pimg_shape[0] - h_reduce) for j in range(pimg_shape[1] - w_reduce)])
             
             # replace the values either 1 or 0 by erosion condition
-            image_erode = np.array([0 if (i != kernel).any() else 1 for i in flat_submatrices])
+            image_erode = np.array([np.min(i) for i in flat_submatrices])
             # obtain new matrix whose shape is equal to the original image size
             self.data = image_erode.reshape(orig_shape)
-            for i in range(pad_width):
-                self.data[:, i] = 1
-                self.data[i+1, :] = 1
+
+        if structuring_element=='Horizontal Rectangle':
+            kernel = np.ones((2, size), np.uint8)
+            orig_shape = self.data.shape
+            pad_width = size - 1
+
+            # pad the image with pad_width
+            image_pad = np.pad(array=self.data, pad_width=pad_width, mode='constant', constant_values=1)
+            image_pad = image_pad[pad_width-1:image_pad.shape[0]-pad_width, :image_pad.shape[1]-pad_width]
+            pimg_shape = image_pad.shape
+            # obtain the submatrices according to the size of the kernel
+            flat_submatrices = np.array([image_pad[i:(i + 2), j:(j + size)]
+                                         for i in range(pimg_shape[0] - 1) for j in range(pimg_shape[1] - size + 1)])
+            
+            # replace the values either 1 or 0 by dilation condition
+            image_erode = np.array([np.min(i) for i in flat_submatrices])
+            # obtain new matrix whose shape is equal to the original image size
+            self.data = image_erode.reshape(orig_shape)
+        
+        if structuring_element=='Vertical Rectangle':
+            kernel = np.ones((size, 2), np.uint8)
+            orig_shape = self.data.shape
+            pad_width = size - 1
+
+            # pad the image with pad_width
+            image_pad = np.pad(array=self.data, pad_width=pad_width, mode='constant', constant_values=1)
+            image_pad = image_pad[:image_pad.shape[0]-pad_width, pad_width-1:image_pad.shape[1]-pad_width]
+            pimg_shape = image_pad.shape
+            
+            
+            # obtain the submatrices according to the size of the kernel
+            flat_submatrices = np.array([image_pad[i:(i + size), j:(j + 2)]
+                                         for i in range(pimg_shape[0] - size + 1) for j in range(pimg_shape[1] - 1)])
+            
+            # replace the values either 1 or 0 by dilation condition
+            image_erode = np.array([np.min(i) for i in flat_submatrices])
+            # obtain new matrix whose shape is equal to the original image size
+            self.data = image_erode.reshape(orig_shape)
+
+    def crop_patches(self, n, size=9):
+        """
+            Collect randomly n patches of size x size pixels from the image and returns them
+            within a list. 
+
+            Parameters:
+                - n: number of patches to crop
+                - size : size of each patch (odd number, 9 by default)
+
+            Returns:
+                - list of patches (size x size numpy arrays)  
+        """
+        print("Cropping", n, "patches of size", size, "px from the image")
+
+        # list of patches to be returned
+        patches = []
+
+        # crop n patches from the image
+        for i in range(n):
+
+            # generate randomly the top left corner index of a patch ranging in [0, n-size-1] x [0, m-size-1]
+            top_left_coord_x = np.random.randint(0, self.n - size - 1)
+            top_left_coord_y = np.random.randint(0, self.m - size - 1)
+
+            # grab the corresponding patch of size x size from the image
+            patch = self.data[top_left_coord_x : top_left_coord_x+size, top_left_coord_y : top_left_coord_y+size]
+            patches.append(patch)
+
+        # print(top_left_coord_x, top_left_coord_y)
+        # print(patch)
+        # plt.imshow(patch, cmap='gray', vmin=0, vmax=1)
+        # plt.show()
+            
+        print("Cropping patches: Done.")
+            
+        return patches
 
             
              
