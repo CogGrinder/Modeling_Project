@@ -17,8 +17,17 @@ class Main_Course_1_Reconstruction:
             Returns:
                 - A float value: dist(A, B)
         """
-        # Think about how to compute the euclidean distance between A and B
-        pass
+        # https://math.stackexchange.com/questions/507742/distance-similarity-between-two-matrices
+
+        # Frobenius distance
+        # return np.sqrt(np.trace(np.transpose(A-B) * (A-B)))
+
+        # Euclidean distance
+        dist = 0
+        for i in range(A.shape[0]):
+            for j in range(A.shape[1]):
+                dist += (A[i][j] - B[i][j]) ** 2
+        return np.sqrt(dist)
     
     @staticmethod
     def restauration(img, patches, mask):
@@ -31,23 +40,33 @@ class Main_Course_1_Reconstruction:
                 if mask[x][y] == True:
 
                     # Crop the surrounding patch p in the fingerprint at coordinates (x,y)
-                    top_left_coord_x, top_left_coord_y = x - 1, y + 1
+                    top_left_coord_x, top_left_coord_y = x - 4, y - 4
                     p = img.data[top_left_coord_x : top_left_coord_x + 9, top_left_coord_y : top_left_coord_y + 9]
-                    print(p)
+                    # print(p)
 
                     # Compute the euclidean distance d(p, P) for all P in patches
                     # and deduce the closest patch p_s (minimum distance to p)
                     p_s = np.array([])
                     dist_min = 1000
                     for P in patches:
-                        dist = np.linalg.norm(p, P)
+
+                        # Get the pixels from P which are not in the mask
+                        # i.e. coords (i,j) s.t. mask[i][j] == False
+                        P_outmask = []
+                        for i in range(P.shape[0]):
+                            for j in range(P.shape[1]):
+                                if P[i][j] == False:
+                                    P_outmask.append(P[i][j])
+                        P_outmask = np.array(P_outmask)
+
+                        dist = Main_Course_1_Reconstruction.eucl_dist_matrices(p, P_outmask)
                         if dist < dist_min:
                             dist_min = dist
                             p_s = P
 
                     # Copy paste the middle pixel value of P into the fingerprint image 
                     # at coordinates (x,y)
-                    img.data[x][y] = P[1][1]
+                    img.data[x][y] = p_s[1][1]
 
         # Return the restaured image
         return img
@@ -61,7 +80,7 @@ if __name__ == "__main__":
     img.display()
 
     # Crop the image into several patches
-    patches = img.crop_patches(10)
+    patches = img.crop_patches(1000)
 
     # Plot the patches for debug purpose
     # for patch in patches:
