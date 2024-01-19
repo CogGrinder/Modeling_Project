@@ -17,8 +17,8 @@ class Main_Course_1_Reconstruction:
             Returns:
                 - A float value: dist(A, B)
         """
-        # Think about how to compute the euclidean distance between A and B
-        pass
+        # Frobenius distance
+        return np.sqrt(np.trace(np.transpose(A-B) * (A-B)))
     
     @staticmethod
     def restauration(img, patches, mask):
@@ -31,23 +31,23 @@ class Main_Course_1_Reconstruction:
                 if mask[x][y] == True:
 
                     # Crop the surrounding patch p in the fingerprint at coordinates (x,y)
-                    top_left_coord_x, top_left_coord_y = x - 1, y + 1
+                    top_left_coord_x, top_left_coord_y = x - 4, y - 4
                     p = img.data[top_left_coord_x : top_left_coord_x + 9, top_left_coord_y : top_left_coord_y + 9]
-                    print(p)
+                    # print(p)
 
                     # Compute the euclidean distance d(p, P) for all P in patches
                     # and deduce the closest patch p_s (minimum distance to p)
                     p_s = np.array([])
                     dist_min = 1000
                     for P in patches:
-                        dist = np.linalg.norm(p, P)
+                        dist = Main_Course_1_Reconstruction.eucl_dist_matrices(p, P)
                         if dist < dist_min:
                             dist_min = dist
                             p_s = P
 
                     # Copy paste the middle pixel value of P into the fingerprint image 
                     # at coordinates (x,y)
-                    img.data[x][y] = P[1][1]
+                    img.data[x][y] = p_s[1][1]
 
         # Return the restaured image
         return img
