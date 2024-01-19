@@ -1,7 +1,7 @@
 ## Ideas for main 5
 
 ### New essential features
-- [ ] at the end of optimization, plot the best warped image next to the fixed image
+- [x] at the end of optimization, plot the best warped image next to the fixed image
     - side by side for testing
     - show on top with red and blue (with truncated sum of images)
 - [ ] support new loss function

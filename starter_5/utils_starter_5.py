@@ -20,6 +20,24 @@ class Utils_starter_5:
         self._moving_img.display()
         return
 
+    def display_warped(self,p,warp,loss_function:callable) :
+        fig, ax = plt.subplots(1,3,figsize = (12,12))
+        
+        print(ax)
+        ax[0].set_title("Fixed image")
+        ax[1].set_title(f"Warped image, $p=[{p[0]:.2f},{p[1]:.2f}]$")
+        ax[2].set_title("Superimposed image")
+
+        ax[0].imshow(self._fixed_img.data,cmap="Blues")
+        ax[2].imshow(self._fixed_img.data,cmap="Blues")
+        i,j = np.meshgrid(np.arange(self._fixed_img.data.shape[0]),
+                           np.arange(self._fixed_img.data.shape[1]),indexing='ij')
+
+        ax[1].imshow(warp(i,j,p),cmap="Oranges",alpha=1)
+        ax[2].imshow(warp(i,j,p),cmap="Oranges",alpha=0.5)
+        plt.show()
+        return
+
     def get_pix_at_translated(self, x : int, y : int, p : list):
         """Optimized translate function
 
@@ -216,7 +234,7 @@ class Utils_starter_5:
         #check for existing file
         save_filename = self.make_save_name(loss_function)
         print(save_filename)
-    
+        #if file exists, ask user to confirm overwriting
         compute = "y"
         if os.path.exists(save_filename) :
                 compute = input(f"Data exists for {loss_function.__name__}. Do you want to compute and overwrite ? (y/n)")
@@ -265,6 +283,9 @@ class Utils_starter_5:
                 ax.plot_surface(px,py,loss_grid)
             
             plt.show()
+        else:
+                px, py, loss_grid = self.import_data(loss_function)
+
         
         return px, py, loss_grid
 
@@ -537,12 +558,16 @@ if __name__ == '__main__' :
         # utils = Utils_starter_5(Image("images/clean_finger.png"),Image("images/txy_finger.png")) #TODO Debug
 
         # utils.plot_loss()
-        utils.compute_and_plot_loss(span = "all")
+        utils.compute_and_plot_loss(span = "all",show = False)
 
-        p, l_list = utils.coordinate_descent_optimization_xy(plot = True, alpha0 = 0.1, epsilon = 100, epsilon2 = 0.001)
-        p, l_list = utils.coordinate_descent_optimization_xy(plot = True, alpha0 = 0.2, epsilon = 10, epsilon2 = 0.01) #diverge
-        # p, l_list = utils.coordinate_descent_optimization_xy(plot = True, alpha0 = 0.1, epsilon = 100, epsilon2 = 0.01)
+        p, l_list = utils.coordinate_descent_optimization_xy(plot = True, alpha0 = 0.1, epsilon = 100, epsilon2 = 0.001 )
 
+        utils.display_warped(p, utils.get_pix_at_translated, utils.loss_function_1)
+
+        p, l_list = utils.coordinate_descent_optimization_xy(plot = True, alpha0 = 0.2, epsilon = 10,  epsilon2 = 0.01  ) #diverge
+        
+        utils.display_warped(p, utils.get_pix_at_translated, utils.loss_function_1)
+        
 
 
 
