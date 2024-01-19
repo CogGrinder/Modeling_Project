@@ -17,8 +17,17 @@ class Main_Course_1_Reconstruction:
             Returns:
                 - A float value: dist(A, B)
         """
+        # https://math.stackexchange.com/questions/507742/distance-similarity-between-two-matrices
+
         # Frobenius distance
-        return np.sqrt(np.trace(np.transpose(A-B) * (A-B)))
+        # return np.sqrt(np.trace(np.transpose(A-B) * (A-B)))
+
+        # Euclidean distance
+        dist = 0
+        for i in range(A.shape[0]):
+            for j in range(A.shape[1]):
+                dist += (A[i][j] - B[i][j]) ** 2
+        return np.sqrt(dist)
     
     @staticmethod
     def restauration(img, patches, mask):
@@ -61,7 +70,7 @@ if __name__ == "__main__":
     img.display()
 
     # Crop the image into several patches
-    patches = img.crop_patches(10)
+    patches = img.crop_patches(1000)
 
     # Plot the patches for debug purpose
     # for patch in patches:
