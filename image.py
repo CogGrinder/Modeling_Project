@@ -551,6 +551,8 @@ class Image:
             Returns:
                 - list of patches (size x size numpy arrays)  
         """
+        print("Cropping", n, "patches of size", size, "px from the image")
+
         # list of patches to be returned
         patches = []
 
@@ -569,6 +571,8 @@ class Image:
         # print(patch)
         # plt.imshow(patch, cmap='gray', vmin=0, vmax=1)
         # plt.show()
+            
+        print("Cropping patches: Done.")
             
         return patches
 
