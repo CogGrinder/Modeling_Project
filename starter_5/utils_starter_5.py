@@ -8,6 +8,8 @@ import os
 sys.path.append(os.getcwd()) #to access current working directory files easily
 from image import Image
 
+surface_sampling = 85
+
 class Utils_starter_5:
     def __init__(self, img1 : Image, img2 : Image):
         self._fixed_img  = img1 #fixed
@@ -79,10 +81,26 @@ class Utils_starter_5:
         # translate including dummy values, bilinearly interpolated wrt decimal parts
         dummy_translate = \
         + decimal_px    * decimal_py     *self._moving_img.data[dummy_x-int_px-1,  dummy_y-int_py-1] \
+        + decimal_px    * (1-decimal_py) *self._moving_img.data[dummy_x -int_px-1, dummy_y-int_py] \
+        + (1-decimal_px)* decimal_py     *self._moving_img.data[dummy_x-int_px,    dummy_y-int_py-1] \
+        + (1-decimal_px)* (1-decimal_py) *self._moving_img.data[dummy_x -int_px,   dummy_y-int_py]
+        #try7 finally working? inverted 10 and 01
+
+        """
+        (1-decimal_px)*( (1-decimal_py) *self._moving_img.data[dummy_x-int_px,   dummy_y-int_py] \
+                        + decimal_py    *self._moving_img.data[dummy_x -int_px,  dummy_y-int_py-1]) \
+        + decimal_px  *( (1-decimal_py) *self._moving_img.data[dummy_x-int_px-1, dummy_y-int_py] \
+                        + decimal_py    *self._moving_img.data[dummy_x -int_px-1,dummy_y-int_py-1])
+        #previous version
+        """
+
+        """
+        + decimal_px    * decimal_py     *self._moving_img.data[dummy_x-int_px-1,  dummy_y-int_py-1] \
         + decimal_px    * (1-decimal_py) *self._moving_img.data[dummy_x -int_px,   dummy_y-int_py-1] \
         + (1-decimal_px)* decimal_py     *self._moving_img.data[dummy_x-int_px-1,  dummy_y-int_py] \
         + (1-decimal_px)* (1-decimal_py) *self._moving_img.data[dummy_x -int_px,   dummy_y-int_py]
-        #try6 finally working?
+        #try6 finally working? added -2 everywhere - no i got mixed up since a long time ago with x and y
+        """
         
         """
         + decimal_px    * decimal_py     *self._moving_img.data[dummy_x-int_px,  dummy_y-int_py] \
@@ -106,14 +124,6 @@ class Utils_starter_5:
         + (1-decimal_px)*( decimal_py     *self._moving_img.data[dummy_x-int_px, dummy_y-int_py+1] \
                          + (1-decimal_py) *self._moving_img.data[dummy_x -int_px,dummy_y-int_py])
         #try3
-        """
-        
-        """
-        (1-decimal_px)*( (1-decimal_py) *self._moving_img.data[dummy_x-int_px,   dummy_y-int_py] \
-                        + decimal_py    *self._moving_img.data[dummy_x -int_px,  dummy_y-int_py-1]) \
-        + decimal_px  *( (1-decimal_py) *self._moving_img.data[dummy_x-int_px-1, dummy_y-int_py] \
-                        + decimal_py    *self._moving_img.data[dummy_x -int_px-1,dummy_y-int_py-1])
-        #previous version
         """
 
 
@@ -312,8 +322,8 @@ class Utils_starter_5:
 
             px, py = np.meshgrid(np.linspace(-translate_span_x,translate_span_x, translate_span_x * 2, endpoint=False).astype(int),
                                 np.linspace(-translate_span_y,translate_span_y, translate_span_y * 2, endpoint=False).astype(int))
-            #TODO : check meshgrid indexing
-            #arbitrary range for p, beware the endpoint is True
+            #using "x,y" convention because stored values will be plotted.
+            # TODO However, is x and y the x and y from the picture?
 
             loss_grid = np.zeros(px.shape)
             for i in range(px.shape[0]):
@@ -343,10 +353,10 @@ class Utils_starter_5:
             ax = plt.figure().add_subplot(projection='3d')
             
             if compute == "y":
-                ax.plot_surface(px,py,loss_grid)
+                ax.plot_surface(px,py,loss_grid,rcount=surface_sampling,ccount=surface_sampling)
             else :
                 px, py, loss_grid = self.import_data(loss_function)
-                ax.plot_surface(px,py,loss_grid)
+                ax.plot_surface(px,py,loss_grid,rcount=surface_sampling,ccount=surface_sampling)
             
             plt.show()
         else:
@@ -437,11 +447,11 @@ class Utils_starter_5:
                 
                 px_loss, py_loss, loss_data = self.import_data(loss_function)
                 if px_loss != None:
-                    ax.plot_surface(px_loss,py_loss,loss_data)
+                    ax.plot_surface(px_loss,py_loss,loss_data,rcount=surface_sampling,ccount=surface_sampling)
                     plt.show()
 
                 p_x, p_y = np.meshgrid(np.arange(- math.ceil(n/2), math.floor(n/2) + 1),np.arange(- math.ceil(m/2), math.floor(m/2) + 1))
-                ax.plot_surface(p_x,p_y,l_list)
+                ax.plot_surface(p_x,p_y,l_list,rcount=surface_sampling,ccount=surface_sampling)
                 plt.show()
 
         print("min loss and argmin computation done")
@@ -449,7 +459,7 @@ class Utils_starter_5:
         return p_min, l_list
 
 
-    def coordinate_descent_optimization_xy(self, **kwargs) : #TODO : vary the ranges and shapes for p, maybe with relation to loss function and image data
+    def coordinate_descent_optimization_xy(self, **kwargs) :
         """non differentiable coordinate descent strategy to find the optimal value of [p_x,p_y]
 
         Args:
@@ -459,6 +469,7 @@ class Utils_starter_5:
                 loss_function : callable function which takes a parameter p
                 epsilon : stopping level for our loss function decrease
                 epsilon2 : stopping level for alpha
+                dx : scheme step
                 p0 : initial p parameter for loss function
                 alpha0 : initial percentage (in direct multiplicative factor form) for adjustment of p
 
@@ -476,35 +487,43 @@ class Utils_starter_5:
         loss_function = self.loss_function_1
         epsilon = 10 #arbitrary default
         epsilon2 = 0.05 #arbitrary default
+        scheme_step = 0.5 #scheme step
 
         warp = self.get_pix_at_translated # new warp function parameter
 
-
-        for key,value in kwargs.items():
-            if key == "loss_function":
-                loss_function = value
-            elif key == "warp":
-                warp = value
-            elif key == "plot":
-                if not (type(value) is bool):
-                    print(type(value))
-                    raise TypeError("plot must be a bool")
-                else :
-                    plot = value
-            elif key == "epsilon":
-                if value<0:
-                    raise ValueError("epsilon must be positive")
-                else:
-                    epsilon = value
-            elif key == "epsilon2":
-                if value<0:
-                    raise ValueError("epsilon must be positive")
-                else:
-                    epsilon2 = value
-            elif key == "p0":
-                p0 = value
-            elif key == "alpha0":
-                alpha0 = value
+        if "loss_function" in kwargs:
+            loss_function = kwargs["loss_function"]
+        if "warp" in kwargs:
+            warp = kwargs["warp"]
+        if "plot" in kwargs:
+            value = kwargs["plot"]
+            if not (type(value) is bool):
+                print(type(value))
+                raise TypeError("plot must be a bool")
+            else :
+                plot = value
+        if "epsilon" in kwargs:
+            value = kwargs["epsilon"]
+            if value<0:
+                raise ValueError("epsilon must be positive")
+            else:
+                epsilon = value
+        if "epsilon2" in kwargs:
+            value = kwargs["epsilon2"]
+            if value<0:
+                raise ValueError("epsilon must be positive")
+            else:
+                epsilon2 = value
+        if "dx" in kwargs:
+            value = kwargs["dx"]
+            if value<0:
+                raise ValueError("scheme step dx must be positive")
+            else:
+                scheme_step = value
+        if "p0" in kwargs:
+            p0 = kwargs["p0"]
+        if "alpha0" in kwargs:
+            alpha0 = kwargs["alpha0"]
         
         print("~~~~~~~~~~~~")
         print("Parameters :")
@@ -523,17 +542,19 @@ class Utils_starter_5:
         l = loss_function(p=p)
         p_list = [p.copy()] #used to return the points for plotting
         l_list = [l] #used to return the loss function for plotting
-        discrete_gradient = [ (loss_function(p=[p[0] + 1, p[1]], warp = warp) - (loss_function(p=[p[0] - 1, p[1]], warp = warp)) ) /2, 
-                              (loss_function(p=[p[0], p[1] + 1], warp = warp) - (loss_function(p=[p[0], p[1] - 1], warp = warp)) ) /2] #beware the indexation
+        
+        discrete_gradient = np.array([ (loss_function(p=[p[0] +scheme_step, p[1]], warp = warp) - (loss_function(p=[p[0] -scheme_step, p[1]], warp = warp)) ) /2, 
+                                       (loss_function(p=[p[0], p[1] +scheme_step], warp = warp) - (loss_function(p=[p[0], p[1] -scheme_step], warp = warp)) ) /2]) #beware the indexation
         print(discrete_gradient)
         print(alpha)
 
         while abs(l_previous-l) > epsilon and alpha > epsilon2 : #TODO : test change conditional with or
             print("l_previous,l: ",l_previous,l)
             
-            # update l and alpha
             if l < l_previous : # when loss decreases
                 l_previous = l
+
+                # update alpha to value used for l
                 p[0] -= alpha*discrete_gradient[0] # beware the indexation
                 p[1] -= alpha*discrete_gradient[1]
                 
@@ -544,13 +565,9 @@ class Utils_starter_5:
             else :
                 alpha *= 0.5 # hardcoded slowing
             
-            discrete_gradient = np.array([ (loss_function(p=[p[0] + 1, p[1]]) - (loss_function(p=[p[0] - 1, p[1]])) ) /2, 
-                                           (loss_function(p=[p[0], p[1] + 1]) - (loss_function(p=[p[0], p[1] - 1])) ) /2]) #beware the indexation
+            discrete_gradient = np.array([ (loss_function(p=[p[0] +scheme_step, p[1]], warp = warp) - (loss_function(p=[p[0] -scheme_step, p[1]], warp = warp)) ) /2, 
+                                           (loss_function(p=[p[0], p[1] +scheme_step], warp = warp) - (loss_function(p=[p[0], p[1] -scheme_step], warp = warp)) ) /2]) #beware the indexation
             
-            # p = [p[0], p[1]]
-
-            # discrete_gradient *= [ ( warp(p=p) - (warp(p=p)) ) /2,
-            #                        ( warp(p=p) - (warp(p=p)) ) /2] #beware the indexation
             
             print("discrete_gradient: ",discrete_gradient)
             print("alpha: ",alpha)
@@ -569,7 +586,7 @@ class Utils_starter_5:
 
             px_loss, py_loss, loss_data = self.import_data(loss_function)
             if len(px_loss) != 0:
-                ax.plot_surface(px_loss,py_loss,loss_data,alpha=0.3)    
+                ax.plot_surface(px_loss,py_loss,loss_data,alpha=0.3,rcount=surface_sampling,ccount=surface_sampling)    
             p_list_np = np.array(p_list).transpose()
             l_list_np = np.array(l_list)
             ax.plot(p_list_np[0],p_list_np[1],l_list_np)

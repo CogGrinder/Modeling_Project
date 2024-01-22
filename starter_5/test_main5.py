@@ -38,31 +38,35 @@ def assert_image_dots(image,list_of_points) :
     assert (image.data/original_background == assert_matrix).all()
 
 def test_translation():
-    shape = (5,5)
+    #shape = (6,6)
     fixed1  = Image( original_background*\
-      np.array([[1,1,1,1,1],
-                [1,1,1,1,1],
-                [1,0,1,0,1],
-                [1,1,1,0,1],
-                [1,1,1,1,0]])
+      np.array([[1,1,1,1,1,1],
+                [1,1,1,1,1,1],
+                [1,1,1,1,1,1],
+                [1,0,1,0,1,1],
+                [1,1,1,0,1,1],
+                [1,1,1,1,0,1]])
     )
-    assert_image_dots(fixed1,[(2,1),
-                              (2,3),
+    assert_image_dots(fixed1,[(3,1),
                               (3,3),
-                              (4,4)])
+                              (4,3),
+                              (5,4)])
 
     moving1 = Image( original_background*\
-      np.array([[1,1,1,1,1],
-                [0,1,0,1,1],
-                [1,1,0,1,1],
-                [1,1,1,0,1],
-                [1,1,1,1,1]])
+      np.array([[1,1,1,1,1,1],
+                [0,1,0,1,1,1],
+                [1,1,0,1,1,1],
+                [1,1,1,0,1,1],
+                [1,1,1,1,1,1],
+                [1,1,1,1,1,1]])
+
     )
     assert_image_dots(moving1,[(1,0),
                                (1,2),
                                (2,2),
                                (3,3)])
 
+    #shape (5,5)
     fixed2  = Image( original_background*\
       np.array([[1,1,1,1,1],
                 [1,1,1,1,1],
@@ -82,15 +86,15 @@ def test_translation():
 
 
     print("Test 1")
-    utils = Utils_starter_5(fixed1,moving1)
-
-    i,j = np.meshgrid(np.arange(5),np.arange(5),indexing="ij")
-    print(i,j,sep="\n")
     print("fixed1:",fixed1.data,sep="\n")
     print("moving1:",moving1.data,sep="\n")
+    utils = Utils_starter_5(fixed1,moving1)
 
-    print("moving1 translated")
-    p=(0.9,0)
+    i,j = np.meshgrid(np.arange(6),np.arange(6),indexing="ij") #warning, modify here
+    print(i,j,sep="\n")
+
+    print("moving1 translated by p:")
+    p=(1.9,0)
     translated_moving1 = utils.get_pix_at_translated(i,j,p=p)
     print(p,translated_moving1,sep="\n")
     
@@ -98,40 +102,53 @@ def test_translation():
     translated_moving1 = utils.get_pix_at_translated(i,j,p=p)
     print(p,translated_moving1,sep="\n")
     
-    p=(1,1)
+    p=(2,1)
     translated_moving1 = utils.get_pix_at_translated(i,j,p=p)
     print(p,translated_moving1,sep="\n")
     
     # expected value is fixed1 matrix
-    # assert (translated_moving1==fixed1.data).all()
+    translated_moving1[3,1] = 0 # this pixel was on the border therefore it was ignored by the filter
+    assert (translated_moving1==fixed1.data).all()
 
 
     print("Test 2")
+    print("fixed2:",fixed2.data,sep="\n")
+    print("moving2:",moving2.data,sep="\n")
     utils = Utils_starter_5(fixed2,moving2)
 
     i,j = np.meshgrid(np.arange(5),np.arange(5),indexing="ij")
-    translated_moving2 = utils.get_pix_at_translated(i,j,p=(3,1)) # should be (3,1)
-    print(fixed2.data)
-    print(translated_moving2)
     
+    print("moving2 translated by p:")
+    p=(-0.1,0)
+    translated_moving2 = utils.get_pix_at_translated(i,j,p=p)
+    print(p,translated_moving2,sep="\n")
+    
+    p=(0,-2.9)
+    translated_moving2 = utils.get_pix_at_translated(i,j,p=p)
+    print(p,translated_moving2,sep="\n")
+
+    p=(-1,-3) # should be (-1,-3)
+    translated_moving2 = utils.get_pix_at_translated(i,j,p=p)
+    print(p,translated_moving2,sep="\n")
     # expected value is fixed2 matrix
     assert (translated_moving2==fixed2.data).all()
 
-def test_image_translate_display()
+def test_image_translate_display():
+    pass
     
 
 ## Tests
 if __name__ == '__main__' :
     
-    # utils = Utils_starter_5(Image(np.ones((10,10))),Image(np.ones((10,10))) )
     """Testing compute_and_plot_loss
     """
-    # utils.compute_and_plot_loss(loss_function=test_loss, span="all",save=False)
+    utils = Utils_starter_5(Image(np.ones((10,10))),Image(np.ones((10,10))) )
+    utils.compute_and_plot_loss(loss_function=test_loss, span="all",save=False)
     #Expected : cone shape
 
-    test_translation()
+    test_translation() # works 22/01/2024
     
     
-    utils.display_warped()
+    # utils.display_warped()
     
 

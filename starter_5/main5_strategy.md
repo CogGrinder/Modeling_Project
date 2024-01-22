@@ -6,6 +6,7 @@
     - show on top with red and blue (with truncated sum of images)
 - [ ] test all functions on (5,5)
     - [x] on report: say that for simplicity (time constraint) and optimization, the translate function removes information from first column and first row
+        note: the proper way is by adding a padding
     - [ ] for test add constructor from numpy array in image.py
 - [ ] support new loss function
     - [ ] normalize
