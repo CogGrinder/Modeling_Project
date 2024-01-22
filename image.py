@@ -88,7 +88,7 @@ class Image:
         max = self.max()
         self.data = (self.data - min)/(max - min)
 
-    def __denormalize(self, original_min=-1, original_max=-1):
+    def __denormalize(self, original_min=-1, original_max=-1): #TODO refactor
         """ 
             Create and return the non normalized version (with pixels value living in [0;255], not in [0;1]) of the normalized image img
             Parameters original_min and original_max allows to not lose any information in comparison with the original version
@@ -370,6 +370,7 @@ class Image:
         mini = self.min()
         maxi = self.max()
         otsu_threshold = (otsu_threshold- mini)/(maxi - mini)
+        image.normalize()
         return otsu_threshold
     
     
@@ -634,6 +635,8 @@ class Image:
 
         if structuring_element=='Horizontal Rectangle':
             kernel = np.ones((2, size), np.uint8)
+            # self.normalize()
+            print(self.data)
             orig_shape = self.data.shape
             pad_width = size - 1
 
