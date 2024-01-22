@@ -164,7 +164,7 @@ class Image:
         # create a deepcopy of the self instance
         tmp = copy.deepcopy(self)
         self.data = np.ones((self.n,self.m)) 
-           
+        
         # Convert p to radian
         p_radian = p * np.pi/180
         # center of rotation coordinates (coordinates of the center of the pixel "center", given as parameter)
@@ -251,7 +251,7 @@ class Image:
             inverse_transformation_matrix = np.dot(inverse_translation_matrix, inverse_rotation_matrix)
         else:
             inverse_transformation_matrix = np.dot(inverse_rotation_matrix, inverse_translation_matrix)             
-            
+        
         # for each pixel of the finished image, calculate its counter image by the inverse transformation
         for i in range(min_vert_range, max_vert_range):
             for j in range(min_hori_range, max_hori_range):
@@ -265,6 +265,7 @@ class Image:
                 # otherwise the pixel intensity is set to 1 
         # free up memory space occupied by tmp
         del tmp
+
                 
 
     def intensity_of_center(self, point):
