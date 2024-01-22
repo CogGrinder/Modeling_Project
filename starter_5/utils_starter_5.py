@@ -549,11 +549,11 @@ class Utils_starter_5:
         """
         p = p0.copy()
         l = loss_function(p=p)
-        p_list = [p.copy()] #used to return the points for plotting
-        l_list = [l] #used to return the loss function for plotting
+        p_list = [] #used to return the points for plotting
+        l_list = [] #used to return the loss function for plotting
         
-        discrete_gradient = np.array([ (loss_function(p=[p[0] +scheme_step, p[1]], warp = warp) - (loss_function(p=[p[0] -scheme_step, p[1]], warp = warp)) ) /(2*scheme_step), 
-                                       (loss_function(p=[p[0], p[1] +scheme_step], warp = warp) - (loss_function(p=[p[0], p[1] -scheme_step], warp = warp)) ) /(2*scheme_step)]) #beware the indexation
+        discrete_gradient = np.array([ 0, 
+                                       0])
         print(discrete_gradient)
         print(alpha)
 
@@ -574,8 +574,6 @@ class Utils_starter_5:
             else :
                 alpha *= 0.5 # hardcoded slowing
 
-            print("Debugging gradient : ",(loss_function(p=[p[0] +scheme_step, p[1]], warp = warp) - loss_function(p=[p[0] -scheme_step, p[1]], warp = warp) ))
-            
             discrete_gradient = np.array([ (loss_function(p=[p[0] +scheme_step, p[1]], warp = warp) - loss_function(p=[p[0] -scheme_step, p[1]], warp = warp) ) /(2*scheme_step), 
                                            (loss_function(p=[p[0], p[1] +scheme_step], warp = warp) - loss_function(p=[p[0], p[1] -scheme_step], warp = warp) ) /(2*scheme_step)]) #beware the indexation
             
@@ -634,7 +632,7 @@ if __name__ == '__main__' :
 
     """Testing coordinate_descent_optimization_xy with small translation
     """
-    if False:
+    if True:
         utils = Utils_starter_5(Image("images/clean_finger.png"),Image("images/tx_finger.png"))
         # utils = Utils_starter_5(Image("images/clean_finger.png"),Image("images/txy_finger.png")) # TODO find params
 
@@ -653,9 +651,9 @@ if __name__ == '__main__' :
         
         utils.display_warped(p, utils.get_pix_at_translated, loss_function)
     
-    """Testing coordinate_descent_optimization_xy with small translation
+    """Testing coordinate_descent_optimization_xy with blur preoptimisation
     """
-    if True:
+    if False:
         
         blur_kernel = 8
 

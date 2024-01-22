@@ -37,9 +37,10 @@
 
 ### Better quality algorithm
 - [ ] apply pixelize blur on both images and optimize, then use result as p0
-    - [ ] first apply blur to image
-    - [ ] test algorithm and display
-    - [ ] now save p0 and reinitialize image, redo the same algorithm
+    - [x] first apply blur to image
+    - [x] test algorithm and display
+    - [x] now save p0 and reinitialize image, redo the same algorithm
+    - [ ] figure out the parameters
 
 - choose the next step with second derivative and parabolic (maybe cubic) regression/interpolation and take theoretical minimum
 
