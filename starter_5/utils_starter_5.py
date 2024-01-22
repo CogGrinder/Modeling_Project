@@ -634,12 +634,11 @@ if __name__ == '__main__' :
 
     """Testing coordinate_descent_optimization_xy with small translation
     """
-    if True:
+    if False:
         utils = Utils_starter_5(Image("images/clean_finger.png"),Image("images/tx_finger.png"))
-        # utils = Utils_starter_5(Image("images/clean_finger.png"),Image("images/txy_finger.png")) #TODO Debug
+        # utils = Utils_starter_5(Image("images/clean_finger.png"),Image("images/txy_finger.png")) # TODO find params
 
-        # utils.plot_loss()
-
+        ### Choose loss function
         # loss_function = utils.loss_function_1
         loss_function = utils.loss_function_2
         utils.compute_and_plot_loss(show = False, loss_function=loss_function,span="all")
@@ -651,6 +650,56 @@ if __name__ == '__main__' :
         utils.display_warped(p, utils.get_pix_at_translated, loss_function)
 
         p, l_list = utils.coordinate_descent_optimization_xy(plot = True, alpha0 = 0.01, epsilon = 10,  epsilon2 = 0.0001,  loss_function=loss_function ) #diverge
+        
+        utils.display_warped(p, utils.get_pix_at_translated, loss_function)
+    
+    """Testing coordinate_descent_optimization_xy with small translation
+    """
+    if True:
+        
+        blur_kernel = 8
+
+        blurred_fixed_finger  = Image("images/clean_finger.png")
+        blurred_fixed_finger.blur(blur_kernel)
+        blurred_fixed_finger.name = "blurred_fixed_finger"
+        blurred_fixed_finger.display()
+        blurred_moving_finger = Image("images/tx_finger.png")
+        blurred_moving_finger.blur(blur_kernel)
+        blurred_moving_finger.name = "blurred_moving_finger"
+        blurred_moving_finger.display()
+
+        utils = Utils_starter_5(blurred_fixed_finger,blurred_moving_finger)
+
+        ### Choose loss function
+        # loss_function = utils.loss_function_1
+        loss_function = utils.loss_function_2
+        utils.compute_and_plot_loss(show = False, loss_function=loss_function)#,span="all")
+
+
+        p0, l_list = utils.coordinate_descent_optimization_xy(plot = True, alpha0 = 0.1, epsilon = 100, epsilon2 = 0.001, loss_function=loss_function )
+
+        utils.display_warped(p0, utils.get_pix_at_translated, loss_function)
+
+        p0, l_list = utils.coordinate_descent_optimization_xy(plot = True, alpha0 = 0.01, epsilon = 10,  epsilon2 = 0.0001,  loss_function=loss_function ) #diverge
+        
+        utils.display_warped(p0, utils.get_pix_at_translated, loss_function)
+        
+
+
+        utils = Utils_starter_5(Image("images/clean_finger.png"),Image("images/tx_finger.png"))
+        # utils = Utils_starter_5(Image("images/clean_finger.png"),Image("images/txy_finger.png")) # TODO find params
+
+        ### Choose loss function
+        # loss_function = utils.loss_function_1
+        loss_function = utils.loss_function_2
+        utils.compute_and_plot_loss(show = False, loss_function=loss_function,span="all")
+
+
+        p, l_list = utils.coordinate_descent_optimization_xy(plot = True, p0=p0, alpha0 = 0.1, epsilon = 100, epsilon2 = 0.001, loss_function=loss_function )
+
+        utils.display_warped(p, utils.get_pix_at_translated, loss_function)
+
+        p, l_list = utils.coordinate_descent_optimization_xy(plot = True, p0=p0, alpha0 = 0.01, epsilon = 10,  epsilon2 = 0.0001,  loss_function=loss_function ) #diverge
         
         utils.display_warped(p, utils.get_pix_at_translated, loss_function)
         
