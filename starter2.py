@@ -114,14 +114,10 @@ if __name__ == "__main__":
 
     img = Image("images/clean_finger.png")
     img.display()
-    print("Image size :", img.n, "x", img.m)
-    img.rotate_translate(76, (46, 25), (-122,38), data_conservation=True)
-
+    
+    img.rotate_translate(26, (100, 125), (-12,38), data_conservation=True)
     img.display()
-    print("Image size :", img.n, "x", img.m)
 
-    img.rotate_translate(-76, (46, 25), (122,-38), data_conservation=True)
-
+    img.rotate_translate(-26, (100, 125), (12,-38), data_conservation=True, inverse_order=True)
     img.display()
-    print("Image size :", img.n, "x", img.m)
     

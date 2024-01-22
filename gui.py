@@ -34,13 +34,13 @@ class Starter_4_Window(customtkinter.CTkToplevel):
                                                 font=('Cambria', 16), command=self.open_file_dialog)
         self.button.grid(row=1, column=0)
 
-        self.combobox1 = customtkinter.CTkComboBox(self, values=["Square", "Horizontal Rectangle", "Vertical Rectange"],
+        self.combobox1 = customtkinter.CTkComboBox(self, values=["Square", "Horizontal Rectangle", "Vertical Rectangle"],
                                             command=self.struct_element_shape)
         self.combobox1.set("Square")
         self.combobox1.grid(row=2, column=0)
 
-        self.combobox2 = customtkinter.CTkComboBox(self, values=['Dilation', 'Erosion'],
-                                            command=self.operation_select)
+        self.combobox2 = customtkinter.CTkComboBox(self, values=['Dilation', 'Erosion'], 
+                                                   command=self.operation_select)
         self.combobox2.set('Dilation')
         self.combobox2.grid(row=3, column=0)
 
