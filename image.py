@@ -265,7 +265,6 @@ class Image:
                 # otherwise the pixel intensity is set to 1 
         # free up memory space occupied by tmp
         del tmp
-
                 
 
     def intensity_of_center(self, point):

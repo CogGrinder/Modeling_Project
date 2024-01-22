@@ -28,14 +28,14 @@ class Main_Course_1:
 
     @staticmethod
     def c3(r):
-        ''' 1 - phi, with phi the c.d.f of a gaussian random variable following a N(5, 0.2) (which have the properties c(r) --> 1 when r --> 0 (instead of c(0)=1) and c(r) --> 0 when r --> +inf)'''
+        ''' 1 - phi, with phi the c.d.f of a gaussian random variable following a N(u, s²) (which have the properties c(r) --> 1 when r --> 0 (instead of c(0)=1) and c(r) --> 0 when r --> +inf, for u > 5)'''
         if r == 0:
             return 1
-        # here u corresponds to the distance from the center of data being kept
+        # here u corresponds to the distance from the center of data being kept, u>5
         u = 100
         # s corresponds here to the width of the "blur" data, i.e : the width of the blur bound at the edge of the circle of low pressure"
         # link with the density function of an N(u, s²)
-        s = np.sqrt(10)
+        s = np.sqrt(100)
         return 1 - (1/2 * (1 + math.erf((r - u)/(s*np.sqrt(2)))))
     
     @staticmethod

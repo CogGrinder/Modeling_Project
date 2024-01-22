@@ -175,6 +175,94 @@ class Starter_2_Window(customtkinter.CTkToplevel):
 
         # Display the transformed image
         img.display()
+        
+        
+class Main_1_Simulation_Window(customtkinter.CTkToplevel):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.title('Main Course 1 Simulation')
+        self.geometry("650x500")
+        self.resizable(True, True)
+        self.configure(bg="black")
+        self.rowconfigure(0, weight=1)
+        self.rowconfigure(1, weight=1)
+        self.rowconfigure(2, weight=1)
+        self.rowconfigure(3, weight=1)
+        self.rowconfigure(4, weight=1)
+        self.rowconfigure(5, weight=1)
+        self.rowconfigure(6, weight=1)
+        
+        # Variables to store user inputs
+        self.selected_file = ""
+        self.center_x = IntVar()
+        self.center_y = IntVar()
+        self.apply_all_transformations_var = BooleanVar(value=False)
+
+        # Explanation text
+        explanation_text = "Perform an operation of simulation of low pressure on any fingerprint."
+        self.explanation_label = customtkinter.CTkLabel(self, text=explanation_text, fg_color="transparent", font=('Calibri', 14, 'bold'))
+        self.explanation_label.grid(row=0, column=0, sticky='w', padx=10, pady=10)
+
+        # Select file button
+        self.button = customtkinter.CTkButton(self, text='Select File', width=120, height=40,
+                                font=('Cambria', 16), command=self.open_file_dialog)
+        self.button.grid(row=1, column=0, pady=(0, 10))
+
+        # Display selected file name and size
+        self.selected_file_label = customtkinter.CTkLabel(self, text="Selected File: None", font=('Calibri', 12))
+        self.selected_file_label.grid(row=2, column=0, sticky='w', padx=10)
+
+        # Center coordinates entries
+        self.center_label = customtkinter.CTkLabel(self, text="Enter Center of Low Pressure (x, y):", font=('Calibri', 12))
+        self.center_label.grid(row=3, column=0, sticky='w', padx=10)
+        self.center_entry_x = customtkinter.CTkEntry(self, font=('Calibri', 12))
+        self.center_entry_x.grid(row=4, column=0, padx=10, pady=(0, 10))
+        self.center_entry_y = customtkinter.CTkEntry(self, font=('Calibri', 12))
+        self.center_entry_y.grid(row=5, column=0, padx=10, pady=(0, 10))
+
+        # Checkbox for applying all transformations
+        self.apply_all_transformations_checkbox = customtkinter.CTkCheckBox(self, text="Apply All Transformations", variable=self.apply_all_transformations_var)
+        self.apply_all_transformations_checkbox.grid(row=6, column=0, sticky='w', padx=10)
+
+        # Reminder text about rotating the image
+        reminder_text = "Note: You might want to rotate the image before applying this kind of transformation,\n" \
+                        "so the vertical axis of the fingerprint aligns with the vertical axis of the image."
+        self.reminder_label = customtkinter.CTkLabel(self, text=reminder_text, fg_color="transparent", font=('Calibri', 10))
+        self.reminder_label.grid(row=7, column=0, sticky='w', padx=10, pady=(0, 10))
+
+        # Transform button
+        self.transform_button = customtkinter.CTkButton(self, text='Transform', width=120, height=40,
+                                          font=('Cambria', 16), command=self.transform_image)
+        self.transform_button.grid(row=8, column=0, pady=(10, 0))
+
+    def open_file_dialog(self):
+        self.selected_file = filedialog.askopenfilename()
+        if self.selected_file != "":
+            # Create an instance of the Image class with the selected file
+            img = Image(self.selected_file)
+            # Update the label with the file name and size
+            self.selected_file_label.configure(text=f"Selected File: {self.selected_file} (Size: {img.n}x{img.m})")
+
+    def transform_image(self):
+        # Retrieve user inputs
+        center_x = int(self.center_entry_x.get())
+        center_y = int(self.center_entry_y.get())
+        apply_all_transformations = self.apply_all_transformations_var.get()
+
+        # Create an instance of the Image class with the selected file
+        img = Image(self.selected_file)
+
+        # Perform low-pressure simulation
+        low_pressure_img = Main_Course_1.simulate_low_pressure(img, center_x, center_y, Main_Course_1.c5)
+
+        # Apply additional transformations if requested
+        if apply_all_transformations:
+            low_pressure_img.binarize(low_pressure_img.compute_threshold())
+            low_pressure_img.dilation("Horizontal Rectangle", 3)
+            low_pressure_img.blur(3)
+
+        # Display the transformed image
+        low_pressure_img.display()
 
 
         
@@ -196,7 +284,7 @@ class SecondWindow(customtkinter.CTkToplevel):
         self.label.grid(column=0, row=0)
         #Create a list of the different sections we have worked on so far
         self.combobox = customtkinter.CTkComboBox(self, values=["Starter 1", "Starter 2", "Starter 3",
-                                                          "Starter 4", "Starter 5", "Main course 1", "Main course 5"],
+                                                          "Starter 4", "Starter 5", "Main Course 1 (Simulation)", "Main course 5"],
                                             command=self.combobox_callback)
         self.combobox.set("Starter 1")
         self.combobox.grid(row=1, column=0)
@@ -222,8 +310,12 @@ class SecondWindow(customtkinter.CTkToplevel):
                 self.toplevel_window.focus()
         if choice == "Starter 5":
             os.system('starter5.py')
-        if choice == "Main course 1":
-            os.system('main_course_1.py')
+        if choice == "Main Course 1 (Simulation)":
+            self.toplevel_window = None
+            if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
+                self.toplevel_window = Main_1_Simulation_Window(self)  # create window if its None or destroyed
+            else:
+                self.toplevel_window.focus()
         if choice == "Main course 5":
             print("combobox dropdown clicked:", choice)
 
