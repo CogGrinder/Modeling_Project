@@ -96,12 +96,12 @@ if __name__ == "__main__":
     
     # Open the weak finger image
     img = Image("images/weak_finger.png")
-    img2 = Image("images/moist_finger.png")
-    img.display()
+    img2 = Image("images/clean_finger.png")
+    # img.display()
 
     # Crop the image into several patches
     patch_size = 3
-    patches = img.crop_patches(1000, patch_size)
+    patches = img.crop_patches(2000, patch_size)
 
     # Plot the patches for debug purpose
     # for patch in patches:
