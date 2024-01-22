@@ -4,10 +4,10 @@
 - [x] at the end of optimization, plot the best warped image next to the fixed image
     - side by side for testing
     - show on top with red and blue (with truncated sum of images)
-- [ ] test all functions on (5,5)
+- [x] test all functions on (5,5) - tested most functions
     - [x] on report: say that for simplicity (time constraint) and optimization, the translate function removes information from first column and first row
         note: the proper way is by adding a padding
-    - [ ] for test add constructor from numpy array in image.py
+    - [x] for test add constructor from numpy array in image.py
 - [ ] support new loss function
     - [ ] normalize
 - [ ] support for rotation

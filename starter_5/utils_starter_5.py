@@ -9,6 +9,7 @@ sys.path.append(os.getcwd()) #to access current working directory files easily
 from image import Image
 
 surface_sampling = 85
+default_scheme_step = 0.2
 
 class Utils_starter_5:
     def __init__(self, img1 : Image, img2 : Image):
@@ -43,8 +44,8 @@ class Utils_starter_5:
         """Optimized translate function
 
         Args:
-            x (int or np.ndarray): numpy matrix containing x of pixel, assumed meshgrid if matrix
-            y (int or np.ndarray): numpy matrix containing y of pixel, assumed meshgrid if matrix
+            x (int or np.ndarray): numpy matrix containing x of pixel, assumed meshgrid with "i,j" if matrix
+            y (int or np.ndarray): numpy matrix containing y of pixel, assumed meshgrid with "i,j" if matrix
             p (list): p is assumed a list of 2 translate parameters
 
         Returns:
@@ -173,7 +174,7 @@ class Utils_starter_5:
         return np.sum((self._fixed_img.data - warped_moving_image)**2)
     
     def loss_function_2(self,**kwargs):#(self, p : list, warp : callable = get_pix_at_translated):
-        p = 0
+        p = [0,0]
         warp = self.get_pix_at_translated
         for params in kwargs:
             if params == 'p':
@@ -185,15 +186,23 @@ class Utils_starter_5:
         i,j = np.meshgrid(np.arange(self._moving_img.data.shape[0]), np.arange(self._moving_img.data.shape[1]),indexing="ij")
         warped_moving_image = warp(i,j,p) # uses numpy arrays here
         
-        warped_average = np.mean(warped_moving_image)
+        moving_average = np.mean(self._fixed_img.data) # TODO testing fixed average
+        # print("warped_average ",warped_average)
+
         fixed_average = np.mean(self._fixed_img.data)
+        # print("fixed_average ",fixed_average)
+        
 
-        term1 = np.sum((warped_moving_image - warped_average) * (self._fixed_img.data - fixed_average))
+        term1 = np.sum((warped_moving_image - moving_average) * (self._fixed_img.data - fixed_average))
+        # print("term1 ",term1)
         term2 = np.sum((self._fixed_img.data - fixed_average)**2)
-        term3 = np.sum((warped_moving_image - warped_average)**2)
+        # print("term2 ",term2)
+        term3 = np.sum((warped_moving_image - moving_average)**2)
+        # print("term3 ",term3)
 
 
-        return term1/(term2*term3)
+
+        return -term1/np.sqrt(term2*term3) * 10**(4.5) # arbitrary normalisation with the idea of maximising
     
     def make_save_name(self, loss_function:callable) :
         return  self._fixed_img.name + "_" + self._moving_img.name + "_" + str(loss_function.__name__) + ".txt"
@@ -487,7 +496,7 @@ class Utils_starter_5:
         loss_function = self.loss_function_1
         epsilon = 10 #arbitrary default
         epsilon2 = 0.05 #arbitrary default
-        scheme_step = 0.5 #scheme step
+        scheme_step = default_scheme_step #scheme step
 
         warp = self.get_pix_at_translated # new warp function parameter
 
@@ -543,8 +552,8 @@ class Utils_starter_5:
         p_list = [p.copy()] #used to return the points for plotting
         l_list = [l] #used to return the loss function for plotting
         
-        discrete_gradient = np.array([ (loss_function(p=[p[0] +scheme_step, p[1]], warp = warp) - (loss_function(p=[p[0] -scheme_step, p[1]], warp = warp)) ) /2, 
-                                       (loss_function(p=[p[0], p[1] +scheme_step], warp = warp) - (loss_function(p=[p[0], p[1] -scheme_step], warp = warp)) ) /2]) #beware the indexation
+        discrete_gradient = np.array([ (loss_function(p=[p[0] +scheme_step, p[1]], warp = warp) - (loss_function(p=[p[0] -scheme_step, p[1]], warp = warp)) ) /(2*scheme_step), 
+                                       (loss_function(p=[p[0], p[1] +scheme_step], warp = warp) - (loss_function(p=[p[0], p[1] -scheme_step], warp = warp)) ) /(2*scheme_step)]) #beware the indexation
         print(discrete_gradient)
         print(alpha)
 
@@ -564,9 +573,11 @@ class Utils_starter_5:
 
             else :
                 alpha *= 0.5 # hardcoded slowing
+
+            print("Debugging gradient : ",(loss_function(p=[p[0] +scheme_step, p[1]], warp = warp) - loss_function(p=[p[0] -scheme_step, p[1]], warp = warp) ))
             
-            discrete_gradient = np.array([ (loss_function(p=[p[0] +scheme_step, p[1]], warp = warp) - (loss_function(p=[p[0] -scheme_step, p[1]], warp = warp)) ) /2, 
-                                           (loss_function(p=[p[0], p[1] +scheme_step], warp = warp) - (loss_function(p=[p[0], p[1] -scheme_step], warp = warp)) ) /2]) #beware the indexation
+            discrete_gradient = np.array([ (loss_function(p=[p[0] +scheme_step, p[1]], warp = warp) - loss_function(p=[p[0] -scheme_step, p[1]], warp = warp) ) /(2*scheme_step), 
+                                           (loss_function(p=[p[0], p[1] +scheme_step], warp = warp) - loss_function(p=[p[0], p[1] -scheme_step], warp = warp) ) /(2*scheme_step)]) #beware the indexation
             
             
             print("discrete_gradient: ",discrete_gradient)
@@ -630,8 +641,8 @@ if __name__ == '__main__' :
         # utils.plot_loss()
 
         # loss_function = utils.loss_function_1
-        loss_function = utils.loss_function_1
-        utils.compute_and_plot_loss(show = False, loss_function=loss_function)
+        loss_function = utils.loss_function_2
+        utils.compute_and_plot_loss(show = False, loss_function=loss_function,span="all")
 
 
 
@@ -639,7 +650,7 @@ if __name__ == '__main__' :
 
         utils.display_warped(p, utils.get_pix_at_translated, loss_function)
 
-        p, l_list = utils.coordinate_descent_optimization_xy(plot = True, alpha0 = 0.2, epsilon = 10,  epsilon2 = 0.01,  loss_function=loss_function ) #diverge
+        p, l_list = utils.coordinate_descent_optimization_xy(plot = True, alpha0 = 0.01, epsilon = 10,  epsilon2 = 0.0001,  loss_function=loss_function ) #diverge
         
         utils.display_warped(p, utils.get_pix_at_translated, loss_function)
         
