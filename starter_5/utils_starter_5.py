@@ -10,9 +10,8 @@ from image import Image
 
 class Utils_starter_5:
     def __init__(self, img1 : Image, img2 : Image):
-        self._fixed_img = img1 #fixed
+        self._fixed_img  = img1 #fixed
         self._moving_img = img2 #moving
-        
         return
 
     def display_all(self) :
@@ -38,7 +37,7 @@ class Utils_starter_5:
         plt.show()
         return
 
-    def get_pix_at_translated(self, x : int, y : int, p : list):
+    def get_pix_at_translated(self, x, y, p : list):
         """Optimized translate function
 
         Args:
@@ -59,28 +58,83 @@ class Utils_starter_5:
         # Optimised conditional statement
         # creates a boolean matrix for each element of x and y
         # verifies that fetched pixel is in the image
-        condition_matrix = np.logical_and(np.logical_and(1+int_px<=x, x<n+int_px) ,
-                                        np.logical_and(1+int_py<=y, y<m+int_py))
-        # equivalent to "if 1<=x-int_px<n and 1<=y-int_py<m" elementwise
+        is_in_image = np.logical_and(np.logical_and(int_px<x, x<n+int_px) ,
+                                        np.logical_and(int_py<y, y<m+int_py)) #TODO:remove ones and <=
+        # equivalent to "if 0<x-int_px<n and 0<y-int_py<m" elementwise
+
+        """
+        note : "0<" is to account for fetching neighbours for interpolation,
+        resulting in masking the first row and first column of the image
+        """
 
         dummy_x = x.copy()
         dummy_y = y.copy()
 
         dummy_values = [int_px +1, int_py +1]
         # if False, replace x and y values by dummy values
-        dummy_x[np.logical_not(condition_matrix)] = dummy_values[0]  # used to nullify the index in the np.where below
-        dummy_y[np.logical_not(condition_matrix)] = dummy_values[1]
+        dummy_x[np.logical_not(is_in_image)] = dummy_values[0]  # used to nullify the index in the np.where below
+        dummy_y[np.logical_not(is_in_image)] = dummy_values[1]
 
-
+        # TODO add padding
         # translate including dummy values, bilinearly interpolated wrt decimal parts
         dummy_translate = \
+        + decimal_px    * decimal_py     *self._moving_img.data[dummy_x-int_px-1,  dummy_y-int_py-1] \
+        + decimal_px    * (1-decimal_py) *self._moving_img.data[dummy_x -int_px,   dummy_y-int_py-1] \
+        + (1-decimal_px)* decimal_py     *self._moving_img.data[dummy_x-int_px-1,  dummy_y-int_py] \
+        + (1-decimal_px)* (1-decimal_py) *self._moving_img.data[dummy_x -int_px,   dummy_y-int_py]
+        #try6 finally working?
+        
+        """
+        + decimal_px    * decimal_py     *self._moving_img.data[dummy_x-int_px,  dummy_y-int_py] \
+        + decimal_px    * (1-decimal_py) *self._moving_img.data[dummy_x -int_px+1, dummy_y-int_py] \
+        + (1-decimal_px)* decimal_py     *self._moving_img.data[dummy_x-int_px,    dummy_y-int_py+1] \
+        + (1-decimal_px)* (1-decimal_py) *self._moving_img.data[dummy_x -int_px+1,   dummy_y-int_py+1]
+        #try5 reverting and going reversed in crossed directions, all directions then only 11 and 00
+        """
+        
+        """
+        + decimal_px    * decimal_py     *self._moving_img.data[dummy_x-int_px,    dummy_y-int_py] \
+        + decimal_px    * (1-decimal_py) *self._moving_img.data[dummy_x -int_px,   dummy_y-int_py-1] \
+        + (1-decimal_px)* decimal_py     *self._moving_img.data[dummy_x-int_px-1,  dummy_y-int_py] \
+        + (1-decimal_px)* (1-decimal_py) *self._moving_img.data[dummy_x -int_px-1, dummy_y-int_py-1]
+        #try4 still discrepancy between int indexes and float ones
+        """
+
+        """
+          decimal_px    *( decimal_py     *self._moving_img.data[dummy_x-int_px+1,   dummy_y-int_py+1] \
+                         + (1-decimal_py) *self._moving_img.data[dummy_x -int_px+1,  dummy_y-int_py]) \
+        + (1-decimal_px)*( decimal_py     *self._moving_img.data[dummy_x-int_px, dummy_y-int_py+1] \
+                         + (1-decimal_py) *self._moving_img.data[dummy_x -int_px,dummy_y-int_py])
+        #try3
+        """
+        
+        """
         (1-decimal_px)*( (1-decimal_py) *self._moving_img.data[dummy_x-int_px,   dummy_y-int_py] \
                         + decimal_py    *self._moving_img.data[dummy_x -int_px,  dummy_y-int_py-1]) \
         + decimal_px  *( (1-decimal_py) *self._moving_img.data[dummy_x-int_px-1, dummy_y-int_py] \
                         + decimal_py    *self._moving_img.data[dummy_x -int_px-1,dummy_y-int_py-1])
+        #previous version
+        """
+
+
+        """
+        (1-decimal_px)*( (1-decimal_py) *self._moving_img.data[dummy_x-int_px+1,   dummy_y-int_py+1] \
+                        + decimal_py    *self._moving_img.data[dummy_x -int_px+1,  dummy_y-int_py]) \
+        + decimal_px  *( (1-decimal_py) *self._moving_img.data[dummy_x-int_px, dummy_y-int_py+1] \
+                        + decimal_py    *self._moving_img.data[dummy_x -int_px,dummy_y-int_py])
+        #try2 probably doesnt work
+        """
+        
+        """
+          decimal_px    *( decimal_py     *self._moving_img.data[dummy_x-int_px,   dummy_y-int_py] \
+                         + (1-decimal_py) *self._moving_img.data[dummy_x -int_px,  dummy_y-int_py-1]) \
+        + (1-decimal_px)*( decimal_py     *self._moving_img.data[dummy_x-int_px-1, dummy_y-int_py] \
+                         + (1-decimal_py) *self._moving_img.data[dummy_x -int_px-1,dummy_y-int_py-1])
+        #try1
+        """
 
         #1 is white padding
-        filtered_translate = np.where(condition_matrix,
+        filtered_translate = np.where(is_in_image,
                                       dummy_translate,
                                       1)
 
@@ -110,14 +164,26 @@ class Utils_starter_5:
     
     def loss_function_2(self,**kwargs):#(self, p : list, warp : callable = get_pix_at_translated):
         p = 0
+        warp = self.get_pix_at_translated
         for params in kwargs:
-            p = kwargs['p']
+            if params == 'p':
+                p = kwargs['p']
+            if params == 'warp':
+                warp = kwargs['warp']
         
-        """
-        warped_img2 = [[warp(self,i,j,p) for j in range(self.__img2.__data.shape[1])] for i in range(self.__img2.__data.shape[0])]
-        """
-        pass #TODO
+        
+        i,j = np.meshgrid(np.arange(self._moving_img.data.shape[0]), np.arange(self._moving_img.data.shape[1]),indexing="ij")
+        warped_moving_image = warp(i,j,p) # uses numpy arrays here
+        
+        warped_average = np.mean(warped_moving_image)
+        fixed_average = np.mean(self._fixed_img.data)
 
+        term1 = np.sum((warped_moving_image - warped_average) * (self._fixed_img.data - fixed_average))
+        term2 = np.sum((self._fixed_img.data - fixed_average)**2)
+        term3 = np.sum((warped_moving_image - warped_average)**2)
+
+
+        return term1/(term2*term3)
     
     def make_save_name(self, loss_function:callable) :
         return  self._fixed_img.name + "_" + self._moving_img.name + "_" + str(loss_function.__name__) + ".txt"
@@ -268,7 +334,7 @@ class Utils_starter_5:
 
                     for i in range(loss_grid.shape[0]) :
                         f.write(str(loss_grid[i,0]))
-                        for j in range(loss_grid.shape[1]) :
+                        for j in range(1,loss_grid.shape[1]) :
                             f.write(" " + str(loss_grid[i,j]))
                         f.write("\n")
 
@@ -284,6 +350,8 @@ class Utils_starter_5:
             
             plt.show()
         else:
+            if compute != "y":
+                print("compute is y")
                 px, py, loss_grid = self.import_data(loss_function)
 
         
@@ -308,10 +376,7 @@ class Utils_starter_5:
         # reading kwargs
         for key,value in kwargs.items():
             if key == "loss_function":
-                if not (type(value) is callable):
-                    raise TypeError("loss_function not a function")
-                else :
-                    loss_function = value
+                loss_function = value
             if key == "plot":
                 if not (type(value) is bool):
                     print(type(value))
@@ -412,13 +477,14 @@ class Utils_starter_5:
         epsilon = 10 #arbitrary default
         epsilon2 = 0.05 #arbitrary default
 
+        warp = self.get_pix_at_translated # new warp function parameter
+
 
         for key,value in kwargs.items():
             if key == "loss_function":
-                if not (type(value) is callable):
-                    raise TypeError("loss_function not a function")
-                else :
-                    loss_function = value
+                loss_function = value
+            elif key == "warp":
+                warp = value
             elif key == "plot":
                 if not (type(value) is bool):
                     print(type(value))
@@ -457,8 +523,8 @@ class Utils_starter_5:
         l = loss_function(p=p)
         p_list = [p.copy()] #used to return the points for plotting
         l_list = [l] #used to return the loss function for plotting
-        discrete_gradient = [ (loss_function(p=[p[0] + 1, p[1]]) - (loss_function(p=[p[0] - 1, p[1]])) ) /2, 
-                            (loss_function(p=[p[0], p[1] + 1]) - (loss_function(p=[p[0], p[1] - 1])) ) /2] #beware the indexation
+        discrete_gradient = [ (loss_function(p=[p[0] + 1, p[1]], warp = warp) - (loss_function(p=[p[0] - 1, p[1]], warp = warp)) ) /2, 
+                              (loss_function(p=[p[0], p[1] + 1], warp = warp) - (loss_function(p=[p[0], p[1] - 1], warp = warp)) ) /2] #beware the indexation
         print(discrete_gradient)
         print(alpha)
 
@@ -478,8 +544,14 @@ class Utils_starter_5:
             else :
                 alpha *= 0.5 # hardcoded slowing
             
-            discrete_gradient = [ (loss_function(p=[p[0] + 1, p[1]]) - (loss_function(p=[p[0] - 1, p[1]])) ) /2, 
-                                  (loss_function(p=[p[0], p[1] + 1]) - (loss_function(p=[p[0], p[1] - 1])) ) /2] #beware the indexation
+            discrete_gradient = np.array([ (loss_function(p=[p[0] + 1, p[1]]) - (loss_function(p=[p[0] - 1, p[1]])) ) /2, 
+                                           (loss_function(p=[p[0], p[1] + 1]) - (loss_function(p=[p[0], p[1] - 1])) ) /2]) #beware the indexation
+            
+            # p = [p[0], p[1]]
+
+            # discrete_gradient *= [ ( warp(p=p) - (warp(p=p)) ) /2,
+            #                        ( warp(p=p) - (warp(p=p)) ) /2] #beware the indexation
+            
             print("discrete_gradient: ",discrete_gradient)
             print("alpha: ",alpha)
 
@@ -507,30 +579,11 @@ class Utils_starter_5:
         
         return p, l_list
 
-def test_loss(*args,**kwargs):#(p : list) :
-    """Used as a dummy function to test the plot_loss function
-
-    Args:
-        p: coordinates for evaluating function
-    Returns:
-        float : cone function ie distance to [0,0]
-    """
-    p = 0
-    for params in kwargs:
-        p = kwargs['p']
-
-    return np.linalg.norm(np.array(p)-np.array([0,0]))
 
 
 if __name__ == '__main__' :
     
     utils = Utils_starter_5(Image("images/clean_finger.png"),Image("images/tx_finger.png"))
-    
-    """Testing loss_function in a test set of translations
-    """
-    if False:
-        utils.test_plot_loss(utils.loss_function_1)
-        utils.test_plot_loss(test_loss)
     
     """Testing greedy_optimization_xy with x translation
     """
@@ -554,19 +607,24 @@ if __name__ == '__main__' :
     """Testing coordinate_descent_optimization_xy with small translation
     """
     if True:
-        # utils = Utils_starter_5(Image("images/clean_finger.png"),Image("images/tx_finger.png"))
+        utils = Utils_starter_5(Image("images/clean_finger.png"),Image("images/tx_finger.png"))
         # utils = Utils_starter_5(Image("images/clean_finger.png"),Image("images/txy_finger.png")) #TODO Debug
 
         # utils.plot_loss()
-        utils.compute_and_plot_loss(span = "all",show = False)
 
-        p, l_list = utils.coordinate_descent_optimization_xy(plot = True, alpha0 = 0.1, epsilon = 100, epsilon2 = 0.001 )
+        # loss_function = utils.loss_function_1
+        loss_function = utils.loss_function_1
+        utils.compute_and_plot_loss(show = False, loss_function=loss_function)
 
-        utils.display_warped(p, utils.get_pix_at_translated, utils.loss_function_1)
 
-        p, l_list = utils.coordinate_descent_optimization_xy(plot = True, alpha0 = 0.2, epsilon = 10,  epsilon2 = 0.01  ) #diverge
+
+        p, l_list = utils.coordinate_descent_optimization_xy(plot = True, alpha0 = 0.1, epsilon = 100, epsilon2 = 0.001, loss_function=loss_function )
+
+        utils.display_warped(p, utils.get_pix_at_translated, loss_function)
+
+        p, l_list = utils.coordinate_descent_optimization_xy(plot = True, alpha0 = 0.2, epsilon = 10,  epsilon2 = 0.01,  loss_function=loss_function ) #diverge
         
-        utils.display_warped(p, utils.get_pix_at_translated, utils.loss_function_1)
+        utils.display_warped(p, utils.get_pix_at_translated, loss_function)
         
 
 

@@ -11,12 +11,25 @@ from starter3 import Starter_3
 from main_course_1 import Main_Course_1
 
 class Image:
-    def __init__(self, filename):
-        self.data = cv2.imread(filename, 0)
-        self.n, self.m = self.data.shape
-        self.name = Path(filename).stem
-        self.normalize()
+    def __init__(self, arg) :
+        """initialise image
 
+        Args:
+            arg (str): filename
+            arg (arraylike): data array, assumed with values from 0 to 1
+        """
+        if type(arg) == str :
+            filename = arg
+            self.data = cv2.imread(filename, 0)
+            self.n, self.m = self.data.shape
+            self.name = Path(filename).stem
+            self.normalize()
+        else:
+            self.data = np.array(arg)
+            self.n, self.m = self.data.shape
+            self.name = "test_array_" + str(self.data[0]).replace("[","").replace("]","") \
+                  + "_size_" + str(self.n) + "_" + str(self.m)
+    
     def display(self):
         """
             Display the image
