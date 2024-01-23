@@ -32,10 +32,10 @@ class Main_Course_1:
         if r == 0:
             return 1
         # here u corresponds to the distance from the center of data being kept, u>5
-        u = 100
+        u = 5
         # s corresponds here to the width of the "blur" data, i.e : the width of the blur bound at the edge of the circle of low pressure"
         # link with the density function of an N(u, s²)
-        s = np.sqrt(100)
+        s = np.sqrt(0.2)
         return 1 - (1/2 * (1 + math.erf((r - u)/(s*np.sqrt(2)))))
     
     @staticmethod
@@ -48,7 +48,7 @@ class Main_Course_1:
     
     @staticmethod
     def c5(r):
-        return 1/(1+np.exp((r-1)*50))
+        return 1/(1+np.exp((r-1)*20))
     
     @staticmethod
     def simulate_low_pressure(img, xc, yc, function):

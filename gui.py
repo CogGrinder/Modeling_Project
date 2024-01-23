@@ -10,6 +10,7 @@ from starter2 import Starter_2
 from starter3 import Starter_3
 
 from main_course_1 import Main_Course_1
+from main_course_1_reconstruction import Main_Course_1_Reconstruction
 
 class Starter_4_Window(customtkinter.CTkToplevel):
     # Create a window for starter 4
@@ -154,7 +155,8 @@ class Starter_2_Window(customtkinter.CTkToplevel):
             # Create an instance of the Image class with the selected file
             img = Image(self.selected_file)
             # Update the label with the file name and size
-            self.selected_file_label.configure(text=f"Selected File: {self.selected_file} (Size: {img.n}x{img.m})")
+            self.selected_file_label.configure(text=f"Selected File: {self.selected_file} \n" \
+                                                    f"(Size: {img.n}x{img.m})")
 
     def transform_image(self):
         # Retrieve user inputs
@@ -241,7 +243,8 @@ class Main_1_Simulation_Window(customtkinter.CTkToplevel):
             # Create an instance of the Image class with the selected file
             img = Image(self.selected_file)
             # Update the label with the file name and size
-            self.selected_file_label.configure(text=f"Selected File: {self.selected_file} (Size: {img.n}x{img.m})")
+            self.selected_file_label.configure(text=f"Selected File: {self.selected_file} \n" \
+                                                    f"(Size: {img.n}x{img.m})")
 
     def transform_image(self):
         # Retrieve user inputs
@@ -263,6 +266,119 @@ class Main_1_Simulation_Window(customtkinter.CTkToplevel):
 
         # Display the transformed image
         low_pressure_img.display()
+        
+        
+class Main_1_Restauration_Window(customtkinter.CTkToplevel):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.title('Main Course 1 Restauration')
+        self.geometry("650x500")
+        self.resizable(True, True)
+        self.configure(bg="black")
+        self.rowconfigure(0, weight=1)
+        self.rowconfigure(1, weight=1)
+        self.rowconfigure(2, weight=1)
+        self.rowconfigure(3, weight=1)
+        self.rowconfigure(4, weight=1)
+        self.rowconfigure(5, weight=1)
+        self.rowconfigure(6, weight=1)
+        self.rowconfigure(7, weight=1)
+        self.rowconfigure(8, weight=1)
+        
+        # Variables to store user inputs
+        self.selected_file = ""
+        self.top_left_x = IntVar()
+        self.top_left_y = IntVar()
+        self.dimension_x = IntVar()
+        self.dimension_y = IntVar()
+        self.number_patches = IntVar()
+        self.patch_size = IntVar()
+
+        # Explanation text
+        explanation_text = "Perform an operation of restoration of a specific part of any fingerprint."
+        self.explanation_label = customtkinter.CTkLabel(self, text=explanation_text, fg_color="transparent", font=('Calibri', 14, 'bold'))
+        self.explanation_label.grid(row=0, column=0, sticky='w', padx=10, pady=10)
+
+        # Select file button
+        self.button = customtkinter.CTkButton(self, text='Select File', width=120, height=40,
+                                font=('Cambria', 16), command=self.open_file_dialog)
+        self.button.grid(row=1, column=0, pady=(0, 10))
+
+        # Display selected file name and size
+        self.selected_file_label = customtkinter.CTkLabel(self, text="Selected File: None", font=('Calibri', 12))
+        self.selected_file_label.grid(row=2, column=0, sticky='w', padx=10)
+
+        # Top-left corner coordinates entries
+        self.top_left_label = customtkinter.CTkLabel(self, text="Top Left Corner Coordinates of Restoration Rectangle:", font=('Calibri', 12))
+        self.top_left_label.grid(row=3, column=0, sticky='w', padx=10)
+        self.top_left_entry_x = customtkinter.CTkEntry(self, font=('Calibri', 12))
+        self.top_left_entry_x.grid(row=4, column=0, padx=10, pady=(0, 10))
+        self.top_left_entry_y = customtkinter.CTkEntry(self, font=('Calibri', 12))
+        self.top_left_entry_y.grid(row=5, column=0, padx=10, pady=(0, 10))
+
+        # Rectangle dimensions entries
+        self.dimension_label_x = customtkinter.CTkLabel(self, text="Vertical Dimension of the Rectangle:", font=('Calibri', 12))
+        self.dimension_label_x.grid(row=6, column=0, sticky='w', padx=10)
+        self.dimension_entry_x = customtkinter.CTkEntry(self, font=('Calibri', 12))
+        self.dimension_entry_x.grid(row=7, column=0, padx=10, pady=(0, 10))
+        self.dimension_label_y = customtkinter.CTkLabel(self, text="Horizontal Dimension of the Rectangle:", font=('Calibri', 12))
+        self.dimension_label_y.grid(row=8, column=0, sticky='w', padx=10)
+        self.dimension_entry_y = customtkinter.CTkEntry(self, font=('Calibri', 12))
+        self.dimension_entry_y.grid(row=9, column=0, padx=10, pady=(0, 10))
+
+        # Number of patches entry
+        self.patches_label = customtkinter.CTkLabel(self, text="Number of Patches:", font=('Calibri', 12))
+        self.patches_label.grid(row=11, column=0, sticky='w', padx=10)
+        self.number_patches_entry = customtkinter.CTkEntry(self, font=('Calibri', 12))
+        self.number_patches_entry.grid(row=12, column=0, padx=10, pady=(0, 10))
+
+        # Patch size entry
+        self.patch_size_label = customtkinter.CTkLabel(self, text="Patch Size (odd number >= 3):", font=('Calibri', 12))
+        self.patch_size_label.grid(row=13, column=0, sticky='w', padx=10)
+        self.patch_size_entry = customtkinter.CTkEntry(self, font=('Calibri', 12))
+        self.patch_size_entry.grid(row=14, column=0, padx=10, pady=(0, 10))
+
+        # Transform button
+        self.transform_button = customtkinter.CTkButton(self, text='Transform', width=120, height=40,
+                                          font=('Cambria', 16), command=self.transform_image)
+        self.transform_button.grid(row=15, column=0, pady=(10, 0))
+
+    def open_file_dialog(self):
+        self.selected_file = filedialog.askopenfilename()
+        if self.selected_file != "":
+            # Create an instance of the Image class with the selected file
+            img = Image(self.selected_file)
+            # Update the label with the file name and size
+            self.selected_file_label.configure(text=f"Selected File: {self.selected_file} \n" \
+                                                    f"(Size: {img.n}x{img.m})")
+
+    def transform_image(self):
+        # Retrieve user inputs
+        top_left_x = int(self.top_left_entry_x.get())
+        top_left_y = int(self.top_left_entry_y.get())
+        dimension_x = int(self.dimension_entry_x.get())
+        dimension_y = int(self.dimension_entry_y.get())
+        number_patches = int(self.number_patches_entry.get())
+        patch_size = int(self.patch_size_entry.get())
+
+        # Create an instance of the Image class with the selected file
+        img = Image(self.selected_file)
+        
+        # Open the weak finger image
+        img2 = Image("images/weak_finger.png")
+
+        # Create a binary mask with the specified rectangle
+        mask = np.full((img.n, img.m), False)
+        mask[top_left_x : top_left_x + dimension_x, top_left_y : top_left_y + dimension_y] = True
+
+        # Crop the image into several patches
+        patches = img2.crop_patches(number_patches, patch_size)
+
+        # Apply the restoration algorithm onto the image
+        img = Main_Course_1_Reconstruction.restauration(img, patches, mask, patch_size)
+
+        # Display the transformed image, with the rectangle in which the restauration has been performed
+        img.display(point=(top_left_x, top_left_y), rectangle=((top_left_x, top_left_y), (dimension_x, dimension_y)))
 
 
         
@@ -284,7 +400,7 @@ class SecondWindow(customtkinter.CTkToplevel):
         self.label.grid(column=0, row=0)
         #Create a list of the different sections we have worked on so far
         self.combobox = customtkinter.CTkComboBox(self, values=["Starter 1", "Starter 2", "Starter 3",
-                                                          "Starter 4", "Starter 5", "Main Course 1 (Simulation)", "Main course 5"],
+                                                          "Starter 4", "Starter 5", "Main Course 1 (Simulation)", "Main Course 1 (Restauration)", "Main course 5"],
                                             command=self.combobox_callback)
         self.combobox.set("Starter 1")
         self.combobox.grid(row=1, column=0)
@@ -314,6 +430,12 @@ class SecondWindow(customtkinter.CTkToplevel):
             self.toplevel_window = None
             if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
                 self.toplevel_window = Main_1_Simulation_Window(self)  # create window if its None or destroyed
+            else:
+                self.toplevel_window.focus()
+        if choice == "Main Course 1 (Restauration)":
+            self.toplevel_window = None
+            if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
+                self.toplevel_window = Main_1_Restauration_Window(self)  # create window if its None or destroyed
             else:
                 self.toplevel_window.focus()
         if choice == "Main course 5":
