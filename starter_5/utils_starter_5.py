@@ -7,6 +7,8 @@ import sys
 import os
 sys.path.append(os.getcwd()) #to access current working directory files easily
 from image import Image
+# from plot_functions import *
+import plot_functions
 
 surface_sampling = 85
 default_scheme_step = 0.2
@@ -15,29 +17,6 @@ class Utils_starter_5:
     def __init__(self, img1 : Image, img2 : Image):
         self._fixed_img  = img1 #fixed
         self._moving_img = img2 #moving
-        return
-
-    def display_all(self) :
-        self._fixed_img.display()
-        self._moving_img.display()
-        return
-
-    def display_warped(self,p,warp,loss_function:callable) :
-        fig, ax = plt.subplots(1,3,figsize = (12,12))
-        
-        print(ax)
-        ax[0].set_title("Fixed image")
-        ax[1].set_title(f"Warped image, $p=[{p[0]:.2f},{p[1]:.2f}]$")
-        ax[2].set_title("Superimposed image")
-
-        ax[0].imshow(self._fixed_img.data,cmap="Blues")
-        ax[2].imshow(self._fixed_img.data,cmap="Blues")
-        i,j = np.meshgrid(np.arange(self._fixed_img.data.shape[0]),
-                           np.arange(self._fixed_img.data.shape[1]),indexing='ij')
-
-        ax[1].imshow(warp(i,j,p),cmap="Oranges",alpha=1)
-        ax[2].imshow(warp(i,j,p),cmap="Oranges",alpha=0.5)
-        plt.show()
         return
 
     def get_pix_at_translated(self, x, y, p : list):
@@ -62,7 +41,7 @@ class Utils_starter_5:
         # creates a boolean matrix for each element of x and y
         # verifies that fetched pixel is in the image
         is_in_image = np.logical_and(np.logical_and(int_px<x, x<n+int_px) ,
-                                        np.logical_and(int_py<y, y<m+int_py)) #TODO:remove ones and <=
+                                        np.logical_and(int_py<y, y<m+int_py)) #TODO: manually change first column and row
         # equivalent to "if 0<x-int_px<n and 0<y-int_py<m" elementwise
 
         """
@@ -78,7 +57,6 @@ class Utils_starter_5:
         dummy_x[np.logical_not(is_in_image)] = dummy_values[0]  # used to nullify the index in the np.where below
         dummy_y[np.logical_not(is_in_image)] = dummy_values[1]
 
-        # TODO add padding
         # translate including dummy values, bilinearly interpolated wrt decimal parts
         dummy_translate = \
         + decimal_px    * decimal_py     *self._moving_img.data[dummy_x-int_px-1,  dummy_y-int_py-1] \
@@ -87,62 +65,6 @@ class Utils_starter_5:
         + (1-decimal_px)* (1-decimal_py) *self._moving_img.data[dummy_x -int_px,   dummy_y-int_py]
         #try7 finally working? inverted 10 and 01
 
-        """
-        (1-decimal_px)*( (1-decimal_py) *self._moving_img.data[dummy_x-int_px,   dummy_y-int_py] \
-                        + decimal_py    *self._moving_img.data[dummy_x -int_px,  dummy_y-int_py-1]) \
-        + decimal_px  *( (1-decimal_py) *self._moving_img.data[dummy_x-int_px-1, dummy_y-int_py] \
-                        + decimal_py    *self._moving_img.data[dummy_x -int_px-1,dummy_y-int_py-1])
-        #previous version
-        """
-
-        """
-        + decimal_px    * decimal_py     *self._moving_img.data[dummy_x-int_px-1,  dummy_y-int_py-1] \
-        + decimal_px    * (1-decimal_py) *self._moving_img.data[dummy_x -int_px,   dummy_y-int_py-1] \
-        + (1-decimal_px)* decimal_py     *self._moving_img.data[dummy_x-int_px-1,  dummy_y-int_py] \
-        + (1-decimal_px)* (1-decimal_py) *self._moving_img.data[dummy_x -int_px,   dummy_y-int_py]
-        #try6 finally working? added -2 everywhere - no i got mixed up since a long time ago with x and y
-        """
-        
-        """
-        + decimal_px    * decimal_py     *self._moving_img.data[dummy_x-int_px,  dummy_y-int_py] \
-        + decimal_px    * (1-decimal_py) *self._moving_img.data[dummy_x -int_px+1, dummy_y-int_py] \
-        + (1-decimal_px)* decimal_py     *self._moving_img.data[dummy_x-int_px,    dummy_y-int_py+1] \
-        + (1-decimal_px)* (1-decimal_py) *self._moving_img.data[dummy_x -int_px+1,   dummy_y-int_py+1]
-        #try5 reverting and going reversed in crossed directions, all directions then only 11 and 00
-        """
-        
-        """
-        + decimal_px    * decimal_py     *self._moving_img.data[dummy_x-int_px,    dummy_y-int_py] \
-        + decimal_px    * (1-decimal_py) *self._moving_img.data[dummy_x -int_px,   dummy_y-int_py-1] \
-        + (1-decimal_px)* decimal_py     *self._moving_img.data[dummy_x-int_px-1,  dummy_y-int_py] \
-        + (1-decimal_px)* (1-decimal_py) *self._moving_img.data[dummy_x -int_px-1, dummy_y-int_py-1]
-        #try4 still discrepancy between int indexes and float ones
-        """
-
-        """
-          decimal_px    *( decimal_py     *self._moving_img.data[dummy_x-int_px+1,   dummy_y-int_py+1] \
-                         + (1-decimal_py) *self._moving_img.data[dummy_x -int_px+1,  dummy_y-int_py]) \
-        + (1-decimal_px)*( decimal_py     *self._moving_img.data[dummy_x-int_px, dummy_y-int_py+1] \
-                         + (1-decimal_py) *self._moving_img.data[dummy_x -int_px,dummy_y-int_py])
-        #try3
-        """
-
-
-        """
-        (1-decimal_px)*( (1-decimal_py) *self._moving_img.data[dummy_x-int_px+1,   dummy_y-int_py+1] \
-                        + decimal_py    *self._moving_img.data[dummy_x -int_px+1,  dummy_y-int_py]) \
-        + decimal_px  *( (1-decimal_py) *self._moving_img.data[dummy_x-int_px, dummy_y-int_py+1] \
-                        + decimal_py    *self._moving_img.data[dummy_x -int_px,dummy_y-int_py])
-        #try2 probably doesnt work
-        """
-        
-        """
-          decimal_px    *( decimal_py     *self._moving_img.data[dummy_x-int_px,   dummy_y-int_py] \
-                         + (1-decimal_py) *self._moving_img.data[dummy_x -int_px,  dummy_y-int_py-1]) \
-        + (1-decimal_px)*( decimal_py     *self._moving_img.data[dummy_x-int_px-1, dummy_y-int_py] \
-                         + (1-decimal_py) *self._moving_img.data[dummy_x -int_px-1,dummy_y-int_py-1])
-        #try1
-        """
 
         #1 is white padding
         filtered_translate = np.where(is_in_image,
@@ -176,35 +98,35 @@ class Utils_starter_5:
     def loss_function_2(self,**kwargs):#(self, p : list, warp : callable = get_pix_at_translated):
         p = [0,0]
         warp = self.get_pix_at_translated
-        for params in kwargs:
-            if params == 'p':
-                p = kwargs['p']
-            if params == 'warp':
-                warp = kwargs['warp']
+        if 'p' in kwargs:
+            p = kwargs['p']
+        if 'warp' in kwargs:
+            warp = kwargs['warp']
         
         
         i,j = np.meshgrid(np.arange(self._moving_img.data.shape[0]), np.arange(self._moving_img.data.shape[1]),indexing="ij")
         warped_moving_image = warp(i,j,p) # uses numpy arrays here
         
-        moving_average = np.mean(self._fixed_img.data) # TODO testing fixed average
-        # print("warped_average ",warped_average)
+        # use fixed average to avoid getting a null average when translate is too big
+        moving_average = np.mean(self._fixed_img.data)
 
         fixed_average = np.mean(self._fixed_img.data)
-        # print("fixed_average ",fixed_average)
-        
 
         term1 = np.sum((warped_moving_image - moving_average) * (self._fixed_img.data - fixed_average))
-        # print("term1 ",term1)
         term2 = np.sum((self._fixed_img.data - fixed_average)**2)
-        # print("term2 ",term2)
         term3 = np.sum((warped_moving_image - moving_average)**2)
-        # print("term3 ",term3)
-
-
 
         return -term1/np.sqrt(term2*term3) * 10**(4.5) # arbitrary normalisation with the idea of maximising
     
     def make_save_name(self, loss_function:callable) :
+        """Make a name (string) for the file containing the loss_function data, unique to Image names and loss function name
+
+        Args:
+            loss_function (callable): used to fetch name
+
+        Returns:
+            str: name for the file
+        """
         return  self._fixed_img.name + "_" + self._moving_img.name + "_" + str(loss_function.__name__) + ".txt"
 
     def import_data(self, loss_function:callable) :
@@ -227,23 +149,23 @@ class Utils_starter_5:
                 line1 = f.readline().rstrip('\n').split(" ")
                 print(line1)
                 # used for computing x and y grid
-                span_x = 0
-                span_y = 0
+                range_x = 0
+                range_y = 0
                 step = 1
                 # compute parameters from first line of file
                 for i, word in enumerate(line1) :
                     if word == "span_x" :
-                        span_x = [int(line1[i+1]),
+                        range_x = [int(line1[i+1]),
                                     int(line1[i+2])]
                     if word == "span_y" :
-                        span_y = [int(line1[i+1]),
+                        range_y = [int(line1[i+1]),
                                     int(line1[i+2])]
                     if word == "step":
                         step = int(line1[i+1])
 
-                print(span_x,span_y)
-                right_bound_x = span_x[1]
-                right_bound_y = span_y[1]
+                print(range_x,range_y)
+                right_bound_x = range_x[1]
+                right_bound_y = range_y[1]
 
 
                 # Create table and x and y :
@@ -254,7 +176,7 @@ class Utils_starter_5:
                 loss_grid = np.zeros((right_bound_y * 2,right_bound_x * 2) ) # TODO potential error: mixup between x,y and i,j
             
 
-                for i in range(span_x[1]*2):
+                for i in range(range_x[1]*2):
                     line =  f.readline().rstrip('\n').split(" ")
                     for j, word in enumerate(line) :
                         if word!="":
@@ -343,7 +265,7 @@ class Utils_starter_5:
             
             print("loss computation done")
 
-            if save :
+            if save : #TODO make external function
                 with open(save_filename, "w") as f :
                     f.write(" ".join(["span_x", str(-translate_span_x), str(translate_span_x),
                             "span_y", str(-translate_span_y), str(translate_span_y),
@@ -383,38 +305,47 @@ class Utils_starter_5:
             loss_function (callable): function treated as loss function with a parameter p
             kwargs :
                 translate_type : either "xy" or "x"
+                step : used for "x" translation
                 plot : default is False - choose wether to plot the loss function
                 loss_function : callable function which takes a parameter p
+                warp : warp function of parameters i,j and parameter p
         """
         print("greedy_optimization_xy")
         
+        ################
+        ### Defaults ###
+        ################
         xy_translate = "xy"
         plot = False
         loss_function = self.loss_function_1
-        
-        # reading kwargs
-        for key,value in kwargs.items():
-            if key == "loss_function":
-                loss_function = value
-            if key == "plot":
-                if not (type(value) is bool):
-                    print(type(value))
-                    raise TypeError("plot must be a bool")
-                else :
-                    plot = value
-            if key == "translate_type" :
-                if value in ["xy", "x"]:
-                    xy_translate = value
-                else:
-                    raise ValueError("unknown translate_type")
-        
+        warp = self.get_pix_at_translated
+
         print("~~~~~~~~~~~~")
         print("Parameters :")
         print("~~~~~~~~~~~~")
-
         for key,value in kwargs.items() :
             print(key,": ",value)
         n,m = self._moving_img.data.shape
+
+        # reading kwargs
+        if "loss_function" in kwargs:
+            loss_function = kwargs["loss_function"]
+        if "warp" in kwargs:
+            warp = kwargs["warp"]
+        if "step" in kwargs:
+            step = kwargs["step"]
+        if "plot" in kwargs:
+            value = kwargs["plot"]
+            if not (type(value) is bool):
+                raise TypeError("plot must be a bool")
+            else :
+                plot = value
+        if "translate_type" in kwargs :
+            value = kwargs["translate_type"]
+            if value in ["xy", "x"]:
+                xy_translate = value
+            else:
+                raise ValueError("unknown translate_type")
 
         l_min   = sys.float_info.max
         l_list  = np.zeros(n+1) #used to return the loss function for plotting
@@ -422,11 +353,10 @@ class Utils_starter_5:
         p_min = [0,0]
         
         if xy_translate == "x" :
-            step = 1 #for testing purposes
             list_px = list(np.arange(- math.ceil(n/2), math.floor(n/2) + 1, step))
             l_list = np.zeros(len(list_px))
             for i, p_x in enumerate(list_px) :
-                l = loss_function(p=[0,p_x]) #beware the indexation
+                l = loss_function(p=[0,p_x],warp=warp) #beware the indexation
                 
                 if l_min > l : #update the min and argmin
                     l_min = l
@@ -454,11 +384,11 @@ class Utils_starter_5:
             if plot :
                 ax = plt.figure().add_subplot(projection='3d')
                 
-                px_loss, py_loss, loss_data = self.import_data(loss_function)
-                if px_loss != None:
-                    ax.plot_surface(px_loss,py_loss,loss_data,rcount=surface_sampling,ccount=surface_sampling)
-                    plt.show()
-
+                # px_loss, py_loss, loss_data = self.import_data(loss_function)
+                # if len(px_loss) != 0:
+                #     ax.plot_surface(px_loss,py_loss,loss_data,rcount=surface_sampling,ccount=surface_sampling)
+                #     plt.show()
+                # else:
                 p_x, p_y = np.meshgrid(np.arange(- math.ceil(n/2), math.floor(n/2) + 1),np.arange(- math.ceil(m/2), math.floor(m/2) + 1))
                 ax.plot_surface(p_x,p_y,l_list,rcount=surface_sampling,ccount=surface_sampling)
                 plt.show()
@@ -476,18 +406,19 @@ class Utils_starter_5:
             kwargs :
                 plot : default is False - choose wether to plot the loss function
                 loss_function : callable function which takes a parameter p
+                warp : warp function of parameters i,j and parameter p
                 epsilon : stopping level for our loss function decrease
                 epsilon2 : stopping level for alpha
                 dx : scheme step
                 p0 : initial p parameter for loss function
                 alpha0 : initial percentage (in direct multiplicative factor form) for adjustment of p
-
-
         """
+
         print("coordinate_descent_optimization_xy")
         
-
+        ################
         ### Defaults ###
+        ################
         # Initial warp parameters
         p0 = [0,0]
         # Initial gradient descent speed
@@ -499,6 +430,12 @@ class Utils_starter_5:
         scheme_step = default_scheme_step #scheme step
 
         warp = self.get_pix_at_translated # new warp function parameter
+        
+        print("~~~~~~~~~~~~")
+        print("Parameters :")
+        print("~~~~~~~~~~~~")
+        for key,value in kwargs.items() :
+            print(key,": ",value)
 
         if "loss_function" in kwargs:
             loss_function = kwargs["loss_function"]
@@ -507,7 +444,6 @@ class Utils_starter_5:
         if "plot" in kwargs:
             value = kwargs["plot"]
             if not (type(value) is bool):
-                print(type(value))
                 raise TypeError("plot must be a bool")
             else :
                 plot = value
@@ -533,13 +469,6 @@ class Utils_starter_5:
             p0 = kwargs["p0"]
         if "alpha0" in kwargs:
             alpha0 = kwargs["alpha0"]
-        
-        print("~~~~~~~~~~~~")
-        print("Parameters :")
-        print("~~~~~~~~~~~~")
-
-        for key,value in kwargs.items() :
-            print(key,": ",value)
 
         # Descent speed
         alpha = alpha0
@@ -563,7 +492,7 @@ class Utils_starter_5:
         print("alpha: ",alpha)
         print("l_previous,l: ",l_previous,l)
 
-        while abs(l_previous-l) > epsilon and alpha > epsilon2 : #TODO : test change conditional with or
+        while (l_previous-l > epsilon or l_previous-l < 0) or alpha > epsilon2 : #TODO : test change conditional with or
             
             if l < l_previous : # when loss decreases
                 l_previous = l
@@ -595,16 +524,16 @@ class Utils_starter_5:
 
         print("The translation in y, x coordinates that minimizes our loss function is ", p)
         if plot :
-            ax = plt.figure().add_subplot(projection='3d')
+            title = "Gradient descent graph"
+            ax = plot_functions.plot_background(self,loss_function,title)
+            p_list_numpy = np.array(p_list).transpose()
+            l_list_numpy = np.array(l_list)
+            ax.plot(p_list_numpy[0],p_list_numpy[1],l_list_numpy,label=f"Gradient descent, ending at $[{p[0]:.2f},{p[1]:.2f}]$")
             
-            np.array([])
-
-            px_loss, py_loss, loss_data = self.import_data(loss_function)
-            if len(px_loss) != 0:
-                ax.plot_surface(px_loss,py_loss,loss_data,alpha=0.3,rcount=surface_sampling,ccount=surface_sampling)    
-            p_list_np = np.array(p_list).transpose()
-            l_list_np = np.array(l_list)
-            ax.plot(p_list_np[0],p_list_np[1],l_list_np)
+            ax.set_xlabel("image $x$ coordinate")
+            ax.set_ylabel("image $y$ coordinate")
+            ax.set_zlabel("loss function value")
+            ax.legend()
             plt.show()
 
         print("min loss and argmin computation done")
@@ -620,7 +549,8 @@ if __name__ == '__main__' :
     """Testing greedy_optimization_xy with x translation
     """
     if False:
-        p_min, l_list = utils.greedy_optimization_xy(translate_type = "x", plot = True)
+        p_min, l_list = utils.greedy_optimization_xy(translate_type = "x", plot = True, step=0.11)
+        p_min, l_list = utils.greedy_optimization_xy(translate_type = "x", plot = True, step=1)
         # note: can use a floating step to test floating point translation
     
 
@@ -629,8 +559,8 @@ if __name__ == '__main__' :
     if False:
         clean_finger_small = Image("images/clean_finger_small.png")
         tx_finger_small = Image("images/tx_finger.png")
-        tx_finger_small._data = cv2.resize(tx_finger_small._data, dsize=clean_finger_small._data.shape[::-1], interpolation=cv2.INTER_CUBIC)
-        print(clean_finger_small._data.shape,tx_finger_small._data.shape)
+        tx_finger_small.data = cv2.resize(tx_finger_small.data, dsize=clean_finger_small.data.shape[::-1], interpolation=cv2.INTER_CUBIC)
+        print(clean_finger_small.data.shape,tx_finger_small.data.shape)
 
         utils = Utils_starter_5(clean_finger_small,tx_finger_small)
         
@@ -638,9 +568,9 @@ if __name__ == '__main__' :
 
     """Testing coordinate_descent_optimization_xy with small translation
     """
-    if False:
-        utils = Utils_starter_5(Image("images/clean_finger.png"),Image("images/tx_finger.png"))
-        # utils = Utils_starter_5(Image("images/clean_finger.png"),Image("images/txy_finger.png")) # TODO find params
+    if True:
+        # utils = Utils_starter_5(Image("images/clean_finger.png"),Image("images/tx_finger.png"))
+        utils = Utils_starter_5(Image("images/clean_finger.png"),Image("images/txy_finger.png")) # TODO find params
 
         ### Choose loss function
         loss_function = utils.loss_function_1
@@ -648,18 +578,21 @@ if __name__ == '__main__' :
         utils.compute_and_plot_loss(show = False, loss_function=loss_function,span="all")
 
 
+        p, l_list = utils.coordinate_descent_optimization_xy(plot = True, p0 = [-10,10], alpha0 = 1, epsilon = 1, epsilon2 = 0.0001, loss_function=loss_function )
+
+        plot_functions.display_warped(utils,p, utils.get_pix_at_translated, loss_function)
 
         p, l_list = utils.coordinate_descent_optimization_xy(plot = True, alpha0 = 0.1, epsilon = 100, epsilon2 = 0.001, loss_function=loss_function )
 
-        utils.display_warped(p, utils.get_pix_at_translated, loss_function)
+        plot_functions.display_warped(utils,p, utils.get_pix_at_translated, loss_function)
 
         p, l_list = utils.coordinate_descent_optimization_xy(plot = True, alpha0 = 0.01, epsilon = 10,  epsilon2 = 0.0001,  loss_function=loss_function ) #diverge
         
-        utils.display_warped(p, utils.get_pix_at_translated, loss_function)
+        plot_functions.display_warped(utils,p, utils.get_pix_at_translated, loss_function)
     
     """Testing coordinate_descent_optimization_xy with blur preoptimisation
     """
-    if True:
+    if False:
         
         blur_kernel = 8
 
@@ -682,11 +615,11 @@ if __name__ == '__main__' :
 
         p0, l_list = utils.coordinate_descent_optimization_xy(plot = True, alpha0 = 0.1, epsilon = 100, epsilon2 = 0.001, loss_function=loss_function )
 
-        utils.display_warped(p0, utils.get_pix_at_translated, loss_function)
+        plot_functions.display_warped(utils,p0, utils.get_pix_at_translated, loss_function)
 
         p0, l_list = utils.coordinate_descent_optimization_xy(plot = True, alpha0 = 0.01, epsilon = 10,  epsilon2 = 0.0001,  loss_function=loss_function ) #diverge
         
-        utils.display_warped(p0, utils.get_pix_at_translated, loss_function)
+        plot_functions.display_warped(utils,p0, utils.get_pix_at_translated, loss_function)
         
 
 
@@ -698,11 +631,11 @@ if __name__ == '__main__' :
 
         p, l_list = utils.coordinate_descent_optimization_xy(plot = True, p0=p0, alpha0 = 0.1, epsilon = 100, epsilon2 = 0.001, loss_function=loss_function )
 
-        utils.display_warped(p, utils.get_pix_at_translated, loss_function)
+        plot_functions.display_warped(utils,p, utils.get_pix_at_translated, loss_function)
 
         p, l_list = utils.coordinate_descent_optimization_xy(plot = True, p0=p0, alpha0 = 0.01, epsilon = 10,  epsilon2 = 0.0001,  loss_function=loss_function ) #diverge
         
-        utils.display_warped(p, utils.get_pix_at_translated, loss_function)
+        plot_functions.display_warped(utils,p, utils.get_pix_at_translated, loss_function)
         
 
 
