@@ -433,7 +433,7 @@ class Image:
             
             params : 
                 structuring element : Defined the shape of the structuring_element(geometrical shape) used to probe the image
-                    Possible values : Square, Horizontal Rectangle, Vertical Horizontal
+                    Possible values : Square, Horizontal Rectangle, Vertical Horizontal, Cross
 
                 size : Defined the size of the structuring element
         """
@@ -493,6 +493,25 @@ class Image:
             image_dilate = np.array([1 if (i == kernel).any() else 0 for i in flat_submatrices])
             # obtain new matrix whose shape is equal to the original image size
             self.data = image_dilate.reshape(orig_shape)
+
+        if structuring_element=='Cross':
+            kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (size,size))
+            print(kernel)
+            orig_shape = self.data.shape
+            pad_width = size - 2 
+
+            # pad the image with pad_width
+            image_pad = np.pad(array=self.data, pad_width=pad_width, mode='constant')
+            pimg_shape = image_pad.shape
+            h_reduce, w_reduce = (pimg_shape[0] - orig_shape[0]), (pimg_shape[1] - orig_shape[1])
+            
+            # obtain the submatrices according to the size of the kernel
+            flat_submatrices = np.array([image_pad[i:(i + size), j:(j + size)]
+                                         for i in range(pimg_shape[0] - h_reduce) for j in range(pimg_shape[1] - w_reduce)])
+            # replace the values either 1 or 0 by dilation condition
+            image_dilate = np.array([1 if (np.max(i + kernel)== 2) else 0 for i in flat_submatrices])
+            # obtain new matrix whose shape is equal to the original image size
+            self.data = image_dilate.reshape(orig_shape)
     
     def dilation_grayscale(self, structuring_element = "Square", size = 3):
         """
@@ -500,7 +519,7 @@ class Image:
             
             params : 
                 structuring element : Defined the shape of the structuring_element(geometrical shape) used to probe the image
-                    Possible values : Square, Horizontal Rectangle, Vertical Horizontal
+                    Possible values : Square, Horizontal Rectangle, Vertical Horizontal, Cross
 
                 size : Defined the size of the structuring element
         """
@@ -568,7 +587,7 @@ class Image:
             
             params : 
                 structuring element : Defined the shape of the structuring_element(geometrical shape) used to probe the image
-                    Possible values : Square, Horizontal Rectangle, Vertical Horizontal
+                    Possible values : Square, Horizontal Rectangle, Vertical Horizontal, Cross
 
                 size : Defined the size of the structuring element
         """
