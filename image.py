@@ -161,7 +161,7 @@ class Image:
         self.m = old_n
         for x in range(self.n):
             for y in range(self.m):
-                if axis == 0:
+                if axis == 1:
                     self.data[x][y] = tmp[y][x]
                 else:
                     self.data[x][y] = tmp[(old_n-1) - y][(old_m-1) - x]
