@@ -38,6 +38,8 @@ def assert_image_dots(image,list_of_points) :
     assert (image.data/original_background == assert_matrix).all()
 
 def test_translation():
+    """Test on small matrixes that the translation does what it is supposed to
+    """
     #shape = (6,6)
     fixed1  = Image( original_background*\
       np.array([[1,1,1,1,1,1],
