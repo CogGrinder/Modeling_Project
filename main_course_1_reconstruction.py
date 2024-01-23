@@ -56,7 +56,7 @@ class Main_Course_1_Reconstruction:
 
                 # Process only true pixels
                 if mask[x][y] == True:
-                    print("Processing (", x, ",", y, ") pixel")
+                    # print("Processing (", x, ",", y, ") pixel")
 
                     # Crop the surrounding patch p in the fingerprint at coordinates (x,y)
                     top_left_coord_x, top_left_coord_y = x - offset, y - offset

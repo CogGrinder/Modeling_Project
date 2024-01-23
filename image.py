@@ -30,11 +30,23 @@ class Image:
             self.name = "test_array_" + str(self.data[0]).replace("[","").replace("]","") \
                   + "_size_" + str(self.n) + "_" + str(self.m)
     
-    def display(self):
+    def display(self, point=None, rectangle=None):
         """
-            Display the image
+        Display the image with an optional point and rectangle.
+
+        Parameters:
+            - point: Tuple (x, y) representing the coordinates of the point.
+            - rectangle: Tuple ((x, y), (width, height)) representing the rectangle.
         """
         plt.imshow(self.data, cmap='gray', vmin=0, vmax=1)
+
+        if point:
+            plt.plot(point[1], point[0], 'ro')  # 'ro' means red color, round marker
+        if rectangle:
+            rect = plt.Rectangle((rectangle[0][1], rectangle[0][0]), rectangle[1][1], rectangle[1][0],
+                                 linewidth=0.5, edgecolor='r', facecolor='none')
+            plt.gca().add_patch(rect)
+
         plt.show()
 
     def save(self, filename):
@@ -698,7 +710,7 @@ class Image:
             Returns:
                 - list of patches (size x size numpy arrays)  
         """
-        print("Cropping", n, "patches of size", size, "px from the image")
+        print("Cropping", n, "patches of size", size, "x", size, "pixels from the image")
 
         # list of patches to be returned
         patches = []
