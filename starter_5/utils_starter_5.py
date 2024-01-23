@@ -543,22 +543,27 @@ class Utils_starter_5:
 
         # Descent speed
         alpha = alpha0
-        l_previous   = sys.float_info.max
 
-        """Do While style loop
+        """
+        Do While style loop
         """
         p = p0.copy()
-        l = loss_function(p=p)
-        p_list = [] #used to return the points for plotting
-        l_list = [] #used to return the loss function for plotting
+        l_previous = loss_function(p=p) # previously sys.float_info.max
+        p_list = [p0] #used to return the points for plotting
+        l_list = [l_previous] #used to return the loss function for plotting
         
-        discrete_gradient = np.array([ 0, 
-                                       0])
-        print(discrete_gradient)
-        print(alpha)
+        discrete_gradient = np.array([ (loss_function(p=[p[0] +scheme_step, p[1]], warp = warp) \
+                                          - loss_function(p=[p[0] -scheme_step, p[1]], warp = warp) ) /(2*scheme_step), 
+                                           (loss_function(p=[p[0], p[1] +scheme_step], warp = warp) \
+                                          - loss_function(p=[p[0], p[1] -scheme_step], warp = warp) ) /(2*scheme_step)]) #beware the indexation
+        l = loss_function(p=[p[0] - alpha * discrete_gradient[0],
+                            p[1] - alpha * discrete_gradient[1]])
+        
+        print("discrete_gradient: ",discrete_gradient)
+        print("alpha: ",alpha)
+        print("l_previous,l: ",l_previous,l)
 
         while abs(l_previous-l) > epsilon and alpha > epsilon2 : #TODO : test change conditional with or
-            print("l_previous,l: ",l_previous,l)
             
             if l < l_previous : # when loss decreases
                 l_previous = l
@@ -574,15 +579,16 @@ class Utils_starter_5:
             else :
                 alpha *= 0.5 # hardcoded slowing
 
-            discrete_gradient = np.array([ (loss_function(p=[p[0] +scheme_step, p[1]], warp = warp) - loss_function(p=[p[0] -scheme_step, p[1]], warp = warp) ) /(2*scheme_step), 
-                                           (loss_function(p=[p[0], p[1] +scheme_step], warp = warp) - loss_function(p=[p[0], p[1] -scheme_step], warp = warp) ) /(2*scheme_step)]) #beware the indexation
-            
+            discrete_gradient = np.array([ (loss_function(p=[p[0] +scheme_step, p[1]], warp = warp) \
+                                          - loss_function(p=[p[0] -scheme_step, p[1]], warp = warp) ) /(2*scheme_step), 
+                                           (loss_function(p=[p[0], p[1] +scheme_step], warp = warp) \
+                                          - loss_function(p=[p[0], p[1] -scheme_step], warp = warp) ) /(2*scheme_step)]) #beware the indexation
+            l = loss_function(p=[p[0] - alpha * discrete_gradient[0],
+                                 p[1] - alpha * discrete_gradient[1]]) #beware the indexation
             
             print("discrete_gradient: ",discrete_gradient)
             print("alpha: ",alpha)
-
-            l = loss_function(p=[p[0] - alpha * discrete_gradient[0],
-                                 p[1] - alpha * discrete_gradient[1]]) #beware the indexation
+            print("l_previous,l: ",l_previous,l)
         
         """end of loop
         """
@@ -632,13 +638,13 @@ if __name__ == '__main__' :
 
     """Testing coordinate_descent_optimization_xy with small translation
     """
-    if True:
+    if False:
         utils = Utils_starter_5(Image("images/clean_finger.png"),Image("images/tx_finger.png"))
         # utils = Utils_starter_5(Image("images/clean_finger.png"),Image("images/txy_finger.png")) # TODO find params
 
         ### Choose loss function
-        # loss_function = utils.loss_function_1
-        loss_function = utils.loss_function_2
+        loss_function = utils.loss_function_1
+        # loss_function = utils.loss_function_2
         utils.compute_and_plot_loss(show = False, loss_function=loss_function,span="all")
 
 
@@ -653,7 +659,7 @@ if __name__ == '__main__' :
     
     """Testing coordinate_descent_optimization_xy with blur preoptimisation
     """
-    if False:
+    if True:
         
         blur_kernel = 8
 
@@ -669,8 +675,8 @@ if __name__ == '__main__' :
         utils = Utils_starter_5(blurred_fixed_finger,blurred_moving_finger)
 
         ### Choose loss function
-        # loss_function = utils.loss_function_1
-        loss_function = utils.loss_function_2
+        loss_function = utils.loss_function_1
+        # loss_function = utils.loss_function_2
         utils.compute_and_plot_loss(show = False, loss_function=loss_function)#,span="all")
 
 
@@ -687,9 +693,6 @@ if __name__ == '__main__' :
         utils = Utils_starter_5(Image("images/clean_finger.png"),Image("images/tx_finger.png"))
         # utils = Utils_starter_5(Image("images/clean_finger.png"),Image("images/txy_finger.png")) # TODO find params
 
-        ### Choose loss function
-        # loss_function = utils.loss_function_1
-        loss_function = utils.loss_function_2
         utils.compute_and_plot_loss(show = False, loss_function=loss_function,span="all")
 
 
