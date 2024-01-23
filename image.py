@@ -154,27 +154,17 @@ class Image:
         ''' Return the symmetric of the image with respect to the diagonal going from bottom left corner to top right corner if axis=0
                                                                            going from top left corner to bottom right corner if axis=1 '''
         tmp = np.copy(self.data)
+        old_n = self.n
+        old_m = self.m
         self.data = np.ones((self.m, self.n))
+        self.n = old_m
+        self.m = old_n
         for x in range(self.n):
             for y in range(self.m):
                 if axis == 0:
                     self.data[x][y] = tmp[y][x]
                 else:
-                    self.data[x][y] = tmp[self.n - y][self.m - x]
-
-
-    # def simulate_low_pressure(self, center, c):
-    #     ''' Return the image at which we have simulate a low pressure of center center.
-    #         Parameters :
-    #             - center : coordinates of the pixel center of the low pressure (tuple of two int values)
-    #             - c : mathematical function of one argument (c(r)), monotonically decreasing as r tends to infinity, with c(0)=1 and c(r)=0 the limit when
-    #             r tends to infinity.
-    #     '''
-    #     center_coord = Starter_2.pixel_center(center[0], center[1])
-    #     for x in range(self.n):
-    #         for y in range(self.m):
-    #             distance = Main_Course_1.distance_between_pixels((x, y), center_coord)
-    #             self.data[x][y] = 1 - ((1-self.data[x][y])*c(distance)) # mulptiply (1 - pixel_value) by c(distance) and then substract the obteined value to 1 and not multiplying c(distance) directly since we want the image to become whiter (so close to 1) and not darker
+                    self.data[x][y] = tmp[(old_n-1) - y][(old_m-1) - x]
 
 
     def rotate_translate(self, p, center, offset, data_conservation=False, inverse_order=False):

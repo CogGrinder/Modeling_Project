@@ -76,6 +76,167 @@ class Starter_4_Window(customtkinter.CTkToplevel):
             img.display()
             
             
+class Starter_1_Window(customtkinter.CTkToplevel):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.title('Starter 1')
+        self.geometry("750x650")
+        self.resizable(True, True)
+        self.configure(bg="black")
+        self.rowconfigure(0, weight=1)
+        self.rowconfigure(1, weight=1)
+        self.rowconfigure(2, weight=1)
+        self.rowconfigure(3, weight=1)
+        self.rowconfigure(4, weight=1)
+        self.rowconfigure(5, weight=1)
+        self.rowconfigure(6, weight=1)
+        self.rowconfigure(7, weight=1)
+        self.rowconfigure(8, weight=1)
+        self.rowconfigure(9, weight=1)
+        self.rowconfigure(10, weight=1)
+        self.rowconfigure(11, weight=1)
+        self.rowconfigure(12, weight=1)
+        self.rowconfigure(13, weight=1)
+
+        # Variables to store user inputs
+        self.selected_file = ""
+        self.create_rectangle_var = BooleanVar(value=False)
+        self.top_left_x = IntVar()
+        self.top_left_y = IntVar()
+        self.dimension_x = IntVar()
+        self.dimension_y = IntVar()
+        self.rectangle_color = StringVar(value="black")
+        self.axis_symmetry_var = BooleanVar(value=False)
+        self.axis_symmetry_choice = StringVar(value="along X axis")
+        self.diagonal_symmetry_var = BooleanVar(value=False)
+        self.diagonal_symmetry_choice = StringVar(value="diagonal")
+
+        # Label at the top
+        self.label = customtkinter.CTkLabel(self, text="Perform Rectangle and Symmetry Operations on a Fingerprint Image",
+                              fg_color="transparent", font=('Calibri', 14, 'bold'))
+        self.label.grid(row=0, column=0, sticky='w', padx=10, pady=10)
+
+        # Select file button
+        self.button = customtkinter.CTkButton(self, text='Select File', width=120, height=40,
+                                font=('Cambria', 16), command=self.open_file_dialog)
+        self.button.grid(row=1, column=0, pady=(0, 10))
+
+        # Display selected file name
+        self.selected_file_label = customtkinter.CTkLabel(self, text="Selected File: None", font=('Calibri', 12))
+        self.selected_file_label.grid(row=2, column=0, sticky='w', padx=10)
+
+        # Checkbox for creating a rectangle
+        self.create_rectangle_checkbox = customtkinter.CTkCheckBox(self, text="Create a Rectangle", variable=self.create_rectangle_var,
+                                                                  command=self.toggle_rectangle_entries)
+        self.create_rectangle_checkbox.grid(row=3, column=0, sticky='w', padx=10)
+
+        # Entries for rectangle dimensions
+        self.top_left_label = customtkinter.CTkLabel(self, text="Top Left Corner Coordinates:", font=('Calibri', 12))
+        self.top_left_label.grid(row=4, column=0, sticky='w', padx=10)
+        self.top_left_entry_x = customtkinter.CTkEntry(self, font=('Calibri', 12), state="disabled")
+        self.top_left_entry_x.grid(row=5, column=0, padx=10, pady=(0, 10))
+        self.top_left_entry_y = customtkinter.CTkEntry(self, font=('Calibri', 12), state="disabled")
+        self.top_left_entry_y.grid(row=6, column=0, padx=10, pady=(0, 10))
+
+        self.dimension_label = customtkinter.CTkLabel(self, text="Rectangle Dimensions (width, height):", font=('Calibri', 12))
+        self.dimension_label.grid(row=7, column=0, sticky='w', padx=10)
+        self.dimension_entry_x = customtkinter.CTkEntry(self, font=('Calibri', 12), state="disabled")
+        self.dimension_entry_x.grid(row=8, column=0, padx=10, pady=(0, 10))
+        self.dimension_entry_y = customtkinter.CTkEntry(self, font=('Calibri', 12), state="disabled")
+        self.dimension_entry_y.grid(row=9, column=0, padx=10, pady=(0, 10))
+
+        # Combobox for rectangle color
+        self.rectangle_color_label = customtkinter.CTkLabel(self, text="Rectangle Color:", font=('Calibri', 12))
+        self.rectangle_color_label.grid(row=10, column=0, sticky='w', padx=10)
+        self.rectangle_color_combo = customtkinter.CTkComboBox(self, values=["black", "white"], state="disabled")
+        self.rectangle_color_combo.grid(row=11, column=0, padx=10, pady=(0, 10))
+
+        # Checkbox for axis symmetry
+        self.axis_symmetry_checkbox = customtkinter.CTkCheckBox(self, text="Axis Symmetry", variable=self.axis_symmetry_var,
+                                                                command=self.toggle_axis_symmetry_combobox)
+        self.axis_symmetry_checkbox.grid(row=12, column=0, sticky='w', padx=10)
+
+        # Combobox for axis symmetry choice
+        self.axis_symmetry_label = customtkinter.CTkLabel(self, text="Axis Symmetry Choice:", font=('Calibri', 12))
+        self.axis_symmetry_label.grid(row=13, column=0, sticky='w', padx=10)
+        self.axis_symmetry_entry = customtkinter.CTkComboBox(self, values=["along Horizontal axis", "along Vertical axis"], state="disabled")
+        self.axis_symmetry_entry.grid(row=14, column=0, padx=10, pady=(0, 10))
+
+        # Checkbox for diagonal symmetry
+        self.diagonal_symmetry_checkbox = customtkinter.CTkCheckBox(self, text="Diagonal Symmetry", variable=self.diagonal_symmetry_var,
+                                                                    command=self.toggle_diagonal_symmetry_combobox)
+        self.diagonal_symmetry_checkbox.grid(row=15, column=0, sticky='w', padx=10)
+
+        # Combobox for diagonal symmetry choice
+        self.diagonal_symmetry_label = customtkinter.CTkLabel(self, text="Diagonal Symmetry Choice:", font=('Calibri', 12))
+        self.diagonal_symmetry_label.grid(row=16, column=0, sticky='w', padx=10)
+        self.diagonal_symmetry_entry = customtkinter.CTkComboBox(self, values=["diagonal", "anti-diagonal"], state="disabled")
+        self.diagonal_symmetry_entry.grid(row=17, column=0, padx=10, pady=(0, 10))
+
+        # Transform button
+        self.transform_button = customtkinter.CTkButton(self, text='Transform', width=120, height=40,
+                                          font=('Cambria', 16), command=self.transform_image)
+        self.transform_button.grid(row=18, column=0, pady=(10, 0))
+
+    def open_file_dialog(self):
+        self.selected_file = filedialog.askopenfilename()
+        if self.selected_file != "":
+            # Create an instance of the Image class with the selected file
+            img = Image(self.selected_file)
+            # Update the label with the file name and size
+            self.selected_file_label.configure(text=f"Selected File: {self.selected_file} \n" \
+                                                    f"(Size: {img.n}x{img.m})")
+
+    def toggle_rectangle_entries(self):
+        state = "normal" if self.create_rectangle_var.get() else "disabled"
+        self.top_left_entry_x.configure(state=state)
+        self.top_left_entry_y.configure(state=state)
+        self.dimension_entry_x.configure(state=state)
+        self.dimension_entry_y.configure(state=state)
+        self.rectangle_color_combo.configure(state=state)
+
+    def toggle_axis_symmetry_combobox(self):
+        state = "normal" if self.axis_symmetry_var.get() else "disabled"
+        self.axis_symmetry_entry.configure(state=state)
+
+    def toggle_diagonal_symmetry_combobox(self):
+        state = "normal" if self.diagonal_symmetry_var.get() else "disabled"
+        self.diagonal_symmetry_entry.configure(state=state)
+
+    def transform_image(self):
+        # Create an instance of the Image class with the selected file
+        img = Image(self.selected_file)
+
+        # Check if rectangle needs to be created
+        if self.create_rectangle_var.get():
+            top_left_x = int(self.top_left_entry_x.get())
+            top_left_y = int(self.top_left_entry_y.get())
+            dimension_x = int(self.dimension_entry_x.get())
+            dimension_y = int(self.dimension_entry_y.get())
+            rectangle_color = str(self.rectangle_color_combo.get())
+            img.create_rectangle((top_left_x, top_left_y), dimension_x, dimension_y, rectangle_color)
+
+        # Check if axis symmetry needs to be applied
+        if self.axis_symmetry_var.get():
+            axis_symmetry = str(self.axis_symmetry_entry.get())
+            if axis_symmetry == "along Horizontal axis":
+                img.symmetry()
+            else:
+                img.symmetry(axis=1)
+
+        # Check if diagonal symmetry needs to be applied
+        if self.diagonal_symmetry_var.get():
+            diagonal_symmetry = str(self.diagonal_symmetry_entry.get())
+            if diagonal_symmetry == "diagonal":
+                img.symmetry_diagonal(axis=1)
+            else:
+                img.symmetry_diagonal()
+
+        # Display the transformed image
+        img.display()
+
+            
+            
 class Starter_2_Window(customtkinter.CTkToplevel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -409,7 +570,11 @@ class SecondWindow(customtkinter.CTkToplevel):
     # To be updated
     def combobox_callback(self, choice):
         if choice == "Starter 1":
-            os.system('starter1.py')
+            self.toplevel_window = None
+            if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
+                self.toplevel_window = Starter_1_Window(self)  # create window if its None or destroyed
+            else:
+                self.toplevel_window.focus()
         if choice == "Starter 2":
             self.toplevel_window = None
             if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
