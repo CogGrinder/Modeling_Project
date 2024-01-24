@@ -154,27 +154,17 @@ class Image:
         ''' Return the symmetric of the image with respect to the diagonal going from bottom left corner to top right corner if axis=0
                                                                            going from top left corner to bottom right corner if axis=1 '''
         tmp = np.copy(self.data)
+        old_n = self.n
+        old_m = self.m
         self.data = np.ones((self.m, self.n))
+        self.n = old_m
+        self.m = old_n
         for x in range(self.n):
             for y in range(self.m):
-                if axis == 0:
+                if axis == 1:
                     self.data[x][y] = tmp[y][x]
                 else:
-                    self.data[x][y] = tmp[self.n - y][self.m - x]
-
-
-    # def simulate_low_pressure(self, center, c):
-    #     ''' Return the image at which we have simulate a low pressure of center center.
-    #         Parameters :
-    #             - center : coordinates of the pixel center of the low pressure (tuple of two int values)
-    #             - c : mathematical function of one argument (c(r)), monotonically decreasing as r tends to infinity, with c(0)=1 and c(r)=0 the limit when
-    #             r tends to infinity.
-    #     '''
-    #     center_coord = Starter_2.pixel_center(center[0], center[1])
-    #     for x in range(self.n):
-    #         for y in range(self.m):
-    #             distance = Main_Course_1.distance_between_pixels((x, y), center_coord)
-    #             self.data[x][y] = 1 - ((1-self.data[x][y])*c(distance)) # mulptiply (1 - pixel_value) by c(distance) and then substract the obteined value to 1 and not multiplying c(distance) directly since we want the image to become whiter (so close to 1) and not darker
+                    self.data[x][y] = tmp[(old_n-1) - y][(old_m-1) - x]
 
 
     def rotate_translate(self, p, center, offset, data_conservation=False, inverse_order=False):
@@ -433,7 +423,7 @@ class Image:
             
             params : 
                 structuring element : Defined the shape of the structuring_element(geometrical shape) used to probe the image
-                    Possible values : Square, Horizontal Rectangle, Vertical Horizontal
+                    Possible values : Square, Horizontal Rectangle, Vertical Horizontal, Cross
 
                 size : Defined the size of the structuring element
         """
@@ -493,6 +483,25 @@ class Image:
             image_dilate = np.array([1 if (i == kernel).any() else 0 for i in flat_submatrices])
             # obtain new matrix whose shape is equal to the original image size
             self.data = image_dilate.reshape(orig_shape)
+
+        if structuring_element=='Cross':
+            kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (size,size))
+            print(kernel)
+            orig_shape = self.data.shape
+            pad_width = size - 2 
+
+            # pad the image with pad_width
+            image_pad = np.pad(array=self.data, pad_width=pad_width, mode='constant')
+            pimg_shape = image_pad.shape
+            h_reduce, w_reduce = (pimg_shape[0] - orig_shape[0]), (pimg_shape[1] - orig_shape[1])
+            
+            # obtain the submatrices according to the size of the kernel
+            flat_submatrices = np.array([image_pad[i:(i + size), j:(j + size)]
+                                         for i in range(pimg_shape[0] - h_reduce) for j in range(pimg_shape[1] - w_reduce)])
+            # replace the values either 1 or 0 by dilation condition
+            image_dilate = np.array([1 if (np.max(i + kernel)== 2) else 0 for i in flat_submatrices])
+            # obtain new matrix whose shape is equal to the original image size
+            self.data = image_dilate.reshape(orig_shape)
     
     def dilation_grayscale(self, structuring_element = "Square", size = 3):
         """
@@ -500,7 +509,7 @@ class Image:
             
             params : 
                 structuring element : Defined the shape of the structuring_element(geometrical shape) used to probe the image
-                    Possible values : Square, Horizontal Rectangle, Vertical Horizontal
+                    Possible values : Square, Horizontal Rectangle, Vertical Horizontal, Cross
 
                 size : Defined the size of the structuring element
         """
@@ -568,7 +577,7 @@ class Image:
             
             params : 
                 structuring element : Defined the shape of the structuring_element(geometrical shape) used to probe the image
-                    Possible values : Square, Horizontal Rectangle, Vertical Horizontal
+                    Possible values : Square, Horizontal Rectangle, Vertical Horizontal, Cross
 
                 size : Defined the size of the structuring element
         """
