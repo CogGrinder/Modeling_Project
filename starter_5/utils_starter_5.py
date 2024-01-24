@@ -224,19 +224,19 @@ class Utils_starter_5:
         translate_span_y = m//3
         
         #reading kwargs
-        for key, value in kwargs.items() :
-            if key == "loss_function" :
-                loss_function = value
-            if key == "save":
-                save = bool(value)
-            if key == "show":
-                show = bool(value)
-            if key == "span":
-                if value == "all" :
-                    translate_span_x = n//2
-                    translate_span_y = m//2
-                else:
-                    raise ValueError("unknown value for span")
+        if "loss_function" in kwargs :
+            loss_function = kwargs["loss_function"]
+        if "save" in kwargs:
+            save = kwargs["save"]
+        if "show" in kwargs:
+            show = kwargs["show"]
+        if "span" in kwargs:
+            value = kwargs["span"]
+            if value == "all" :
+                translate_span_x = n//2
+                translate_span_y = m//2
+            else:
+                raise ValueError("unknown value for span")
 
         #check for existing file
         save_filename = self.make_save_name(loss_function)
@@ -570,14 +570,17 @@ if __name__ == '__main__' :
     """
     if True:
         # utils = Utils_starter_5(Image("images/clean_finger.png"),Image("images/tx_finger.png"))
-        utils = Utils_starter_5(Image("images/clean_finger.png"),Image("images/txy_finger.png")) # TODO find params
+        utils = Utils_starter_5(Image("images/clean_finger.png"),Image("images/txy_finger.png")) # TODO find params - almost done
 
         ### Choose loss function
         loss_function = utils.loss_function_1
         # loss_function = utils.loss_function_2
         utils.compute_and_plot_loss(show = False, loss_function=loss_function,span="all")
 
+        p, l_list = utils.coordinate_descent_optimization_xy(plot = True, p0 = [-22,20], alpha0 = 1, epsilon = 1, epsilon2 = 0.0001, loss_function=loss_function )
 
+        plot_functions.display_warped(utils,p, utils.get_pix_at_translated, loss_function)
+        
         p, l_list = utils.coordinate_descent_optimization_xy(plot = True, p0 = [-10,10], alpha0 = 1, epsilon = 1, epsilon2 = 0.0001, loss_function=loss_function )
 
         plot_functions.display_warped(utils,p, utils.get_pix_at_translated, loss_function)
@@ -593,14 +596,19 @@ if __name__ == '__main__' :
     """Testing coordinate_descent_optimization_xy with blur preoptimisation
     """
     if False:
+        fixed = Image("images/clean_finger.png")
         
+        moving = Image("images/tx_finger.png")
+        # moving = Image("images/txy_finger.png")
+
         blur_kernel = 8
 
-        blurred_fixed_finger  = Image("images/clean_finger.png")
+        blurred_fixed_finger  = fixed
         blurred_fixed_finger.blur(blur_kernel)
         blurred_fixed_finger.name = "blurred_fixed_finger"
         blurred_fixed_finger.display()
-        blurred_moving_finger = Image("images/tx_finger.png")
+
+        blurred_moving_finger = moving
         blurred_moving_finger.blur(blur_kernel)
         blurred_moving_finger.name = "blurred_moving_finger"
         blurred_moving_finger.display()
@@ -608,18 +616,18 @@ if __name__ == '__main__' :
         utils = Utils_starter_5(blurred_fixed_finger,blurred_moving_finger)
 
         ### Choose loss function
-        loss_function = utils.loss_function_1
-        # loss_function = utils.loss_function_2
-        utils.compute_and_plot_loss(show = False, loss_function=loss_function)#,span="all")
+        # loss_function = utils.loss_function_1
+        loss_function = utils.loss_function_2
+        utils.compute_and_plot_loss(show = False, loss_function=loss_function,span="all")
 
 
         p0, l_list = utils.coordinate_descent_optimization_xy(plot = True, alpha0 = 0.1, epsilon = 100, epsilon2 = 0.001, loss_function=loss_function )
 
         plot_functions.display_warped(utils,p0, utils.get_pix_at_translated, loss_function)
 
-        p0, l_list = utils.coordinate_descent_optimization_xy(plot = True, alpha0 = 0.01, epsilon = 10,  epsilon2 = 0.0001,  loss_function=loss_function ) #diverge
+        # p0, l_list = utils.coordinate_descent_optimization_xy(plot = True, alpha0 = 0.01, epsilon = 10,  epsilon2 = 0.0001,  loss_function=loss_function ) #diverge
         
-        plot_functions.display_warped(utils,p0, utils.get_pix_at_translated, loss_function)
+        # plot_functions.display_warped(utils,p0, utils.get_pix_at_translated, loss_function)
         
 
 

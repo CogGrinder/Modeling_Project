@@ -68,9 +68,10 @@ doc
 
 
 ### LaTeX part
-- [ ] need better labels in 3d plots
+- [x] need better labels in 3d plots
 
 - [ ] use x translate graph
+    - compare with step of 1 and step of 0.1 or 0.11
 
 
 #### content
