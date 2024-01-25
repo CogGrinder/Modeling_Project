@@ -390,9 +390,11 @@ class Image_registration_tools:
                 l_list[i] = l
             print("The translation in x that minimizes our loss function is ", p_min[1])
             if plot :
-                #p = np.arange(- math.ceil(n/2), math.floor(n/2) + 1) #pre-testing
-                plt.plot(list_px,l_list)
-                #plt.plot(p,l_list) #pre-testing
+                ax = plt.subplot()
+                ax.plot(list_px,l_list,label=f"{loss_function.__name__} plot with $y = {p_min[0]}$")
+                ax.set_xlabel("image $x$ coordinate")
+                ax.set_ylabel("loss function value")
+                ax.legend()
                 plt.show()
         elif xy_translate == "xy" :
             l_list  = np.zeros((m+1,n+1)) #make the list bigger to accomodate for all translations
