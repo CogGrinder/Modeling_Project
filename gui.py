@@ -11,6 +11,7 @@ from starter3 import Starter_3
 
 from main_course_1 import Main_Course_1
 from main_course_1_reconstruction import Main_Course_1_Reconstruction
+from main_course_5.main_course_5 import Image_registration_tools
 
 class Starter_4_Window(customtkinter.CTkToplevel):
     # Create a window for starter 4
@@ -541,6 +542,109 @@ class Main_1_Restauration_Window(customtkinter.CTkToplevel):
         # Display the transformed image, with the rectangle in which the restauration has been performed
         img.display(point=(top_left_x, top_left_y), rectangle=((top_left_x, top_left_y), (dimension_x, dimension_y)))
 
+class Main_Course_5_Window(customtkinter.CTkToplevel):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.title('Starter 2')
+        self.geometry("750x500")
+        self.resizable(True, True)
+        self.configure(bg="black")
+        self.rowconfigure(0, weight=1)
+        self.rowconfigure(1, weight=1)
+        self.rowconfigure(2, weight=1)
+        self.rowconfigure(3, weight=1)
+        self.rowconfigure(4, weight=1)
+        self.rowconfigure(5, weight=1)
+        self.rowconfigure(6, weight=1)
+        self.rowconfigure(7, weight=1)
+        
+        # Variables to store user inputs
+        self.selected_file = ""
+        self.rotation_angle = DoubleVar()
+        self.center_x = IntVar()
+        self.center_y = IntVar()
+        self.translation_x = IntVar()
+        self.translation_y = IntVar()
+        self.data_conservation_var = BooleanVar(value=False)
+        self.inverse_order_var = BooleanVar(value=False)
+
+        # Label at the top
+        self.label = customtkinter.CTkLabel(self, text="Perform Rotation-Translation on a Fingerprint Image",
+                              fg_color="transparent", font=('Calibri', 14, 'bold'))
+        self.label.grid(row=0, column=0, sticky='w', padx=10, pady=10)
+
+        # Select file button
+        self.button = customtkinter.CTkButton(self, text='Select File', width=120, height=40,
+                                font=('Cambria', 16), command=self.open_file_dialog)
+        self.button.grid(row=1, column=0, pady=(0, 10))
+
+        # Display selected file name
+        self.selected_file_label = customtkinter.CTkLabel(self, text="Selected File: None", font=('Calibri', 12))
+        self.selected_file_label.grid(row=2, column=0, sticky='w', padx=10)
+
+        # Rotation angle entry
+        self.angle_label = customtkinter.CTkLabel(self, text="Enter Rotation Angle (degrees):", font=('Calibri', 12))
+        self.angle_label.grid(row=3, column=0, sticky='w', padx=10)
+        self.angle_entry = customtkinter.CTkEntry(self, font=('Calibri', 12))
+        self.angle_entry.grid(row=4, column=0, padx=10, pady=(0, 10))
+
+        # Center of rotation entry
+        self.center_label = customtkinter.CTkLabel(self, text="Enter Center of Rotation (x, y):", font=('Calibri', 12))
+        self.center_label.grid(row=5, column=0, sticky='w', padx=10)
+        self.center_entry_x = customtkinter.CTkEntry(self, font=('Calibri', 12))
+        self.center_entry_x.grid(row=6, column=0, padx=10, pady=(0, 10))
+        self.center_entry_y = customtkinter.CTkEntry(self, font=('Calibri', 12))
+        self.center_entry_y.grid(row=7, column=0, padx=10, pady=(0, 10))
+
+        # Translation entry
+        self.translation_label = customtkinter.CTkLabel(self, text="Enter Translation (x, y):", font=('Calibri', 12))
+        self.translation_label.grid(row=8, column=0, sticky='w', padx=10)
+        self.translation_entry_x = customtkinter.CTkEntry(self, font=('Calibri', 12))
+        self.translation_entry_x.grid(row=9, column=0, padx=10, pady=(0, 10))
+        self.translation_entry_y = customtkinter.CTkEntry(self, font=('Calibri', 12))
+        self.translation_entry_y.grid(row=10, column=0, padx=10, pady=(0, 10))
+
+        # Checkboxes
+        self.data_conservation_checkbox = customtkinter.CTkCheckBox(self, text="Data Conservation", variable=self.data_conservation_var)
+        self.data_conservation_checkbox.grid(row=11, column=0, sticky='w', padx=10)
+        self.inverse_order_checkbox = customtkinter.CTkCheckBox(self, text="Inverse Rotation and Translation Order", variable=self.inverse_order_var)
+        self.inverse_order_checkbox.grid(row=12, column=0, sticky='w', padx=10)
+
+        # Transform button
+        self.transform_button = customtkinter.CTkButton(self, text='Transform', width=120, height=40,
+                                          font=('Cambria', 16), command=self.transform_image)
+        self.transform_button.grid(row=13, column=0, pady=(10, 0))
+
+    def open_file_dialog(self):
+        self.selected_file = filedialog.askopenfilename()
+        if self.selected_file != "":
+            # Create an instance of the Image class with the selected file
+            img = Image(self.selected_file)
+            # Update the label with the file name and size
+            self.selected_file_label.configure(text=f"Selected File: {self.selected_file} \n" \
+                                                    f"(Size: {img.n}x{img.m})")
+
+    def transform_image(self):
+        # Retrieve user inputs
+        rotation_angle = float(self.angle_entry.get())
+        center_x = int(self.center_entry_x.get())
+        center_y = int(self.center_entry_y.get())
+        translation_x = int(self.translation_entry_x.get())
+        translation_y = int(self.translation_entry_y.get())
+        data_conservation = self.data_conservation_var.get()
+        inverse_order = self.inverse_order_var.get()
+
+        # Create an instance of the Image class with the selected file
+        img = Image(self.selected_file)
+
+        # Perform rotation-translation operation
+        img.rotate_translate(rotation_angle, (center_x, center_y), (translation_x, translation_y),
+                             data_conservation, inverse_order)
+
+        # Display the transformed image
+        img.display()
+        
+
 
         
 class SecondWindow(customtkinter.CTkToplevel):
@@ -604,7 +708,11 @@ class SecondWindow(customtkinter.CTkToplevel):
             else:
                 self.toplevel_window.focus()
         if choice == "Main course 5":
-            print("combobox dropdown clicked:", choice)
+            self.toplevel_window = None
+            if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
+                self.toplevel_window = Main_Course_5_Window(self)  # create window if its None or destroyed
+            else:
+                self.toplevel_window.focus()
 
 
 class App(customtkinter.CTk):
