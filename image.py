@@ -394,15 +394,15 @@ class Image:
             Plot the grayscale histogram of the image
         """
         # create the histogram
-        hist,bins = np.histogram(self.data, bins=256, range=(0, 1))
+        hist,bins = np.histogram(self.data.flatten(), bins=256, range=(0, 1))
         # configure and draw the histogram figure
         plt.figure()
         plt.title("Grayscale Histogram")
         plt.xlabel("grayscale value")
         plt.ylabel("pixel count")
         plt.xlim([0.0, 1.0])  # <- named arguments do not work here
-
         plt.plot(bins[0:-1], hist)  # <- or here
+        plt.show()
 
   
     def binarize(self, threshold):
@@ -486,7 +486,6 @@ class Image:
 
         if structuring_element=='Cross':
             kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (size,size))
-            print(kernel)
             orig_shape = self.data.shape
             pad_width = size - 2 
 
@@ -570,6 +569,25 @@ class Image:
             # obtain new matrix whose shape is equal to the original image size
             self.data = image_dilate.reshape(orig_shape)
 
+        if structuring_element=='Cross':
+            kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (size,size))
+            orig_shape = self.data.shape
+            pad_width = size - 2 
+
+            # pad the image with pad_width
+            image_pad = np.pad(array=self.data, pad_width=pad_width, mode='constant', constant_values=1)
+            pimg_shape = image_pad.shape
+            h_reduce, w_reduce = (pimg_shape[0] - orig_shape[0]), (pimg_shape[1] - orig_shape[1])
+            
+            # obtain the submatrices according to the size of the kernel
+            flat_submatrices = np.array([image_pad[i:(i + size), j:(j + size)]
+                                         for i in range(pimg_shape[0] - h_reduce) for j in range(pimg_shape[1] - w_reduce)])
+            # replace the values either 1 or 0 by dilation condition
+            indices = np.where(kernel == 1)
+            image_dilate = np.array([np.max(i[indices]) for i in flat_submatrices])
+            # obtain new matrix whose shape is equal to the original image size
+            self.data = image_dilate.reshape(orig_shape)
+
          
     def erosion(self, structuring_element = "Square", size = 3):
         """
@@ -635,6 +653,24 @@ class Image:
             
             # replace the values either 1 or 0 by dilation condition
             image_erode = np.array([0 if (i != kernel).any() else 1 for i in flat_submatrices])
+            # obtain new matrix whose shape is equal to the original image size
+            self.data = image_erode.reshape(orig_shape)
+
+        if structuring_element=='Cross':
+            kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (size,size))
+            orig_shape = self.data.shape
+            pad_width = size - 2 
+
+            # pad the image with pad_width
+            image_pad = np.pad(array=self.data, pad_width=pad_width, mode='constant', constant_values=1)
+            pimg_shape = image_pad.shape
+            h_reduce, w_reduce = (pimg_shape[0] - orig_shape[0]), (pimg_shape[1] - orig_shape[1])
+            
+            # obtain the submatrices according to the size of the kernel
+            flat_submatrices = np.array([image_pad[i:(i + size), j:(j + size)]
+                                         for i in range(pimg_shape[0] - h_reduce) for j in range(pimg_shape[1] - w_reduce)])
+            # replace the values either 1 or 0 by dilation condition
+            image_erode = np.array([1 if (np.sum(kernel + i) >= 2*np.sum(kernel)) else 0 for i in flat_submatrices])
             # obtain new matrix whose shape is equal to the original image size
             self.data = image_erode.reshape(orig_shape)
         
@@ -706,6 +742,27 @@ class Image:
             image_erode = np.array([np.min(i) for i in flat_submatrices])
             # obtain new matrix whose shape is equal to the original image size
             self.data = image_erode.reshape(orig_shape)
+
+        if structuring_element=='Cross':
+            kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (size,size))
+            orig_shape = self.data.shape
+            pad_width = size - 2 
+
+            # pad the image with pad_width
+            image_pad = np.pad(array=self.data, pad_width=pad_width, mode='constant', constant_values=1)
+            pimg_shape = image_pad.shape
+            h_reduce, w_reduce = (pimg_shape[0] - orig_shape[0]), (pimg_shape[1] - orig_shape[1])
+            
+            # obtain the submatrices according to the size of the kernel
+            flat_submatrices = np.array([image_pad[i:(i + size), j:(j + size)]
+                                         for i in range(pimg_shape[0] - h_reduce) for j in range(pimg_shape[1] - w_reduce)])
+            # replace the values either 1 or 0 by dilation condition
+            indices = np.where(kernel == 1)
+            image_erode = np.array([np.min(i[indices]) for i in flat_submatrices])
+            # obtain new matrix whose shape is equal to the original image size
+            self.data = image_erode.reshape(orig_shape)
+
+
 
     def crop_patches(self, n, size=9):
         """
