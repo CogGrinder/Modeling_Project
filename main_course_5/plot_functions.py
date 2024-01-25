@@ -1,9 +1,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from utils_starter_5 import *
+from main_course_5 import *
 
 
-def plot_background(utils:Utils_starter_5,loss_function:callable,title,shrink=6):
+def plot_background(utils:Image_registration_tools,loss_function:callable,title,shrink=6):
     """Used to generate plot background
 
     Args:

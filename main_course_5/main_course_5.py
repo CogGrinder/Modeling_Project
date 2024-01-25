@@ -12,6 +12,7 @@ import plot_functions
 
 surface_sampling = 85
 default_scheme_step = 0.2
+data_folder = "save_files"
 
 """ Convention for notation :
 i,j is for coordinates in an image matrix (with the CV2 convention)
@@ -19,7 +20,7 @@ x,y is for coordinates in an image
 x = j, y = -i
 """
 
-class Utils_starter_5:
+class Image_registration_tools:
     def __init__(self, img1 : Image, img2 : Image):
         self._fixed_img  = img1 #fixed
         self._moving_img = img2 #moving
@@ -142,7 +143,8 @@ class Utils_starter_5:
         Returns:
             str: name for the file
         """
-        return  self._fixed_img.name + "_" + self._moving_img.name + "_" + str(loss_function.__name__) + ".txt"
+        return  data_folder + os.sep \
+            + self._fixed_img.name + "_" + self._moving_img.name + "_" + str(loss_function.__name__) + ".txt"
 
     def export_data(self,save_filename,loss_grid,translate_span_x,translate_span_y,step=1):
         with open(save_filename, "w") as f :
@@ -565,7 +567,7 @@ class Utils_starter_5:
 
 if __name__ == '__main__' :
     
-    utils = Utils_starter_5(Image("images/clean_finger.png"),Image("images/tx_finger.png"))
+    utils = Image_registration_tools(Image("images/clean_finger.png"),Image("images/tx_finger.png"))
     
     """Testing greedy_optimization_xy with x translation
     """
@@ -583,14 +585,14 @@ if __name__ == '__main__' :
         tx_finger_small.data = cv2.resize(tx_finger_small.data, dsize=clean_finger_small.data.shape[::-1], interpolation=cv2.INTER_CUBIC)
         print(clean_finger_small.data.shape,tx_finger_small.data.shape)
 
-        utils = Utils_starter_5(clean_finger_small,tx_finger_small)
+        utils = Image_registration_tools(clean_finger_small,tx_finger_small)
         
         p_min, l_list = utils.greedy_optimization_xy(translate_type = "xy", plot = True)
 
     """Testing coordinate_descent_optimization_xy with small translation
     """
     if True:
-        utils = Utils_starter_5(Image("images/clean_finger.png"),Image("images/tx_finger.png"))
+        utils = Image_registration_tools(Image("images/clean_finger.png"),Image("images/tx_finger.png"))
         # utils = Utils_starter_5(Image("images/clean_finger.png"),Image("images/txy_finger.png")) # TODO find params - almost done
 
         ### Choose loss function
@@ -648,7 +650,7 @@ if __name__ == '__main__' :
         blurred_moving_finger.name = "blurred_moving_finger"
         blurred_moving_finger.display()
 
-        utils = Utils_starter_5(blurred_fixed_finger,blurred_moving_finger)
+        utils = Image_registration_tools(blurred_fixed_finger,blurred_moving_finger)
 
         ### Choose loss function
         # loss_function = utils.loss_function_1
@@ -666,7 +668,7 @@ if __name__ == '__main__' :
         
 
 
-        utils = Utils_starter_5(Image("images/clean_finger.png"),Image("images/tx_finger.png"))
+        utils = Image_registration_tools(Image("images/clean_finger.png"),Image("images/tx_finger.png"))
         # utils = Utils_starter_5(Image("images/clean_finger.png"),Image("images/txy_finger.png")) # TODO find params
 
         utils.compute_and_plot_loss(show = False, loss_function=loss_function,span="all")

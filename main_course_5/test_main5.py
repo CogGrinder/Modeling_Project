@@ -8,7 +8,7 @@ import os
 sys.path.append(os.getcwd()) #to access current working directory files easily
 from image import Image
 
-from utils_starter_5 import Utils_starter_5
+from main_course_5 import Image_registration_tools
 
 original_background = 1 # set as 0.5 to reveal original background in output
 
@@ -91,7 +91,7 @@ def test_translation():
     print("Test 1")
     print("fixed1:",fixed1.data,sep="\n")
     print("moving1:",moving1.data,sep="\n")
-    utils = Utils_starter_5(fixed1,moving1)
+    utils = Image_registration_tools(fixed1,moving1)
 
     i,j = np.meshgrid(np.arange(6),np.arange(6),indexing="ij") #warning, modify here
 
@@ -120,7 +120,7 @@ def test_translation():
     print("Test 2")
     print("fixed2:",fixed2.data,sep="\n")
     print("moving2:",moving2.data,sep="\n")
-    utils = Utils_starter_5(fixed2,moving2)
+    utils = Image_registration_tools(fixed2,moving2)
 
     i,j = np.meshgrid(np.arange(5),np.arange(5),indexing="ij")
     
@@ -148,7 +148,7 @@ if __name__ == '__main__' :
     
     """Testing compute_and_plot_loss
     """
-    utils = Utils_starter_5(Image(np.ones((10,10))),Image(np.ones((10,10))) )
+    utils = Image_registration_tools(Image(np.ones((10,10))),Image(np.ones((10,10))) )
     #TODO uncomment utils.compute_and_plot_loss(loss_function=test_loss, span="all",save=False)
     #Expected : cone shape
 
