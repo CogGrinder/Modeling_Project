@@ -1,8 +1,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from utils_starter_5 import *
 
 
-def plot_background(utils,loss_function:callable,title):
+def plot_background(utils:Utils_starter_5,loss_function:callable,title,shrink=6):
     """Used to generate plot background
 
     Args:
@@ -18,10 +19,15 @@ def plot_background(utils,loss_function:callable,title):
     px_loss, py_loss, loss_data = utils.import_data(loss_function)
     if len(px_loss) != 0:
         #restrict size of ax
+        n,m = utils._fixed_img.data.shape
         span_x = np.ptp(px_loss)
         span_y = np.ptp(py_loss)
-        range_x = [-span_x/4,span_x/4]
-        range_y = [-span_y/4,span_y/4]
+        range_x = [\
+            - min(n/shrink,span_x),
+              min(n/shrink,span_x)]
+        range_y = [\
+            - min(m/shrink,span_y),
+              min(m/shrink,span_y)]
         in_range = np.logical_and(np.logical_and(range_x[0]<px_loss,px_loss<range_x[1]),
                                   np.logical_and(range_y[0]<py_loss,py_loss<range_y[1]) )
 
