@@ -74,8 +74,6 @@ class Utils_starter_5:
         + (1-decimal_pi)* decimal_pj     *self._moving_img.data[dummy_i-int_pi,    dummy_j-int_pj-1] \
         + (1-decimal_pi)* (1-decimal_pj) *self._moving_img.data[dummy_i -int_pi,   dummy_j-int_pj]
 
-        #try7 finally working? inverted 10 and 01
-
 
         #1 is white padding
         filtered_translate = np.where(is_in_image,
@@ -87,25 +85,6 @@ class Utils_starter_5:
         #"if 0<=i-int_pi<n                     and 0<=j-int_pj<m" elementwise
         #ie int_pi<=i<n+int_pi                 and int_pj<=j<m+int_pj
         #ie max(int_pi,0) <=i< min(n+int_pi,n) and max(int_pj,0) <=j< min(m+int_pj,m)
-        
-        if (int_pi>=0):
-            filtered_translate[int_pi, max(int_pj,0)+1:min(m+int_pj,m)] = \
-                + decimal_pi \
-                + (1-decimal_pi)* decimal_pj    *self._moving_img.data[0,   np.arange(max(-int_pj,0)+1,min(m-int_pj,m))-1] \
-                + (1-decimal_pi)*(1-decimal_pj) *self._moving_img.data[0,   np.arange(max(-int_pj,0)+1,min(m-int_pj,m))  ]
-
-        if (int_pj>=0):
-            filtered_translate[max(int_pi,0)+1:min(n+int_pi,n), int_pj] = \
-                + decimal_pj \
-                + decimal_pi    * (1-decimal_pj) *self._moving_img.data[np.arange(max(-int_pi,0)+1,min(n-int_pi,n))-1,   0] \
-                + (1-decimal_pi)*(1-decimal_pj)  *self._moving_img.data[np.arange(max(-int_pi,0)+1,min(n-int_pi,n))  ,   0]
-
-        if (int_pi>=0 and int_pj>=0):
-            filtered_translate[int_pi, int_pj] = \
-                1 - (1-decimal_pi)*(1-decimal_pj) \
-                +   (1-decimal_pi)*(1-decimal_pj)*self._moving_img.data[0,0]
-
-        #TODO: same for negative translate ie bottom line and right side
 
         return filtered_translate
         
@@ -164,6 +143,20 @@ class Utils_starter_5:
             str: name for the file
         """
         return  self._fixed_img.name + "_" + self._moving_img.name + "_" + str(loss_function.__name__) + ".txt"
+
+    def export_data(self,save_filename,loss_grid,translate_span_x,translate_span_y,step=1):
+        with open(save_filename, "w") as f :
+            f.write(" ".join(["span_x", str(-translate_span_x), str(translate_span_x),
+                    "span_y", str(-translate_span_y), str(translate_span_y),
+                    "step", str(step)]) ) #add step
+            f.write("\n")
+            
+
+            for i in range(loss_grid.shape[0]) :
+                f.write(str(loss_grid[i,0]))
+                for j in range(1,loss_grid.shape[1]) :
+                    f.write(" " + str(loss_grid[i,j]))
+                f.write("\n")
 
     def import_data(self, loss_function:callable) :
         """Imports loss_function data from named .txt file
@@ -271,6 +264,9 @@ class Utils_starter_5:
             if value == "all" :
                 translate_span_x = n//2
                 translate_span_y = m//2
+            if value == "half" :
+                translate_span_x = n//4
+                translate_span_y = m//4
             else:
                 raise ValueError("unknown value for span")
 
@@ -301,19 +297,8 @@ class Utils_starter_5:
             
             print("loss computation done")
 
-            if save : #TODO make external function
-                with open(save_filename, "w") as f :
-                    f.write(" ".join(["span_x", str(-translate_span_x), str(translate_span_x),
-                            "span_y", str(-translate_span_y), str(translate_span_y),
-                            "step", str(1)]) ) #add step
-                    f.write("\n")
-                    
-
-                    for i in range(loss_grid.shape[0]) :
-                        f.write(str(loss_grid[i,0]))
-                        for j in range(1,loss_grid.shape[1]) :
-                            f.write(" " + str(loss_grid[i,j]))
-                        f.write("\n")
+            if save :
+                self.export_data(save_filename,loss_grid,translate_span_x,translate_span_y)
 
 
         if show :
@@ -584,7 +569,7 @@ if __name__ == '__main__' :
     
     """Testing greedy_optimization_xy with x translation
     """
-    if True:
+    if False:
         p_min, l_list = utils.greedy_optimization_xy(translate_type = "x", plot = True, step=0.11)
         p_min, l_list = utils.greedy_optimization_xy(translate_type = "x", plot = True, step=1)
         # note: can use a floating step to test floating point translation
@@ -604,14 +589,14 @@ if __name__ == '__main__' :
 
     """Testing coordinate_descent_optimization_xy with small translation
     """
-    if False:
+    if True:
         # utils = Utils_starter_5(Image("images/clean_finger.png"),Image("images/tx_finger.png"))
         utils = Utils_starter_5(Image("images/clean_finger.png"),Image("images/txy_finger.png")) # TODO find params - almost done
 
         ### Choose loss function
-        loss_function = utils.loss_function_1
-        # loss_function = utils.loss_function_2
-        utils.compute_and_plot_loss(show = False, loss_function=loss_function,span="all")
+        # loss_function = utils.loss_function_1
+        loss_function = utils.loss_function_2
+        utils.compute_and_plot_loss(show = False, loss_function=loss_function,span="half")
 
         p, l_list = utils.coordinate_descent_optimization_xy(plot = True, p0 = [-22,20], alpha0 = 1, epsilon = 1, epsilon2 = 0.0001, loss_function=loss_function )
 
