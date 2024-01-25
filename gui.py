@@ -11,7 +11,10 @@ from starter3 import Starter_3
 
 from main_course_1 import Main_Course_1
 from main_course_1_reconstruction import Main_Course_1_Reconstruction
-from main_course_5.main_course_5 import Image_registration_tools
+
+import sys
+sys.path.append("main_course_5") #to access modules in main_course_5
+from main_course_5 import Image_registration_tools
 
 class Starter_4_Window(customtkinter.CTkToplevel):
     # Create a window for starter 4

@@ -6,8 +6,10 @@ import math
 import sys
 import os
 sys.path.append(os.getcwd()) #to access current working directory files easily
+from pathlib import Path
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(Path(SCRIPT_DIR).parent)
 from image import Image
-# from plot_functions import *
 import plot_functions
 
 surface_sampling = 85
@@ -321,7 +323,7 @@ class Image_registration_tools:
         
         return px, py, loss_grid
 
-    def greedy_optimization_xy(self, **kwargs) : #TODO : vary the ranges and shapes for p, maybe with relation to loss function and image data
+    def greedy_optimisation_xy(self, **kwargs) : #TODO : vary the ranges and shapes for p, maybe with relation to loss function and image data
         """greedy brute force strategy to find the optimal value of p_x or of [p_x,p_y]
 
         Args:
@@ -333,7 +335,7 @@ class Image_registration_tools:
                 loss_function : callable function which takes a parameter p
                 warp : warp function of parameters i,j and parameter p
         """
-        print("greedy_optimization_xy")
+        print("greedy_optimisation_xy")
         
         ################
         ### Defaults ###
@@ -421,7 +423,7 @@ class Image_registration_tools:
         return p_min, l_list
 
 
-    def coordinate_descent_optimization_xy(self, **kwargs) :
+    def coordinate_descent_optimisation_xy(self, **kwargs) :
         """non differentiable coordinate descent strategy to find the optimal value of [p_x,p_y]
 
         Args:
@@ -437,7 +439,7 @@ class Image_registration_tools:
                 alpha0 : initial percentage (in direct multiplicative factor form) for adjustment of p
         """
 
-        print("coordinate_descent_optimization_xy")
+        print("coordinate_descent_optimisation_xy")
         
         ################
         ### Defaults ###
@@ -569,15 +571,15 @@ if __name__ == '__main__' :
     
     utils = Image_registration_tools(Image("images/clean_finger.png"),Image("images/tx_finger.png"))
     
-    """Testing greedy_optimization_xy with x translation
+    """Testing greedy_optimisation_xy with x translation
     """
-    if False:
-        p_min, l_list = utils.greedy_optimization_xy(translate_type = "x", plot = True, step=0.11)
-        p_min, l_list = utils.greedy_optimization_xy(translate_type = "x", plot = True, step=1)
+    if True:
+        p_min, l_list = utils.greedy_optimisation_xy(translate_type = "x", plot = True, step=0.11)
+        p_min, l_list = utils.greedy_optimisation_xy(translate_type = "x", plot = True, step=1)
         # note: can use a floating step to test floating point translation
     
 
-    """Making smaller images for testing greedy_optimization_xy with xy translation
+    """Making smaller images for testing greedy_optimisation_xy with xy translation
     """
     if False:
         clean_finger_small = Image("images/clean_finger_small.png")
@@ -587,9 +589,9 @@ if __name__ == '__main__' :
 
         utils = Image_registration_tools(clean_finger_small,tx_finger_small)
         
-        p_min, l_list = utils.greedy_optimization_xy(translate_type = "xy", plot = True)
+        p_min, l_list = utils.greedy_optimisation_xy(translate_type = "xy", plot = True)
 
-    """Testing coordinate_descent_optimization_xy with small translation
+    """Testing coordinate_descent_optimisation_xy with small translation
     """
     if True:
         utils = Image_registration_tools(Image("images/clean_finger.png"),Image("images/tx_finger.png"))
@@ -602,35 +604,35 @@ if __name__ == '__main__' :
 
         # for txy_finger
         if utils._moving_img.name == "txy_finger":
-            p, l_list = utils.coordinate_descent_optimization_xy(plot = True, p0 = [40,40], alpha0 = 1, epsilon = 1, epsilon2 = 0.0001, loss_function=loss_function )
+            p, l_list = utils.coordinate_descent_optimisation_xy(plot = True, p0 = [40,40], alpha0 = 1, epsilon = 1, epsilon2 = 0.0001, loss_function=loss_function )
 
             plot_functions.display_warped(utils,p, utils.get_pix_at_translated, loss_function)
 
 
-            p, l_list = utils.coordinate_descent_optimization_xy(plot = True, p0 = [-22,20], alpha0 = 1, epsilon = 1, epsilon2 = 0.0001, loss_function=loss_function )
+            p, l_list = utils.coordinate_descent_optimisation_xy(plot = True, p0 = [-22,20], alpha0 = 1, epsilon = 1, epsilon2 = 0.0001, loss_function=loss_function )
             #good at showing ridges aligning (loss_function_2)
             plot_functions.display_warped(utils,p, utils.get_pix_at_translated, loss_function)
         
-            p, l_list = utils.coordinate_descent_optimization_xy(plot = True, p0 = [-10,10], alpha0 = 1, epsilon = 1, epsilon2 = 0.0001, loss_function=loss_function )
+            p, l_list = utils.coordinate_descent_optimisation_xy(plot = True, p0 = [-10,10], alpha0 = 1, epsilon = 1, epsilon2 = 0.0001, loss_function=loss_function )
             #good at showing ridges aligning (loss_function_1)
             plot_functions.display_warped(utils,p, utils.get_pix_at_translated, loss_function)
             
 
         else:
-            p, l_list = utils.coordinate_descent_optimization_xy(plot = True, p0 = [40,40], alpha0 = 0.5, epsilon = 1, epsilon2 = 0.0001, loss_function=loss_function )
+            p, l_list = utils.coordinate_descent_optimisation_xy(plot = True, p0 = [40,40], alpha0 = 0.5, epsilon = 1, epsilon2 = 0.0001, loss_function=loss_function )
 
             plot_functions.display_warped(utils,p, utils.get_pix_at_translated, loss_function)
 
 
-            p, l_list = utils.coordinate_descent_optimization_xy(plot = True, alpha0 = 0.1, epsilon = 100, epsilon2 = 0.001, loss_function=loss_function )
+            p, l_list = utils.coordinate_descent_optimisation_xy(plot = True, alpha0 = 0.1, epsilon = 100, epsilon2 = 0.001, loss_function=loss_function )
 
             plot_functions.display_warped(utils,p, utils.get_pix_at_translated, loss_function)
 
-            p, l_list = utils.coordinate_descent_optimization_xy(plot = True, alpha0 = 0.01, epsilon = 10,  epsilon2 = 0.0001,  loss_function=loss_function ) #diverge
+            p, l_list = utils.coordinate_descent_optimisation_xy(plot = True, alpha0 = 0.01, epsilon = 10,  epsilon2 = 0.0001,  loss_function=loss_function ) #diverge
             
             plot_functions.display_warped(utils,p, utils.get_pix_at_translated, loss_function)
     
-    """Testing coordinate_descent_optimization_xy with blur preoptimisation
+    """Testing coordinate_descent_optimisation_xy with blur preoptimisation
     """
     if False:
         fixed = Image("images/clean_finger.png")
@@ -658,11 +660,11 @@ if __name__ == '__main__' :
         utils.compute_and_plot_loss(show = False, loss_function=loss_function,span="all")
 
 
-        p0, l_list = utils.coordinate_descent_optimization_xy(plot = True, alpha0 = 0.1, epsilon = 100, epsilon2 = 0.001, loss_function=loss_function )
+        p0, l_list = utils.coordinate_descent_optimisation_xy(plot = True, alpha0 = 0.1, epsilon = 100, epsilon2 = 0.001, loss_function=loss_function )
 
         plot_functions.display_warped(utils,p0, utils.get_pix_at_translated, loss_function)
 
-        # p0, l_list = utils.coordinate_descent_optimization_xy(plot = True, alpha0 = 0.01, epsilon = 10,  epsilon2 = 0.0001,  loss_function=loss_function ) #diverge
+        # p0, l_list = utils.coordinate_descent_optimisation_xy(plot = True, alpha0 = 0.01, epsilon = 10,  epsilon2 = 0.0001,  loss_function=loss_function ) #diverge
         
         # plot_functions.display_warped(utils,p0, utils.get_pix_at_translated, loss_function)
         
@@ -674,11 +676,11 @@ if __name__ == '__main__' :
         utils.compute_and_plot_loss(show = False, loss_function=loss_function,span="all")
 
 
-        p, l_list = utils.coordinate_descent_optimization_xy(plot = True, p0=p0, alpha0 = 0.1, epsilon = 100, epsilon2 = 0.001, loss_function=loss_function )
+        p, l_list = utils.coordinate_descent_optimisation_xy(plot = True, p0=p0, alpha0 = 0.1, epsilon = 100, epsilon2 = 0.001, loss_function=loss_function )
 
         plot_functions.display_warped(utils,p, utils.get_pix_at_translated, loss_function)
 
-        p, l_list = utils.coordinate_descent_optimization_xy(plot = True, p0=p0, alpha0 = 0.01, epsilon = 10,  epsilon2 = 0.0001,  loss_function=loss_function ) #diverge
+        p, l_list = utils.coordinate_descent_optimisation_xy(plot = True, p0=p0, alpha0 = 0.01, epsilon = 10,  epsilon2 = 0.0001,  loss_function=loss_function ) #diverge
         
         plot_functions.display_warped(utils,p, utils.get_pix_at_translated, loss_function)
         

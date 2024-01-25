@@ -3,11 +3,11 @@ import numpy as np
 from main_course_5 import *
 
 
-def plot_background(utils:Image_registration_tools,loss_function:callable,title,shrink=6):
+def plot_background(utils,loss_function:callable,title,shrink=6):
     """Used to generate plot background
 
     Args:
-        utils (Utils_starter_5): Utils_starter_5 object containing
+        utils (Image_registration_tools): Image_registration_tools object containing import_data function
         loss_function (callable): loss function of which to import data
 
     Returns:
