@@ -14,10 +14,16 @@
 - [ ] support txy_finger.png
 
 
-- [ ] bug hunting
-    - [ ] make use of testing file more clear
-    - [ ] fix translate function by adding first line and firt row manually at the end
-    - [ ] fix gradient by making a more accurate "signature"
+#### bug hunting
+- [ ] make use of testing file more clear
+- [ ] fix translate function by adding first line and firt row manually at the end
+- [ ] fix gradient by making a more accurate "signature"
+
+- [ ] bug involving waves in the loss_function
+    - [ ] fixing borders
+        - [ ] it's really hard and doesnt seem to help
+        what I'm doing:
+        
 
 ### From subject
 #### to answer : how could you use this algo for a broader warp like txy_finger.png ?
@@ -71,7 +77,7 @@ doc
 - [x] need better labels in 3d plots
 
 - [ ] use x translate graph
-    - compare with step of 1 and step of 0.1 or 0.11
+    - compare with step of 1 and step of 0.1 or 0.111
 
 
 #### content

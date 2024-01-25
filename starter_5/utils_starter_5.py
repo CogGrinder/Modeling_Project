@@ -13,56 +13,67 @@ import plot_functions
 surface_sampling = 85
 default_scheme_step = 0.2
 
+""" Convention for notation :
+i,j is for coordinates in an image matrix (with the CV2 convention)
+x,y is for coordinates in an image
+x = j, y = -i
+"""
+
 class Utils_starter_5:
     def __init__(self, img1 : Image, img2 : Image):
         self._fixed_img  = img1 #fixed
         self._moving_img = img2 #moving
         return
 
-    def get_pix_at_translated(self, x, y, p : list):
+    def get_pix_at_translated(self, i, j, p : list):
         """Optimized translate function
 
         Args:
-            x (int or np.ndarray): numpy matrix containing x of pixel, assumed meshgrid with "i,j" if matrix
-            y (int or np.ndarray): numpy matrix containing y of pixel, assumed meshgrid with "i,j" if matrix
+            i (int or np.ndarray): numpy matrix containing i of pixel, assumed meshgrid with "i,j" if matrix
+            j (int or np.ndarray): numpy matrix containing j of pixel, assumed meshgrid with "i,j" if matrix
             p (list): p is assumed a list of 2 translate parameters
 
         Returns:
             _type_: _description_
         """
         n,m = self._moving_img.data.shape
-        int_px = math.floor(p[0]) #integer part
-        int_py = math.floor(p[1])
+        int_pi = math.floor(p[0]) #integer part
+        int_pj = math.floor(p[1])
 
-        decimal_px = p[0] - int_px #decimal part for interpolation, used at return
-        decimal_py = p[1] - int_py
+        decimal_pi = p[0] - int_pi #decimal part for interpolation, used at return
+        decimal_pj = p[1] - int_pj
+
+        # print(p,int_pi,int_pj)
+        # print(p,decimal_pi,decimal_pj,sep=' ')
+
 
         # Optimised conditional statement
         # creates a boolean matrix for each element of x and y
         # verifies that fetched pixel is in the image
-        is_in_image = np.logical_and(np.logical_and(int_px<x, x<n+int_px) ,
-                                        np.logical_and(int_py<y, y<m+int_py)) #TODO: manually change first column and row
-        # equivalent to "if 0<x-int_px<n and 0<y-int_py<m" elementwise
+        is_in_image = np.logical_and(np.logical_and(int_pi<i, i<n+int_pi) ,
+                                        np.logical_and(int_pj<j, j<m+int_pj)) #TODO: manually change first column and row
+        # equivalent to "if 0<i-int_pi<n and 0<j-int_pj<m" elementwise
 
         """
         note : "0<" is to account for fetching neighbours for interpolation,
         resulting in masking the first row and first column of the image
         """
 
-        dummy_x = x.copy()
-        dummy_y = y.copy()
+        dummy_i = i.copy()
+        dummy_j = j.copy()
 
-        dummy_values = [int_px +1, int_py +1]
+        dummy_values = [int_pi +1, int_pj +1]
         # if False, replace x and y values by dummy values
-        dummy_x[np.logical_not(is_in_image)] = dummy_values[0]  # used to nullify the index in the np.where below
-        dummy_y[np.logical_not(is_in_image)] = dummy_values[1]
+        dummy_i[np.logical_not(is_in_image)] = dummy_values[0]  # used to nullify the index in the np.where below
+        dummy_j[np.logical_not(is_in_image)] = dummy_values[1]
 
         # translate including dummy values, bilinearly interpolated wrt decimal parts
         dummy_translate = \
-        + decimal_px    * decimal_py     *self._moving_img.data[dummy_x-int_px-1,  dummy_y-int_py-1] \
-        + decimal_px    * (1-decimal_py) *self._moving_img.data[dummy_x -int_px-1, dummy_y-int_py] \
-        + (1-decimal_px)* decimal_py     *self._moving_img.data[dummy_x-int_px,    dummy_y-int_py-1] \
-        + (1-decimal_px)* (1-decimal_py) *self._moving_img.data[dummy_x -int_px,   dummy_y-int_py]
+        + decimal_pi    * decimal_pj     *self._moving_img.data[dummy_i-int_pi-1,  dummy_j-int_pj-1] \
+        + decimal_pi    * (1-decimal_pj) *self._moving_img.data[dummy_i -int_pi-1, dummy_j-int_pj] \
+        + (1-decimal_pi)* decimal_pj     *self._moving_img.data[dummy_i-int_pi,    dummy_j-int_pj-1] \
+        + (1-decimal_pi)* (1-decimal_pj) *self._moving_img.data[dummy_i -int_pi,   dummy_j-int_pj]
+
         #try7 finally working? inverted 10 and 01
 
 
@@ -70,6 +81,31 @@ class Utils_starter_5:
         filtered_translate = np.where(is_in_image,
                                       dummy_translate,
                                       1)
+
+
+        #Edge corrections - attempt 24/01
+        #"if 0<=i-int_pi<n                     and 0<=j-int_pj<m" elementwise
+        #ie int_pi<=i<n+int_pi                 and int_pj<=j<m+int_pj
+        #ie max(int_pi,0) <=i< min(n+int_pi,n) and max(int_pj,0) <=j< min(m+int_pj,m)
+        
+        if (int_pi>=0):
+            filtered_translate[int_pi, max(int_pj,0)+1:min(m+int_pj,m)] = \
+                + decimal_pi \
+                + (1-decimal_pi)* decimal_pj    *self._moving_img.data[0,   np.arange(max(-int_pj,0)+1,min(m-int_pj,m))-1] \
+                + (1-decimal_pi)*(1-decimal_pj) *self._moving_img.data[0,   np.arange(max(-int_pj,0)+1,min(m-int_pj,m))  ]
+
+        if (int_pj>=0):
+            filtered_translate[max(int_pi,0)+1:min(n+int_pi,n), int_pj] = \
+                + decimal_pj \
+                + decimal_pi    * (1-decimal_pj) *self._moving_img.data[np.arange(max(-int_pi,0)+1,min(n-int_pi,n))-1,   0] \
+                + (1-decimal_pi)*(1-decimal_pj)  *self._moving_img.data[np.arange(max(-int_pi,0)+1,min(n-int_pi,n))  ,   0]
+
+        if (int_pi>=0 and int_pj>=0):
+            filtered_translate[int_pi, int_pj] = \
+                1 - (1-decimal_pi)*(1-decimal_pj) \
+                +   (1-decimal_pi)*(1-decimal_pj)*self._moving_img.data[0,0]
+
+        #TODO: same for negative translate ie bottom line and right side
 
         return filtered_translate
         
@@ -356,11 +392,11 @@ class Utils_starter_5:
             list_px = list(np.arange(- math.ceil(n/2), math.floor(n/2) + 1, step))
             l_list = np.zeros(len(list_px))
             for i, p_x in enumerate(list_px) :
-                l = loss_function(p=[0,p_x],warp=warp) #beware the indexation
-                
+                l = loss_function(p=[0,p_x],warp=warp) #TODO wtf is this beware the indexation
+                                
                 if l_min > l : #update the min and argmin
                     l_min = l
-                    p_min = [0,p_x]
+                    p_min = [0,p_x] #TODO this seems to work
                 
                 l_list[i] = l
             print("The translation in x that minimizes our loss function is ", p_min[1])
@@ -548,7 +584,7 @@ if __name__ == '__main__' :
     
     """Testing greedy_optimization_xy with x translation
     """
-    if False:
+    if True:
         p_min, l_list = utils.greedy_optimization_xy(translate_type = "x", plot = True, step=0.11)
         p_min, l_list = utils.greedy_optimization_xy(translate_type = "x", plot = True, step=1)
         # note: can use a floating step to test floating point translation
@@ -568,7 +604,7 @@ if __name__ == '__main__' :
 
     """Testing coordinate_descent_optimization_xy with small translation
     """
-    if True:
+    if False:
         # utils = Utils_starter_5(Image("images/clean_finger.png"),Image("images/tx_finger.png"))
         utils = Utils_starter_5(Image("images/clean_finger.png"),Image("images/txy_finger.png")) # TODO find params - almost done
 

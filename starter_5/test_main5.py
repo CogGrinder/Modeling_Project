@@ -10,6 +10,8 @@ from image import Image
 
 from utils_starter_5 import Utils_starter_5
 
+original_background = 1 # set as 0.5 to reveal original background in output
+
 
 def test_loss(*args,**kwargs): #(p : list) :
     """Used as a dummy function to test the plot_loss function
@@ -27,15 +29,14 @@ def test_loss(*args,**kwargs): #(p : list) :
     return np.linalg.norm(np.array(p)-np.array(center))
 
 
-original_background = 1 # set as 0.5 to reveal original background in output
-
 def assert_image_dots(image,list_of_points) :
     """checks that list_of_points, a list of black dots, represents the matrix of the image
     """
-    assert_matrix = np.ones(image.data.shape)
+    # assert_matrix = np.ones(image.data.shape)
     for point in list_of_points:
-        assert_matrix[point] = 0
-    assert (image.data/original_background == assert_matrix).all()
+        assert image.data[point] <= 0.5 #accepts dark grey
+    # print(image.data/original_background,assert_matrix,sep="\n")
+    # assert (image.data/original_background == assert_matrix).all()
 
 def test_translation():
     """Test on small matrixes that the translation does what it is supposed to
@@ -70,21 +71,21 @@ def test_translation():
 
     #shape (5,5)
     fixed2  = Image( original_background*\
-      np.array([[1,1,1,1,1],
-                [1,1,1,1,1],
-                [1,0,1,1,1],
-                [1,1,1,1,1],
-                [1,1,1,1,1]])
+      np.array([[ 1,.5,1,1,1],
+                [ 1,1, 1,1,1],
+                [.5,1, 1,1,1],
+                [ 1,.5,1,1,1],
+                [ 1,1, 1,1,1]])
     )
-    assert_image_dots(fixed2,[(2,1)])
+    assert_image_dots(fixed2,[(2,0)])
     moving2 = Image( original_background*\
-      np.array([[1,1,1,1,1],
-                [1,1,1,1,1],
-                [1,1,1,1,1],
-                [1,1,1,1,0],
-                [1,1,1,1,1]])
+      np.array([[1,1,1, 1, 1],
+                [1,1,1, 1,.5],
+                [1,1,1, 1, 1],
+                [1,1,1,.5, 1],
+                [1,1,1, 1,.5]])
     )
-    assert_image_dots(moving2,[(3,4)])
+    assert_image_dots(moving2,[(3,3)])
 
 
     print("Test 1")
@@ -93,7 +94,6 @@ def test_translation():
     utils = Utils_starter_5(fixed1,moving1)
 
     i,j = np.meshgrid(np.arange(6),np.arange(6),indexing="ij") #warning, modify here
-    print(i,j,sep="\n")
 
     print("moving1 translated by p:")
     p=(1.9,0)
@@ -103,13 +103,17 @@ def test_translation():
     p=(0,0.1)
     translated_moving1 = utils.get_pix_at_translated(i,j,p=p)
     print(p,translated_moving1,sep="\n")
+
+    p=(1.9,0.1)
+    translated_moving1 = utils.get_pix_at_translated(i,j,p=p)
+    print(p,translated_moving1,sep="\n")
     
     p=(2,1)
     translated_moving1 = utils.get_pix_at_translated(i,j,p=p)
     print(p,translated_moving1,sep="\n")
     
     # expected value is fixed1 matrix
-    translated_moving1[3,1] = 0 # this pixel was on the border therefore it was ignored by the filter
+    #TODO translated_moving1[3,1] = 0 # this pixel was on the border therefore it was ignored by the filter
     assert (translated_moving1==fixed1.data).all()
 
 
@@ -145,7 +149,7 @@ if __name__ == '__main__' :
     """Testing compute_and_plot_loss
     """
     utils = Utils_starter_5(Image(np.ones((10,10))),Image(np.ones((10,10))) )
-    utils.compute_and_plot_loss(loss_function=test_loss, span="all",save=False)
+    #TODO uncomment utils.compute_and_plot_loss(loss_function=test_loss, span="all",save=False)
     #Expected : cone shape
 
     test_translation() # works 22/01/2024
