@@ -600,7 +600,7 @@ if __name__ == '__main__' :
 
     """Making smaller images for testing greedy_optimisation_xy with xy translation
     """
-    if False:
+    if True:
         clean_finger_small = Image("images/clean_finger_small.png")
         tx_finger_small = Image("images/tx_finger.png")
         tx_finger_small.data = cv2.resize(tx_finger_small.data, dsize=clean_finger_small.data.shape[::-1], interpolation=cv2.INTER_CUBIC)
@@ -612,7 +612,7 @@ if __name__ == '__main__' :
 
     """Testing coordinate_descent_optimisation_xy with small translation
     """
-    if True:
+    if False:
         utils = Image_registration_tools(Image("images/clean_finger.png"),Image("images/tx_finger.png"))
         # utils = Utils_starter_5(Image("images/clean_finger.png"),Image("images/txy_finger.png")) # TODO find params - almost done
 

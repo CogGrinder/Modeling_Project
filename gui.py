@@ -811,8 +811,7 @@ class Main_Course_5_Window(customtkinter.CTkToplevel):
             loss_function = utils.loss_function_2
         else:
             raise ValueError("Invalid value for loss function")
-        print("compute_and_plot_losscompute_and_plot_losscompute_and_plot_losscompute_and_plot_losscompute_and_plot_losscompute_and_plot_losscompute_and_plot_losscompute_and_plot_losscompute_and_plot_losscompute_and_plot_losscompute_and_plot_losscompute_and_plot_losscompute_and_plot_losscompute_and_plot_losscompute_and_plot_losscompute_and_plot_losscompute_and_plot_losscompute_and_plot_losscompute_and_plot_losscompute_and_plot_loss")
-        utils.compute_and_plot_loss(show = False, loss_function=loss_function,span="all", skip=True)
+        utils.compute_and_plot_loss(show = False, loss_function=loss_function,span="all", skip=False)
 
         # for txy_finger
         if utils._moving_img.name == "txy_finger":
@@ -896,7 +895,7 @@ class Main_Course_5_Window(customtkinter.CTkToplevel):
 
         utils = Image_registration_tools(Image("images/clean_finger.png"),Image(self.moving_img_file))
 
-        utils.compute_and_plot_loss(show = False, loss_function=loss_function,span="all", skip=False)
+        utils.compute_and_plot_loss(show = False, loss_function=loss_function,span="all", skip=True)
 
 
         p, l_list = utils.coordinate_descent_optimisation_xy(plot = True, p0=p0, alpha0 = 0.1, epsilon = 100, epsilon2 = 0.001, loss_function=loss_function, skip=True)
