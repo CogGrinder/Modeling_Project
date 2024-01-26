@@ -981,10 +981,7 @@ class SecondWindow(customtkinter.CTkToplevel):
         self.label.grid(column=0, row=0, sticky = "E")
         #Create a list of the different sections we have worked on so far
         self.combobox = customtkinter.CTkComboBox(self, values=["Starter 1", "Starter 2", "Starter 3",
-<<<<<<< HEAD
-                                                          "Starter 4", "Main Course 1 (Simulation)", "Main Course 1 (Restauration)", "Main Course 4", "Main course 5"],
-=======
->>>>>>> 1211e4b84f54689a3f8cc6cfdeea094d798d0703
+                                                          "Starter 4", "Main Course 1 (Simulation)", "Main Course 1 (Restauration)", "Main Course 4", "Main Course 5"],
                                             command=self.combobox_callback)
         self.combobox.set("Section")
         self.combobox.grid(row=1, column=0)
