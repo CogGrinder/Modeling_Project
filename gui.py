@@ -7,6 +7,12 @@ from PIL import Image as Im
 from tkdocviewer import *
 from image import Image
 
+from starter2 import Starter_2
+from starter3 import Starter_3
+from starter4 import Starter_4
+
+
+from main_course_4 import Main_Course_4
 from main_course_1 import Main_Course_1
 from main_course_1_reconstruction import Main_Course_1_Reconstruction
 
@@ -19,64 +25,134 @@ class Starter_4_Window(customtkinter.CTkToplevel):
     # Create a window for starter 4
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # Configure the features of the window
         self.title('Starter 4')
-        self.geometry("650x500")
+        self.geometry("650x650")
         self.resizable(True, True)
         self.state('normal')
-        self.configure(bg="black")
         self.rowconfigure(0, weight=1)
-        self.rowconfigure(1, weight=1)   
-        self.rowconfigure(2, weight=1)  
-        self.rowconfigure(3, weight=1) 
-        self.rowconfigure(4, weight=1)    
-        self.label = customtkinter.CTkLabel(self, 
-                                            text="Here, you are about to either dilate or erode the binary version of an image." +
-                                            "\n You first need to select your image:",
-                                            fg_color="transparent", font=('Calibri', 14, 'bold'))
-        self.label.grid(row=0, column=0, sticky=E)
+        self.rowconfigure(1, weight=1)
+        self.rowconfigure(2, weight=1)
+        self.rowconfigure(3, weight=1)
+        self.rowconfigure(4, weight=1)
+        self.rowconfigure(5, weight=1)
+        self.rowconfigure(6, weight=1)
+        self.rowconfigure(7, weight=1)
+        self.rowconfigure(8, weight=1)
+        self.rowconfigure(9, weight=1)
+        self.rowconfigure(10, weight=1)
+        self.rowconfigure(11, weight=1)
+        self.rowconfigure(12, weight=1)
+        self.rowconfigure(13, weight=1)
+
+        # Variables to store user inputs
+        self.selected_file = ""
+        self.threshold = DoubleVar()
+        self.shape = StringVar(value="Square")
+        self.operation = StringVar(value="Dilation")
+
+        # Label to describe of what the windows do
+        self.label = customtkinter.CTkLabel(self, text="Perform morphological operations on image after binarizing it",
+                              fg_color="transparent", font=('Calibri', 16, 'bold'))
+        self.label.grid(row=0, column=0, sticky='w', padx=10, pady=10)
+
+        # Button to choose file
         self.button = customtkinter.CTkButton(self, text='Select file', width=120, height=40, 
                                                 font=('Cambria', 16), command=self.open_file_dialog)
         self.button.grid(row=1, column=0)
-
-        self.combobox1 = customtkinter.CTkComboBox(self, values=["Square", "Horizontal Rectangle", "Vertical Rectangle"],
-                                            command=self.struct_element_shape)
-        self.combobox1.set("Square")
-        self.combobox1.grid(row=2, column=0)
-
-        self.combobox2 = customtkinter.CTkComboBox(self, values=['Dilation', 'Erosion'], 
-                                                   command=self.operation_select)
-        self.combobox2.set('Dilation')
-        self.combobox2.grid(row=3, column=0)
-
-        self.combobox3 = customtkinter.CTkComboBox(self, values=["3", "4", "5", "6", "7"],
-                                            command=self.struct_element_size)
-        self.combobox3.set("3")
-        self.combobox3.grid(row=4, column=0)
         
+        # Display selected file name
+        self.selected_file_label = customtkinter.CTkLabel(self, text="Selected File: None", font=('Calibri', 13))
+        self.selected_file_label.grid(row=2, column=0, sticky='w', padx=10)
+
+        # Show the value of the threshold computed with Otsu's method
+        self.threshold_label = customtkinter.CTkLabel(self, text="Otsu's threshold : 0", font=('Calibri', 15))
+        self.threshold_label.grid(row=3, column=0, sticky='w', padx=10)
+
+        # Button to plot image histogram
+        self.button = customtkinter.CTkButton(self, text='Plot Image Histogram', width=180, height=40, 
+                                                font=('Cambria', 16), command=self.plot)
+        self.button.grid(row=4, column=0, sticky='W', pady=2)
+
+        # Button to show the binary version of the image
+        self.button = customtkinter.CTkButton(self, text='Show binary image', width=180, height=40, 
+                                                font=('Cambria', 16), command=self.binary)
+        self.button.grid(row=4, column=0, sticky='E')
+
+        # Listing menu to choose the shape of the structuring element
+        self.shape_label = customtkinter.CTkLabel(self, text="Choose the shape of the structuring element :", font=('Calibri', 15))
+        self.shape_label.grid(row=5, column=0, sticky='W', padx=10)
+        self.combobox1 = customtkinter.CTkComboBox(self, values=["Square", "Horizontal Rectangle", "Vertical Rectangle", "Cross"],
+                                            command=self.struct_element_shape)
+        self.combobox1.set("Structuring Element Shape")
+        self.combobox1.grid(row=6, column=0, padx=10, pady=(0, 10))
+
+        # Entry for structuring element size choice
+        self.size_label = customtkinter.CTkLabel(self, text="Enter the size of the structuring element (minimum 3) :", font=('Calibri', 15))
+        self.size_label.grid(row=7, column=0, sticky='W', padx=10)
+        self.size_entry = customtkinter.CTkEntry(self, font=('Calibri', 12))
+        self.size_entry.grid(row=8, column=0, padx=10, pady=(0, 10))
+
+        #Listing menu for morphological operation choice
+        self.shape_label = customtkinter.CTkLabel(self, text="Choose the morphological operation to apply to the image :", font=('Calibri', 15))
+        self.shape_label.grid(row=9, column=0, sticky='W', padx=10)
+        self.combobox2 = customtkinter.CTkComboBox(self, values=['Dilation', 'Erosion', 'Opening', 'Closing'], 
+                                                   command=self.operation_select)
+        self.combobox2.set('Morphological Operation')
+        self.combobox2.grid(row=10, column=0)
+
+        # Transform button
+        self.transform_button = customtkinter.CTkButton(self, text='Transform', width=120, height=40,
+                                          font=('Cambria', 16), command=self.transform_image)
+        self.transform_button.grid(row=13, column=0, pady=(10, 0))
+
     def open_file_dialog(self):
-        global filename
-        filename = filedialog.askopenfilename()
+        self.selected_file = filedialog.askopenfilename()
+        if self.selected_file != "":
+            # Create an instance of the Image class with the selected file
+            img = Image(self.selected_file)
+            self.threshold = img.compute_threshold()
+            # Update the label with the file name and size
+            self.selected_file_label.configure(text=f"Selected File: {self.selected_file} \n" \
+                                                    f"(Size: {img.n}x{img.m})")
+            self.threshold_label.configure(text=f"Otsu's threshold : {self.threshold}")
+
+    def plot(self):
+        img = Image(self.selected_file)
+        Starter_4.image_hist(img)
+    
+    def binary(self):
+        img = Image(self.selected_file)
+        Starter_4.binarize(img, self.threshold)
+        img.display()
     
     def struct_element_shape(self, choice):
-        global shape
-        shape = choice
+        self.shape = choice
     
     def operation_select(self, choice):
-        global operation
-        operation = choice
+        self.operation = choice
 
-    def struct_element_size(self, choice):
-        img = Image(filename)
-        global size
-        size = choice
-        threshold = img.compute_threshold()
-        img.binarize(threshold)
-        if operation == 'Erosion':
-            img.erosion(shape, int(size))
+    def transform_image(self):
+        self.size = self.size_entry.get()
+        img = Image(self.selected_file)
+        Starter_4.binarize(img, self.threshold)
+        if self.operation == 'Dilation':
+            Starter_4.dilation(img, self.shape, int(self.size))
             img.display()
-        if operation  == 'Dilation':
-            img.dilation(shape, int(size))
+        if self.operation == 'Erosion':
+            Starter_4.erosion(img, self.shape, int(self.size))
             img.display()
+        if self.operation == 'Opening':
+            Starter_4.dilation(img, self.shape, int(self.size))
+            Starter_4.erosion(img, self.shape, int(self.size))
+            img.display()
+        if self.operation == 'Closing':
+            Starter_4.erosion(img, self.shape, int(self.size))
+            Starter_4.dilation(img, self.shape, int(self.size))
+            img.display()
+        
+    
+
             
             
 class Starter_1_Window(customtkinter.CTkToplevel):
@@ -544,6 +620,119 @@ class Main_1_Restauration_Window(customtkinter.CTkToplevel):
         # Display the transformed image, with the rectangle in which the restauration has been performed
         img.display(point=(top_left_x, top_left_y), rectangle=((top_left_x, top_left_y), (dimension_x, dimension_y)))
 
+class Main_Course_4_Window(customtkinter.CTkToplevel):
+    # Create a window for starter 4
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Configure the features of the window
+        self.title('Starter 4')
+        self.geometry("650x650")
+        self.resizable(True, True)
+        self.state('normal')
+        self.rowconfigure(0, weight=1)
+        self.rowconfigure(1, weight=1)
+        self.rowconfigure(2, weight=1)
+        self.rowconfigure(3, weight=1)
+        self.rowconfigure(4, weight=1)
+        self.rowconfigure(5, weight=1)
+        self.rowconfigure(6, weight=1)
+        self.rowconfigure(7, weight=1)
+        self.rowconfigure(8, weight=1)
+        self.rowconfigure(9, weight=1)
+        self.rowconfigure(10, weight=1)
+        self.rowconfigure(11, weight=1)
+        self.rowconfigure(12, weight=1)
+        self.rowconfigure(13, weight=1)
+
+        # Variables to store user inputs
+        self.selected_file = ""
+        self.shape = StringVar(value="Square")
+        self.operation = StringVar(value="Dilation")
+
+        # Label to describe of what the windows do
+        self.label = customtkinter.CTkLabel(self, text="Perform morphological operations on grayscale image",
+                              fg_color="transparent", font=('Calibri', 14, 'bold'))
+        self.label.grid(row=0, column=0, sticky='w', padx=10, pady=10)
+
+        # Button to choose file
+        self.button = customtkinter.CTkButton(self, text='Select file', width=120, height=40, 
+                                                font=('Cambria', 16), command=self.open_file_dialog)
+        self.button.grid(row=1, column=0)
+        
+        # Display selected file name
+        self.selected_file_label = customtkinter.CTkLabel(self, text="Selected File: None", font=('Calibri', 13))
+        self.selected_file_label.grid(row=2, column=0, sticky='w', padx=10)
+
+        # Button to plot image histogram
+        self.button = customtkinter.CTkButton(self, text='Plot Image Histogram', width=180, height=40, 
+                                                font=('Cambria', 16), command=self.plot)
+        self.button.grid(row=4, column=0)
+
+        # Listing menu to choose the shape of the structuring element
+        self.shape_label = customtkinter.CTkLabel(self, text="Choose the shape of the structuring element :", font=('Calibri', 15))
+        self.shape_label.grid(row=5, column=0, sticky='W', padx=10)
+        self.combobox1 = customtkinter.CTkComboBox(self, values=["Square", "Horizontal Rectangle", "Vertical Rectangle", "Cross"],
+                                            command=self.struct_element_shape)
+        self.combobox1.set("Structuring Element Shape")
+        self.combobox1.grid(row=6, column=0, padx=10, pady=(0, 10))
+
+        # Entry for structuring element size choice
+        self.size_label = customtkinter.CTkLabel(self, text="Enter the size of the structuring element (minimum 3) :", font=('Calibri', 15))
+        self.size_label.grid(row=7, column=0, sticky='W', padx=10)
+        self.size_entry = customtkinter.CTkEntry(self, font=('Calibri', 12))
+        self.size_entry.grid(row=8, column=0, padx=10, pady=(0, 10))
+
+        #Listing menu for morphological operation choice
+        self.shape_label = customtkinter.CTkLabel(self, text="Choose the morphological operation to apply to the image :", font=('Calibri', 15))
+        self.shape_label.grid(row=9, column=0, sticky='W', padx=10)
+        self.combobox2 = customtkinter.CTkComboBox(self, values=['Dilation', 'Erosion', 'Opening', 'Closing'], 
+                                                   command=self.operation_select)
+        self.combobox2.set('Morphological Operation')
+        self.combobox2.grid(row=10, column=0)
+
+        # Transform button
+        self.transform_button = customtkinter.CTkButton(self, text='Transform', width=120, height=40,
+                                          font=('Cambria', 16), command=self.transform_image)
+        self.transform_button.grid(row=13, column=0, pady=(10, 0))
+
+    def open_file_dialog(self):
+        self.selected_file = filedialog.askopenfilename()
+        if self.selected_file != "":
+            # Create an instance of the Image class with the selected file
+            img = Image(self.selected_file)
+            # Update the label with the file name and size
+            self.selected_file_label.configure(text=f"Selected File: {self.selected_file} \n" \
+                                                    f"(Size: {img.n}x{img.m})")
+
+
+    def plot(self):
+        img = Image(self.selected_file)
+        Starter_4.image_hist(img)
+    
+    def struct_element_shape(self, choice):
+        self.shape = choice
+    
+    def operation_select(self, choice):
+        self.operation = choice
+
+    def transform_image(self):
+        self.size = self.size_entry.get()
+        img = Image(self.selected_file)
+        if self.operation == 'Dilation':
+            Main_Course_4.dilation_grayscale(img, self.shape, int(self.size))
+            img.display()
+        if self.operation == 'Erosion':
+            Main_Course_4.erosion_grayscale(img, self.shape, int(self.size))
+            img.display()
+        if self.operation == 'Opening':
+            Main_Course_4.dilation_grayscale(img, self.shape, int(self.size))
+            Main_Course_4.erosion_grayscale(img, self.shape, int(self.size))
+            img.display()
+        if self.operation == 'Closing':
+            Main_Course_4.erosion_grayscale(img, self.shape, int(self.size))
+            Main_Course_4.dilation_grayscale(img, self.shape, int(self.size))
+            img.display()
+
 class Main_Course_5_Window(customtkinter.CTkToplevel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -779,7 +968,7 @@ class SecondWindow(customtkinter.CTkToplevel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.title('Section Selection')
-        self.geometry("250x150")
+        self.geometry("380x80")
         self.resizable(False, False)
         self.state('normal')
         self.configure(bg="black")
@@ -787,14 +976,17 @@ class SecondWindow(customtkinter.CTkToplevel):
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1, weight=2)
         self.label = customtkinter.CTkLabel(self, 
-                                            text="Pick the section you want \n to have a snippet of:",
+                                            text="Pick the section you want to have a snippet of:",
                                             fg_color="transparent", font=('Calibri', 16, 'bold'))
-        self.label.grid(column=0, row=0)
+        self.label.grid(column=0, row=0, sticky = "E")
         #Create a list of the different sections we have worked on so far
         self.combobox = customtkinter.CTkComboBox(self, values=["Starter 1", "Starter 2", "Starter 3",
-                                                          "Starter 4", "Main Course 1 (Simulation)", "Main Course 1 (Restauration)", "Main course 5"],
+<<<<<<< HEAD
+                                                          "Starter 4", "Main Course 1 (Simulation)", "Main Course 1 (Restauration)", "Main Course 4", "Main course 5"],
+=======
+>>>>>>> 1211e4b84f54689a3f8cc6cfdeea094d798d0703
                                             command=self.combobox_callback)
-        self.combobox.set("Starter 1")
+        self.combobox.set("Section")
         self.combobox.grid(row=1, column=0)
 
     #This function creates the command that should be executed whenever a section is selected
@@ -832,7 +1024,13 @@ class SecondWindow(customtkinter.CTkToplevel):
                 self.toplevel_window = Main_1_Restauration_Window(self)  # create window if its None or destroyed
             else:
                 self.toplevel_window.focus()
-        if choice == "Main course 5":
+        if choice == "Main Course 4":
+            self.toplevel_window = None
+            if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
+                self.toplevel_window = Main_Course_4_Window(self)  # create window if its None or destroyed
+            else:
+                self.toplevel_window.focus()
+        if choice == "Main Course 5":
             self.toplevel_window = None
             if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
                 self.toplevel_window = Main_Course_5_Window(self)  # create window if its None or destroyed
