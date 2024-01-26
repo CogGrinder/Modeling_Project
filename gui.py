@@ -116,11 +116,11 @@ class Starter_4_Window(customtkinter.CTkToplevel):
 
     def plot(self):
         img = Image(self.selected_file)
-        img.image_hist()
+        Starter_4.image_hist(img)
     
     def binary(self):
         img = Image(self.selected_file)
-        img.binarize(self.threshold)
+        Starter_4.binarize(img, self.threshold)
         img.display()
     
     def struct_element_shape(self, choice):
@@ -132,20 +132,20 @@ class Starter_4_Window(customtkinter.CTkToplevel):
     def transform_image(self):
         self.size = self.size_entry.get()
         img = Image(self.selected_file)
-        img.binarize(self.threshold)
+        Starter_4.binarize(img, self.threshold)
         if self.operation == 'Dilation':
-            img.dilation(self.shape, int(self.size))
+            Starter_4.dilation(img, self.shape, int(self.size))
             img.display()
         if self.operation == 'Erosion':
-            img.erosion(self.shape, int(self.size))
+            Starter_4.erosion(img, self.shape, int(self.size))
             img.display()
         if self.operation == 'Opening':
-            img.dilation(self.shape, int(self.size))
-            img.erosion(self.shape, int(self.size))
+            Starter_4.dilation(img, self.shape, int(self.size))
+            Starter_4.erosion(img, self.shape, int(self.size))
             img.display()
         if self.operation == 'Closing':
-            img.erosion(self.shape, int(self.size))
-            img.dilation(self.shape, int(self.size))
+            Starter_4.erosion(img, self.shape, int(self.size))
+            Starter_4.dilation(img, self.shape, int(self.size))
             img.display()
         
     
@@ -704,7 +704,7 @@ class Main_Course_4_Window(customtkinter.CTkToplevel):
 
     def plot(self):
         img = Image(self.selected_file)
-        img.image_hist()
+        Starter_4.image_hist(img)
     
     def struct_element_shape(self, choice):
         self.shape = choice
@@ -716,18 +716,18 @@ class Main_Course_4_Window(customtkinter.CTkToplevel):
         self.size = self.size_entry.get()
         img = Image(self.selected_file)
         if self.operation == 'Dilation':
-            img.dilation_grayscale(self.shape, int(self.size))
+            Main_Course_4.dilation_grayscale(img, self.shape, int(self.size))
             img.display()
         if self.operation == 'Erosion':
-            img.erosion_grayscale(self.shape, int(self.size))
+            Main_Course_4.erosion_grayscale(img, self.shape, int(self.size))
             img.display()
         if self.operation == 'Opening':
-            img.dilation_grayscale(self.shape, int(self.size))
-            img.erosion_grayscale(self.shape, int(self.size))
+            Main_Course_4.dilation_grayscale(img, self.shape, int(self.size))
+            Main_Course_4.erosion_grayscale(img, self.shape, int(self.size))
             img.display()
         if self.operation == 'Closing':
-            img.erosion_grayscale(self.shape, int(self.size))
-            img.dilation_grayscale(self.shape, int(self.size))
+            Main_Course_4.erosion_grayscale(img, self.shape, int(self.size))
+            Main_Course_4.dilation_grayscale(img, self.shape, int(self.size))
             img.display()
 
 class Main_Course_5_Window(customtkinter.CTkToplevel):
