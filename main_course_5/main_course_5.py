@@ -162,11 +162,12 @@ class Image_registration_tools:
                     f.write(" " + str(loss_grid[i,j]))
                 f.write("\n")
 
-    def import_data(self, loss_function:callable) :
+    def import_data(self, loss_function:callable,skip=False) :
         """Imports loss_function data from named .txt file
 
         Args:
             loss_function (callable): loss function, used for finding the name format of the file
+            skip: automatically confirm "y" when prompted for computing
 
         Returns:
             np.ndarray: meshgrid x indexes for p parameter (px)
@@ -217,12 +218,15 @@ class Image_registration_tools:
 
                 return px, py, loss_grid
         else :
-            compute = input(f"No data for {loss_function.__name__}. Do you want to compute ? (y/n)")
-            while(not compute in ["y","n"]):
-                print("Please enter y or n")
+            print("File does not exist.")
+            compute = "y"
+            if not skip:
                 compute = input(f"No data for {loss_function.__name__}. Do you want to compute ? (y/n)")
+                while(not compute in ["y","n"]):
+                    print("Please enter y or n")
+                    compute = input(f"No data for {loss_function.__name__}. Do you want to compute ? (y/n)")
             if compute == "y":
-                return self.compute_and_plot_loss(show=False,span="all")
+                return self.compute_and_plot_loss(show=False,span="all",skip=skip)
             else:
                 return np.array([]), np.array([]), np.array([])
 
@@ -236,6 +240,7 @@ class Image_registration_tools:
                 save : bool, saves as .txt
                 show : bool, plots the function
                 span : "all" for whole span of p, "half" for half of the span in both directions
+                skip : automatically confirm "n" when prompted for computing
         
         Returns:
             np.ndarray: meshgrid x indexes for p parameter (px)
@@ -250,6 +255,7 @@ class Image_registration_tools:
         loss_function = self.loss_function_1
         save = True
         show = True
+        skip = False
         n,m = self._moving_img.data.shape
         
         
@@ -263,6 +269,8 @@ class Image_registration_tools:
             save = kwargs["save"]
         if "show" in kwargs:
             show = kwargs["show"]
+        if "skip" in kwargs:
+            skip = kwargs["skip"]
         if "span" in kwargs:
             value = kwargs["span"]
             if value == "all" :
@@ -279,11 +287,14 @@ class Image_registration_tools:
         print(save_filename)
         #if file exists, ask user to confirm overwriting
         compute = "y"
-        if os.path.exists(save_filename) :
-                compute = input(f"Data exists for {loss_function.__name__}. Do you want to compute and overwrite ? (y/n)")
-                while(not compute in ["y","n"]):
-                    print("Please enter y or n")
+        if skip :
+            compute = "n"
+        else:
+            if os.path.exists(save_filename) :
                     compute = input(f"Data exists for {loss_function.__name__}. Do you want to compute and overwrite ? (y/n)")
+                    while(not compute in ["y","n"]):
+                        print("Please enter y or n")
+                        compute = input(f"Data exists for {loss_function.__name__}. Do you want to compute and overwrite ? (y/n)")
 
         if compute == "y":
 
@@ -311,14 +322,14 @@ class Image_registration_tools:
             if compute == "y":
                 ax.plot_surface(px,py,loss_grid,rcount=surface_sampling,ccount=surface_sampling)
             else :
-                px, py, loss_grid = self.import_data(loss_function)
+                px, py, loss_grid = self.import_data(loss_function,skip=skip)
                 ax.plot_surface(px,py,loss_grid,rcount=surface_sampling,ccount=surface_sampling)
             
             plt.show()
         else:
             if compute != "y":
                 print("compute is y")
-                px, py, loss_grid = self.import_data(loss_function)
+                px, py, loss_grid = self.import_data(loss_function,skip=skip)
 
         
         return px, py, loss_grid
@@ -439,6 +450,7 @@ class Image_registration_tools:
                 dx : scheme step
                 p0 : initial p parameter for loss function
                 alpha0 : initial percentage (in direct multiplicative factor form) for adjustment of p
+                skip : confirm "n" automatically when prompted
         """
 
         print("coordinate_descent_optimisation_xy")
@@ -457,6 +469,8 @@ class Image_registration_tools:
         scheme_step = default_scheme_step #scheme step
 
         warp = self.get_pix_at_translated # new warp function parameter
+
+        skip = False
         
         print("~~~~~~~~~~~~")
         print("Parameters :")
@@ -474,6 +488,8 @@ class Image_registration_tools:
                 raise TypeError("plot must be a bool")
             else :
                 plot = value
+        if "skip" in kwargs:
+            skip = bool(kwargs["skip"])
         if "epsilon" in kwargs:
             value = kwargs["epsilon"]
             if value<0:
@@ -552,7 +568,7 @@ class Image_registration_tools:
         print("The translation in y, x coordinates that minimizes our loss function is ", p)
         if plot :
             title = "Gradient descent graph"
-            ax = plot_functions.plot_background(self,loss_function,title)
+            ax = plot_functions.plot_background(self,loss_function,title,skip=skip)
             p_list_numpy = np.array(p_list).transpose()
             l_list_numpy = np.array(l_list)
             ax.plot(p_list_numpy[0],p_list_numpy[1],l_list_numpy,label=f"Gradient descent, ending at $[{p[0]:.2f},{p[1]:.2f}]$",marker=".")
@@ -651,7 +667,7 @@ if __name__ == '__main__' :
 
         blurred_moving_finger = moving
         blurred_moving_finger.blur(blur_kernel)
-        blurred_moving_finger.name = "blurred_moving_finger"
+        blurred_moving_finger.name = "blurred_" + moving.name
         blurred_moving_finger.display()
 
         utils = Image_registration_tools(blurred_fixed_finger,blurred_moving_finger)

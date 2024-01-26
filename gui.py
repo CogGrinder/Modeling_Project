@@ -6,8 +6,6 @@ from tkinter import *
 from PIL import Image as Im
 from tkdocviewer import *
 from image import Image
-from starter2 import Starter_2
-from starter3 import Starter_3
 
 from main_course_1 import Main_Course_1
 from main_course_1_reconstruction import Main_Course_1_Reconstruction
@@ -15,6 +13,7 @@ from main_course_1_reconstruction import Main_Course_1_Reconstruction
 import sys
 sys.path.append("main_course_5") #to access modules in main_course_5
 from main_course_5 import Image_registration_tools
+import plot_functions
 
 class Starter_4_Window(customtkinter.CTkToplevel):
     # Create a window for starter 4
@@ -548,7 +547,7 @@ class Main_1_Restauration_Window(customtkinter.CTkToplevel):
 class Main_Course_5_Window(customtkinter.CTkToplevel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.title('Starter 2')
+        self.title('Main 5 - Image Registration Optimisation')
         self.geometry("750x500")
         self.resizable(True, True)
         self.configure(bg="black")
@@ -560,6 +559,9 @@ class Main_Course_5_Window(customtkinter.CTkToplevel):
         self.rowconfigure(5, weight=1)
         self.rowconfigure(6, weight=1)
         self.rowconfigure(7, weight=1)
+        self.columnconfigure(0, weight=1)
+        self.columnconfigure(1, weight=1)
+        self.columnconfigure(2, weight=1)
         
         # Variables to store user inputs
         self.selected_file = ""
@@ -571,8 +573,30 @@ class Main_Course_5_Window(customtkinter.CTkToplevel):
         self.data_conservation_var = BooleanVar(value=False)
         self.inverse_order_var = BooleanVar(value=False)
 
+        ### gradient descent basic (column 1)
+
+        # Image Menu 
+        self.combobox1 = customtkinter.CTkComboBox(self, values=["tx_finger", "txy_finger"])
+        self.combobox1.set("Choose image")
+        self.combobox1.grid(row=1, column=1)
+
+        # Loss Function Menu 
+        self.combobox2 = customtkinter.CTkComboBox(self, values=["loss_1", "loss_2"])
+        self.combobox2.set("Choose loss function")
+        self.combobox2.grid(row=2, column=1)
+        
+        # Execute buttons
+
+        self.gradient_button = customtkinter.CTkButton(self, text='Gradient descent', width=120, height=40,
+                                          font=('Cambria', 16), command=self.gradient_descent_test)
+        self.gradient_button.grid(row=3, column=0, pady=(10, 0))
+
+        self.blurred_image_button = customtkinter.CTkButton(self, text='Blurred image optimisation', width=120, height=40,
+                                          font=('Cambria', 16), command=self.blurred_image_test)
+        self.blurred_image_button.grid(row=3, column=1, pady=(10, 0))
+
         # Label at the top
-        self.label = customtkinter.CTkLabel(self, text="Perform Rotation-Translation on a Fingerprint Image",
+        self.label = customtkinter.CTkLabel(self, text="Optimise Registration on a Fingerprint Image",
                               fg_color="transparent", font=('Calibri', 14, 'bold'))
         self.label.grid(row=0, column=0, sticky='w', padx=10, pady=10)
 
@@ -584,12 +608,6 @@ class Main_Course_5_Window(customtkinter.CTkToplevel):
         # Display selected file name
         self.selected_file_label = customtkinter.CTkLabel(self, text="Selected File: None", font=('Calibri', 12))
         self.selected_file_label.grid(row=2, column=0, sticky='w', padx=10)
-
-        # Rotation angle entry
-        self.angle_label = customtkinter.CTkLabel(self, text="Enter Rotation Angle (degrees):", font=('Calibri', 12))
-        self.angle_label.grid(row=3, column=0, sticky='w', padx=10)
-        self.angle_entry = customtkinter.CTkEntry(self, font=('Calibri', 12))
-        self.angle_entry.grid(row=4, column=0, padx=10, pady=(0, 10))
 
         # Center of rotation entry
         self.center_label = customtkinter.CTkLabel(self, text="Enter Center of Rotation (x, y):", font=('Calibri', 12))
@@ -614,9 +632,9 @@ class Main_Course_5_Window(customtkinter.CTkToplevel):
         self.inverse_order_checkbox.grid(row=12, column=0, sticky='w', padx=10)
 
         # Transform button
-        self.transform_button = customtkinter.CTkButton(self, text='Transform', width=120, height=40,
+        self.blurred_image_button = customtkinter.CTkButton(self, text='Transform', width=120, height=40,
                                           font=('Cambria', 16), command=self.transform_image)
-        self.transform_button.grid(row=13, column=0, pady=(10, 0))
+        self.blurred_image_button.grid(row=13, column=0, pady=(10, 0))
 
     def open_file_dialog(self):
         self.selected_file = filedialog.askopenfilename()
@@ -626,6 +644,112 @@ class Main_Course_5_Window(customtkinter.CTkToplevel):
             # Update the label with the file name and size
             self.selected_file_label.configure(text=f"Selected File: {self.selected_file} \n" \
                                                     f"(Size: {img.n}x{img.m})")
+    
+    def gradient_descent_test(self) :
+        self.moving_img_file = "images" + os.sep + self.combobox1.get() + ".png"
+        utils = Image_registration_tools(Image("images/clean_finger.png"),Image(self.moving_img_file))
+
+        ### Choose loss function
+        loss_function_var = self.combobox2.get()
+        loss_function = utils.loss_function_1 # default
+        if   loss_function_var == "loss_1" :
+            loss_function = utils.loss_function_1
+        elif loss_function_var == "loss_2" :
+            loss_function = utils.loss_function_2
+        else:
+            raise ValueError("Invalid value for loss function")
+        utils.compute_and_plot_loss(show = False, loss_function=loss_function,span="all", skip=True)
+
+        # for txy_finger
+        if utils._moving_img.name == "txy_finger":
+            p, l_list = utils.coordinate_descent_optimisation_xy(plot = True, p0 = [40,40], alpha0 = 1, epsilon = 1, epsilon2 = 0.0001, loss_function=loss_function, skip=True)
+
+            plot_functions.display_warped(utils,p, utils.get_pix_at_translated, loss_function)
+
+
+            p, l_list = utils.coordinate_descent_optimisation_xy(plot = True, p0 = [-22,20], alpha0 = 1, epsilon = 1, epsilon2 = 0.0001, loss_function=loss_function, skip=True)
+            #good at showing ridges aligning (loss_function_2)
+            plot_functions.display_warped(utils,p, utils.get_pix_at_translated, loss_function)
+        
+            p, l_list = utils.coordinate_descent_optimisation_xy(plot = True, p0 = [-10,10], alpha0 = 1, epsilon = 1, epsilon2 = 0.0001, loss_function=loss_function, skip=True)
+            #good at showing ridges aligning (loss_function_1)
+            plot_functions.display_warped(utils,p, utils.get_pix_at_translated, loss_function)
+            
+
+        else:
+            p, l_list = utils.coordinate_descent_optimisation_xy(plot = True, p0 = [40,40], alpha0 = 0.5, epsilon = 1, epsilon2 = 0.0001, loss_function=loss_function, skip=True)
+
+            plot_functions.display_warped(utils,p, utils.get_pix_at_translated, loss_function)
+
+
+            p, l_list = utils.coordinate_descent_optimisation_xy(plot = True, alpha0 = 0.1, epsilon = 100, epsilon2 = 0.001, loss_function=loss_function )
+
+            plot_functions.display_warped(utils,p, utils.get_pix_at_translated, loss_function)
+
+            p, l_list = utils.coordinate_descent_optimisation_xy(plot = True, alpha0 = 0.01, epsilon = 10,  epsilon2 = 0.0001,  loss_function=loss_function, skip=True) #diverge
+            
+            plot_functions.display_warped(utils,p, utils.get_pix_at_translated, loss_function)
+
+
+    def blurred_image_test(self):
+        self.moving_img_file = "images" + os.sep + self.combobox1.get() + ".png"
+        fixed = Image("images/clean_finger.png")
+        
+        moving = Image(self.moving_img_file)
+
+        blur_kernel = 8
+
+        blurred_fixed_finger  = fixed
+        blurred_fixed_finger.blur(blur_kernel)
+        blurred_fixed_finger.name = "blurred_fixed_finger"
+        # blurred_fixed_finger.display()
+
+        blurred_moving_finger = moving
+        blurred_moving_finger.blur(blur_kernel)
+        blurred_moving_finger.name = "blurred_" + moving.name
+        # blurred_moving_finger.display()
+
+        utils = Image_registration_tools(blurred_fixed_finger,blurred_moving_finger)
+
+        # ### Only loss_function_2 is available
+        # loss_function = utils.loss_function_2
+
+        ### Choose loss function
+        loss_function_var = self.combobox2.get()
+        loss_function = utils.loss_function_1 # default
+        if   loss_function_var == "loss_1" :
+            loss_function = utils.loss_function_1
+        elif loss_function_var == "loss_2" :
+            loss_function = utils.loss_function_2
+        else:
+            raise ValueError("Invalid value for loss function")
+        
+        utils.compute_and_plot_loss(show = False, loss_function=loss_function,span="all", skip=True)
+
+
+        p0, l_list = utils.coordinate_descent_optimisation_xy(plot = True, alpha0 = 0.1, epsilon = 100, epsilon2 = 0.001, loss_function=loss_function, skip=True)
+
+        plot_functions.display_warped(utils,p0, utils.get_pix_at_translated, loss_function)
+
+        # p0, l_list = utils.coordinate_descent_optimisation_xy(plot = True, alpha0 = 0.01, epsilon = 10,  epsilon2 = 0.0001,  loss_function=loss_function ) #diverge
+        
+        # plot_functions.display_warped(utils,p0, utils.get_pix_at_translated, loss_function)
+        
+
+
+        utils = Image_registration_tools(Image("images/clean_finger.png"),Image(self.moving_img_file))
+
+        utils.compute_and_plot_loss(show = False, loss_function=loss_function,span="all", skip=True)
+
+
+        p, l_list = utils.coordinate_descent_optimisation_xy(plot = True, p0=p0, alpha0 = 0.1, epsilon = 100, epsilon2 = 0.001, loss_function=loss_function, skip=True)
+
+        plot_functions.display_warped(utils,p, utils.get_pix_at_translated, loss_function)
+
+        p, l_list = utils.coordinate_descent_optimisation_xy(plot = True, p0=p0, alpha0 = 0.01, epsilon = 10,  epsilon2 = 0.0001,  loss_function=loss_function, skip=True) #diverge
+        
+        plot_functions.display_warped(utils,p, utils.get_pix_at_translated, loss_function)
+        
 
     def transform_image(self):
         # Retrieve user inputs
@@ -668,7 +792,7 @@ class SecondWindow(customtkinter.CTkToplevel):
         self.label.grid(column=0, row=0)
         #Create a list of the different sections we have worked on so far
         self.combobox = customtkinter.CTkComboBox(self, values=["Starter 1", "Starter 2", "Starter 3",
-                                                          "Starter 4", "Starter 5", "Main Course 1 (Simulation)", "Main Course 1 (Restauration)", "Main course 5"],
+                                                          "Starter 4", "Main Course 1 (Simulation)", "Main Course 1 (Restauration)", "Main course 5"],
                                             command=self.combobox_callback)
         self.combobox.set("Starter 1")
         self.combobox.grid(row=1, column=0)
@@ -696,8 +820,6 @@ class SecondWindow(customtkinter.CTkToplevel):
                 self.toplevel_window = Starter_4_Window(self)  # create window if its None or destroyed
             else:
                 self.toplevel_window.focus()
-        if choice == "Starter 5":
-            os.system('starter5.py')
         if choice == "Main Course 1 (Simulation)":
             self.toplevel_window = None
             if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
