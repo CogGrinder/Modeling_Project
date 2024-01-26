@@ -1,27 +1,34 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from main_course_5 import *
 
 
-def plot_background(utils,loss_function:callable,title):
+def plot_background(utils,loss_function:callable,title,skip=False,shrink=6):
     """Used to generate plot background
 
     Args:
-        utils (Utils_starter_5): Utils_starter_5 object containing
+        utils (Image_registration_tools): Image_registration_tools object containing import_data function
         loss_function (callable): loss function of which to import data
 
     Returns:
         Figure: axis on which background was plotted
     """
-    ax = plt.figure().add_subplot(projection='3d')
+    print("plot_background")
+    ax = plt.figure(figsize = (12,12)).add_subplot(projection='3d')
     ax.set_title(title)
             
-    px_loss, py_loss, loss_data = utils.import_data(loss_function)
+    px_loss, py_loss, loss_data = utils.import_data(loss_function,skip=skip)
     if len(px_loss) != 0:
         #restrict size of ax
+        n,m = utils._fixed_img.data.shape
         span_x = np.ptp(px_loss)
         span_y = np.ptp(py_loss)
-        range_x = [-span_x/4,span_x/4]
-        range_y = [-span_y/4,span_y/4]
+        range_x = [\
+            - min(n/shrink,span_x),
+              min(n/shrink,span_x)]
+        range_y = [\
+            - min(m/shrink,span_y),
+              min(m/shrink,span_y)]
         in_range = np.logical_and(np.logical_and(range_x[0]<px_loss,px_loss<range_x[1]),
                                   np.logical_and(range_y[0]<py_loss,py_loss<range_y[1]) )
 

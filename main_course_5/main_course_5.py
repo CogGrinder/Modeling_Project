@@ -6,70 +6,88 @@ import math
 import sys
 import os
 sys.path.append(os.getcwd()) #to access current working directory files easily
+from pathlib import Path
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(Path(SCRIPT_DIR).parent)
 from image import Image
-# from plot_functions import *
 import plot_functions
 
 surface_sampling = 85
 default_scheme_step = 0.2
+data_folder = "save_files"
 
-class Utils_starter_5:
+""" Convention for notation :
+i,j is for coordinates in an image matrix (with the CV2 convention)
+x,y is for coordinates in an image
+x = j, y = -i
+"""
+
+class Image_registration_tools:
     def __init__(self, img1 : Image, img2 : Image):
         self._fixed_img  = img1 #fixed
         self._moving_img = img2 #moving
         return
 
-    def get_pix_at_translated(self, x, y, p : list):
+    def get_pix_at_translated(self, i, j, p : list):
         """Optimized translate function
 
         Args:
-            x (int or np.ndarray): numpy matrix containing x of pixel, assumed meshgrid with "i,j" if matrix
-            y (int or np.ndarray): numpy matrix containing y of pixel, assumed meshgrid with "i,j" if matrix
+            i (int or np.ndarray): numpy matrix containing i of pixel, assumed meshgrid with "i,j" if matrix
+            j (int or np.ndarray): numpy matrix containing j of pixel, assumed meshgrid with "i,j" if matrix
             p (list): p is assumed a list of 2 translate parameters
 
         Returns:
             _type_: _description_
         """
         n,m = self._moving_img.data.shape
-        int_px = math.floor(p[0]) #integer part
-        int_py = math.floor(p[1])
+        int_pi = math.floor(p[0]) #integer part
+        int_pj = math.floor(p[1])
 
-        decimal_px = p[0] - int_px #decimal part for interpolation, used at return
-        decimal_py = p[1] - int_py
+        decimal_pi = p[0] - int_pi #decimal part for interpolation, used at return
+        decimal_pj = p[1] - int_pj
+
+        # print(p,int_pi,int_pj)
+        # print(p,decimal_pi,decimal_pj,sep=' ')
+
 
         # Optimised conditional statement
         # creates a boolean matrix for each element of x and y
         # verifies that fetched pixel is in the image
-        is_in_image = np.logical_and(np.logical_and(int_px<x, x<n+int_px) ,
-                                        np.logical_and(int_py<y, y<m+int_py)) #TODO: manually change first column and row
-        # equivalent to "if 0<x-int_px<n and 0<y-int_py<m" elementwise
+        is_in_image = np.logical_and(np.logical_and(int_pi<i, i<n+int_pi) ,
+                                        np.logical_and(int_pj<j, j<m+int_pj)) #TODO: manually change first column and row
+        # equivalent to "if 0<i-int_pi<n and 0<j-int_pj<m" elementwise
 
         """
         note : "0<" is to account for fetching neighbours for interpolation,
         resulting in masking the first row and first column of the image
         """
 
-        dummy_x = x.copy()
-        dummy_y = y.copy()
+        dummy_i = i.copy()
+        dummy_j = j.copy()
 
-        dummy_values = [int_px +1, int_py +1]
+        dummy_values = [int_pi +1, int_pj +1]
         # if False, replace x and y values by dummy values
-        dummy_x[np.logical_not(is_in_image)] = dummy_values[0]  # used to nullify the index in the np.where below
-        dummy_y[np.logical_not(is_in_image)] = dummy_values[1]
+        dummy_i[np.logical_not(is_in_image)] = dummy_values[0]  # used to nullify the index in the np.where below
+        dummy_j[np.logical_not(is_in_image)] = dummy_values[1]
 
         # translate including dummy values, bilinearly interpolated wrt decimal parts
         dummy_translate = \
-        + decimal_px    * decimal_py     *self._moving_img.data[dummy_x-int_px-1,  dummy_y-int_py-1] \
-        + decimal_px    * (1-decimal_py) *self._moving_img.data[dummy_x -int_px-1, dummy_y-int_py] \
-        + (1-decimal_px)* decimal_py     *self._moving_img.data[dummy_x-int_px,    dummy_y-int_py-1] \
-        + (1-decimal_px)* (1-decimal_py) *self._moving_img.data[dummy_x -int_px,   dummy_y-int_py]
-        #try7 finally working? inverted 10 and 01
+        + decimal_pi    * decimal_pj     *self._moving_img.data[dummy_i-int_pi-1,  dummy_j-int_pj-1] \
+        + decimal_pi    * (1-decimal_pj) *self._moving_img.data[dummy_i -int_pi-1, dummy_j-int_pj] \
+        + (1-decimal_pi)* decimal_pj     *self._moving_img.data[dummy_i-int_pi,    dummy_j-int_pj-1] \
+        + (1-decimal_pi)* (1-decimal_pj) *self._moving_img.data[dummy_i -int_pi,   dummy_j-int_pj]
 
 
         #1 is white padding
         filtered_translate = np.where(is_in_image,
                                       dummy_translate,
                                       1)
+
+
+        #Edge corrections - attempt 24/01
+        #"if 0<=i-int_pi<n                     and 0<=j-int_pj<m" elementwise
+        #ie int_pi<=i<n+int_pi                 and int_pj<=j<m+int_pj
+        #ie max(int_pi,0) <=i< min(n+int_pi,n) and max(int_pj,0) <=j< min(m+int_pj,m)
 
         return filtered_translate
         
@@ -127,13 +145,29 @@ class Utils_starter_5:
         Returns:
             str: name for the file
         """
-        return  self._fixed_img.name + "_" + self._moving_img.name + "_" + str(loss_function.__name__) + ".txt"
+        return  data_folder + os.sep \
+            + self._fixed_img.name + "_" + self._moving_img.name + "_" + str(loss_function.__name__) + ".txt"
 
-    def import_data(self, loss_function:callable) :
+    def export_data(self,save_filename,loss_grid,translate_span_x,translate_span_y,step=1):
+        with open(save_filename, "w") as f :
+            f.write(" ".join(["span_x", str(-translate_span_x), str(translate_span_x),
+                    "span_y", str(-translate_span_y), str(translate_span_y),
+                    "step", str(step)]) ) #add step
+            f.write("\n")
+            
+
+            for i in range(loss_grid.shape[0]) :
+                f.write(str(loss_grid[i,0]))
+                for j in range(1,loss_grid.shape[1]) :
+                    f.write(" " + str(loss_grid[i,j]))
+                f.write("\n")
+
+    def import_data(self, loss_function:callable,skip=False) :
         """Imports loss_function data from named .txt file
 
         Args:
             loss_function (callable): loss function, used for finding the name format of the file
+            skip: automatically confirm "y" when prompted for computing
 
         Returns:
             np.ndarray: meshgrid x indexes for p parameter (px)
@@ -184,12 +218,15 @@ class Utils_starter_5:
 
                 return px, py, loss_grid
         else :
-            compute = input(f"No data for {loss_function.__name__}. Do you want to compute ? (y/n)")
-            while(not compute in ["y","n"]):
-                print("Please enter y or n")
+            print("File does not exist.")
+            compute = "y"
+            if not skip:
                 compute = input(f"No data for {loss_function.__name__}. Do you want to compute ? (y/n)")
+                while(not compute in ["y","n"]):
+                    print("Please enter y or n")
+                    compute = input(f"No data for {loss_function.__name__}. Do you want to compute ? (y/n)")
             if compute == "y":
-                return self.compute_and_plot_loss(show=False,span="all")
+                return self.compute_and_plot_loss(show=False,span="all",skip=skip)
             else:
                 return np.array([]), np.array([]), np.array([])
 
@@ -202,7 +239,8 @@ class Utils_starter_5:
                 loss_function (callable): function treated as loss function with a parameter p
                 save : bool, saves as .txt
                 show : bool, plots the function
-                span : "all" for whole span of p
+                span : "all" for whole span of p, "half" for half of the span in both directions
+                skip : automatically confirm "n" when prompted for computing
         
         Returns:
             np.ndarray: meshgrid x indexes for p parameter (px)
@@ -210,13 +248,14 @@ class Utils_starter_5:
             np.ndarray: imported data from loss function (loss_grid)
             
         """
-        print("test_plot_loss")
+        print("compute_and_plot_loss")
 
 
         # Default parameter values
         loss_function = self.loss_function_1
         save = True
         show = True
+        skip = False
         n,m = self._moving_img.data.shape
         
         
@@ -230,11 +269,16 @@ class Utils_starter_5:
             save = kwargs["save"]
         if "show" in kwargs:
             show = kwargs["show"]
+        if "skip" in kwargs:
+            skip = kwargs["skip"]
         if "span" in kwargs:
             value = kwargs["span"]
             if value == "all" :
                 translate_span_x = n//2
                 translate_span_y = m//2
+            elif value == "half" :
+                translate_span_x = n//4
+                translate_span_y = m//4
             else:
                 raise ValueError("unknown value for span")
 
@@ -243,11 +287,14 @@ class Utils_starter_5:
         print(save_filename)
         #if file exists, ask user to confirm overwriting
         compute = "y"
-        if os.path.exists(save_filename) :
-                compute = input(f"Data exists for {loss_function.__name__}. Do you want to compute and overwrite ? (y/n)")
-                while(not compute in ["y","n"]):
-                    print("Please enter y or n")
+        if skip :
+            compute = "n"
+        else:
+            if os.path.exists(save_filename) :
                     compute = input(f"Data exists for {loss_function.__name__}. Do you want to compute and overwrite ? (y/n)")
+                    while(not compute in ["y","n"]):
+                        print("Please enter y or n")
+                        compute = input(f"Data exists for {loss_function.__name__}. Do you want to compute and overwrite ? (y/n)")
 
         if compute == "y":
 
@@ -265,19 +312,8 @@ class Utils_starter_5:
             
             print("loss computation done")
 
-            if save : #TODO make external function
-                with open(save_filename, "w") as f :
-                    f.write(" ".join(["span_x", str(-translate_span_x), str(translate_span_x),
-                            "span_y", str(-translate_span_y), str(translate_span_y),
-                            "step", str(1)]) ) #add step
-                    f.write("\n")
-                    
-
-                    for i in range(loss_grid.shape[0]) :
-                        f.write(str(loss_grid[i,0]))
-                        for j in range(1,loss_grid.shape[1]) :
-                            f.write(" " + str(loss_grid[i,j]))
-                        f.write("\n")
+            if save :
+                self.export_data(save_filename,loss_grid,translate_span_x,translate_span_y)
 
 
         if show :
@@ -286,19 +322,19 @@ class Utils_starter_5:
             if compute == "y":
                 ax.plot_surface(px,py,loss_grid,rcount=surface_sampling,ccount=surface_sampling)
             else :
-                px, py, loss_grid = self.import_data(loss_function)
+                px, py, loss_grid = self.import_data(loss_function,skip=skip)
                 ax.plot_surface(px,py,loss_grid,rcount=surface_sampling,ccount=surface_sampling)
             
             plt.show()
         else:
             if compute != "y":
                 print("compute is y")
-                px, py, loss_grid = self.import_data(loss_function)
+                px, py, loss_grid = self.import_data(loss_function,skip=skip)
 
         
         return px, py, loss_grid
 
-    def greedy_optimization_xy(self, **kwargs) : #TODO : vary the ranges and shapes for p, maybe with relation to loss function and image data
+    def greedy_optimisation_xy(self, **kwargs) : #TODO : vary the ranges and shapes for p, maybe with relation to loss function and image data
         """greedy brute force strategy to find the optimal value of p_x or of [p_x,p_y]
 
         Args:
@@ -310,7 +346,7 @@ class Utils_starter_5:
                 loss_function : callable function which takes a parameter p
                 warp : warp function of parameters i,j and parameter p
         """
-        print("greedy_optimization_xy")
+        print("greedy_optimisation_xy")
         
         ################
         ### Defaults ###
@@ -356,18 +392,20 @@ class Utils_starter_5:
             list_px = list(np.arange(- math.ceil(n/2), math.floor(n/2) + 1, step))
             l_list = np.zeros(len(list_px))
             for i, p_x in enumerate(list_px) :
-                l = loss_function(p=[0,p_x],warp=warp) #beware the indexation
-                
+                l = loss_function(p=[0,p_x],warp=warp) #TODO wtf is this beware the indexation
+                                
                 if l_min > l : #update the min and argmin
                     l_min = l
-                    p_min = [0,p_x]
+                    p_min = [0,p_x] #TODO this seems to work
                 
                 l_list[i] = l
             print("The translation in x that minimizes our loss function is ", p_min[1])
             if plot :
-                #p = np.arange(- math.ceil(n/2), math.floor(n/2) + 1) #pre-testing
-                plt.plot(list_px,l_list)
-                #plt.plot(p,l_list) #pre-testing
+                ax = plt.subplot()
+                ax.plot(list_px,l_list,label=f"{loss_function.__name__} plot with $y = {p_min[0]}$")
+                ax.set_xlabel("image $x$ coordinate")
+                ax.set_ylabel("loss function value")
+                ax.legend()
                 plt.show()
         elif xy_translate == "xy" :
             l_list  = np.zeros((m+1,n+1)) #make the list bigger to accomodate for all translations
@@ -398,7 +436,7 @@ class Utils_starter_5:
         return p_min, l_list
 
 
-    def coordinate_descent_optimization_xy(self, **kwargs) :
+    def coordinate_descent_optimisation_xy(self, **kwargs) :
         """non differentiable coordinate descent strategy to find the optimal value of [p_x,p_y]
 
         Args:
@@ -412,9 +450,10 @@ class Utils_starter_5:
                 dx : scheme step
                 p0 : initial p parameter for loss function
                 alpha0 : initial percentage (in direct multiplicative factor form) for adjustment of p
+                skip : confirm "n" automatically when prompted
         """
 
-        print("coordinate_descent_optimization_xy")
+        print("coordinate_descent_optimisation_xy")
         
         ################
         ### Defaults ###
@@ -430,6 +469,8 @@ class Utils_starter_5:
         scheme_step = default_scheme_step #scheme step
 
         warp = self.get_pix_at_translated # new warp function parameter
+
+        skip = False
         
         print("~~~~~~~~~~~~")
         print("Parameters :")
@@ -447,6 +488,8 @@ class Utils_starter_5:
                 raise TypeError("plot must be a bool")
             else :
                 plot = value
+        if "skip" in kwargs:
+            skip = bool(kwargs["skip"])
         if "epsilon" in kwargs:
             value = kwargs["epsilon"]
             if value<0:
@@ -477,7 +520,8 @@ class Utils_starter_5:
         Do While style loop
         """
         p = p0.copy()
-        l_previous = loss_function(p=p) # previously sys.float_info.max
+        l_previous = loss_function(p=p,warp = warp) # previously sys.float_info.max
+        print(l_previous)
         p_list = [p0] #used to return the points for plotting
         l_list = [l_previous] #used to return the loss function for plotting
         
@@ -525,10 +569,10 @@ class Utils_starter_5:
         print("The translation in y, x coordinates that minimizes our loss function is ", p)
         if plot :
             title = "Gradient descent graph"
-            ax = plot_functions.plot_background(self,loss_function,title)
+            ax = plot_functions.plot_background(self,loss_function,title,skip=skip)
             p_list_numpy = np.array(p_list).transpose()
             l_list_numpy = np.array(l_list)
-            ax.plot(p_list_numpy[0],p_list_numpy[1],l_list_numpy,label=f"Gradient descent, ending at $[{p[0]:.2f},{p[1]:.2f}]$")
+            ax.plot(p_list_numpy[0],p_list_numpy[1],l_list_numpy,label=f"Gradient descent, ending at $[{p[0]:.2f},{p[1]:.2f}]$",marker=".")
             
             ax.set_xlabel("image $x$ coordinate")
             ax.set_ylabel("image $y$ coordinate")
@@ -544,17 +588,17 @@ class Utils_starter_5:
 
 if __name__ == '__main__' :
     
-    utils = Utils_starter_5(Image("images/clean_finger.png"),Image("images/tx_finger.png"))
+    utils = Image_registration_tools(Image("images/clean_finger.png"),Image("images/tx_finger.png"))
     
-    """Testing greedy_optimization_xy with x translation
+    """Testing greedy_optimisation_xy with x translation
     """
-    if False:
-        p_min, l_list = utils.greedy_optimization_xy(translate_type = "x", plot = True, step=0.11)
-        p_min, l_list = utils.greedy_optimization_xy(translate_type = "x", plot = True, step=1)
+    if True:
+        p_min, l_list = utils.greedy_optimisation_xy(translate_type = "x", plot = True, step=0.11)
+        p_min, l_list = utils.greedy_optimisation_xy(translate_type = "x", plot = True, step=1)
         # note: can use a floating step to test floating point translation
     
 
-    """Making smaller images for testing greedy_optimization_xy with xy translation
+    """Making smaller images for testing greedy_optimisation_xy with xy translation
     """
     if False:
         clean_finger_small = Image("images/clean_finger_small.png")
@@ -562,38 +606,52 @@ if __name__ == '__main__' :
         tx_finger_small.data = cv2.resize(tx_finger_small.data, dsize=clean_finger_small.data.shape[::-1], interpolation=cv2.INTER_CUBIC)
         print(clean_finger_small.data.shape,tx_finger_small.data.shape)
 
-        utils = Utils_starter_5(clean_finger_small,tx_finger_small)
+        utils = Image_registration_tools(clean_finger_small,tx_finger_small)
         
-        p_min, l_list = utils.greedy_optimization_xy(translate_type = "xy", plot = True)
+        p_min, l_list = utils.greedy_optimisation_xy(translate_type = "xy", plot = True)
 
-    """Testing coordinate_descent_optimization_xy with small translation
+    """Testing coordinate_descent_optimisation_xy with small translation
     """
     if True:
-        # utils = Utils_starter_5(Image("images/clean_finger.png"),Image("images/tx_finger.png"))
-        utils = Utils_starter_5(Image("images/clean_finger.png"),Image("images/txy_finger.png")) # TODO find params - almost done
+        utils = Image_registration_tools(Image("images/clean_finger.png"),Image("images/tx_finger.png"))
+        # utils = Utils_starter_5(Image("images/clean_finger.png"),Image("images/txy_finger.png")) # TODO find params - almost done
 
         ### Choose loss function
         loss_function = utils.loss_function_1
         # loss_function = utils.loss_function_2
         utils.compute_and_plot_loss(show = False, loss_function=loss_function,span="all")
 
-        p, l_list = utils.coordinate_descent_optimization_xy(plot = True, p0 = [-22,20], alpha0 = 1, epsilon = 1, epsilon2 = 0.0001, loss_function=loss_function )
+        # for txy_finger
+        if utils._moving_img.name == "txy_finger":
+            p, l_list = utils.coordinate_descent_optimisation_xy(plot = True, p0 = [40,40], alpha0 = 1, epsilon = 1, epsilon2 = 0.0001, loss_function=loss_function )
 
-        plot_functions.display_warped(utils,p, utils.get_pix_at_translated, loss_function)
+            plot_functions.display_warped(utils,p, utils.get_pix_at_translated, loss_function)
+
+
+            p, l_list = utils.coordinate_descent_optimisation_xy(plot = True, p0 = [-22,20], alpha0 = 1, epsilon = 1, epsilon2 = 0.0001, loss_function=loss_function )
+            #good at showing ridges aligning (loss_function_2)
+            plot_functions.display_warped(utils,p, utils.get_pix_at_translated, loss_function)
         
-        p, l_list = utils.coordinate_descent_optimization_xy(plot = True, p0 = [-10,10], alpha0 = 1, epsilon = 1, epsilon2 = 0.0001, loss_function=loss_function )
+            p, l_list = utils.coordinate_descent_optimisation_xy(plot = True, p0 = [-10,10], alpha0 = 1, epsilon = 1, epsilon2 = 0.0001, loss_function=loss_function )
+            #good at showing ridges aligning (loss_function_1)
+            plot_functions.display_warped(utils,p, utils.get_pix_at_translated, loss_function)
+            
 
-        plot_functions.display_warped(utils,p, utils.get_pix_at_translated, loss_function)
+        else:
+            p, l_list = utils.coordinate_descent_optimisation_xy(plot = True, p0 = [40,40], alpha0 = 0.5, epsilon = 1, epsilon2 = 0.0001, loss_function=loss_function )
 
-        p, l_list = utils.coordinate_descent_optimization_xy(plot = True, alpha0 = 0.1, epsilon = 100, epsilon2 = 0.001, loss_function=loss_function )
+            plot_functions.display_warped(utils,p, utils.get_pix_at_translated, loss_function)
 
-        plot_functions.display_warped(utils,p, utils.get_pix_at_translated, loss_function)
 
-        p, l_list = utils.coordinate_descent_optimization_xy(plot = True, alpha0 = 0.01, epsilon = 10,  epsilon2 = 0.0001,  loss_function=loss_function ) #diverge
-        
-        plot_functions.display_warped(utils,p, utils.get_pix_at_translated, loss_function)
+            p, l_list = utils.coordinate_descent_optimisation_xy(plot = True, alpha0 = 0.1, epsilon = 100, epsilon2 = 0.001, loss_function=loss_function )
+
+            plot_functions.display_warped(utils,p, utils.get_pix_at_translated, loss_function)
+
+            p, l_list = utils.coordinate_descent_optimisation_xy(plot = True, alpha0 = 0.01, epsilon = 10,  epsilon2 = 0.0001,  loss_function=loss_function ) #diverge
+            
+            plot_functions.display_warped(utils,p, utils.get_pix_at_translated, loss_function)
     
-    """Testing coordinate_descent_optimization_xy with blur preoptimisation
+    """Testing coordinate_descent_optimisation_xy with blur preoptimisation
     """
     if False:
         fixed = Image("images/clean_finger.png")
@@ -610,10 +668,10 @@ if __name__ == '__main__' :
 
         blurred_moving_finger = moving
         blurred_moving_finger.blur(blur_kernel)
-        blurred_moving_finger.name = "blurred_moving_finger"
+        blurred_moving_finger.name = "blurred_" + moving.name
         blurred_moving_finger.display()
 
-        utils = Utils_starter_5(blurred_fixed_finger,blurred_moving_finger)
+        utils = Image_registration_tools(blurred_fixed_finger,blurred_moving_finger)
 
         ### Choose loss function
         # loss_function = utils.loss_function_1
@@ -621,27 +679,27 @@ if __name__ == '__main__' :
         utils.compute_and_plot_loss(show = False, loss_function=loss_function,span="all")
 
 
-        p0, l_list = utils.coordinate_descent_optimization_xy(plot = True, alpha0 = 0.1, epsilon = 100, epsilon2 = 0.001, loss_function=loss_function )
+        p0, l_list = utils.coordinate_descent_optimisation_xy(plot = True, alpha0 = 0.1, epsilon = 100, epsilon2 = 0.001, loss_function=loss_function )
 
         plot_functions.display_warped(utils,p0, utils.get_pix_at_translated, loss_function)
 
-        # p0, l_list = utils.coordinate_descent_optimization_xy(plot = True, alpha0 = 0.01, epsilon = 10,  epsilon2 = 0.0001,  loss_function=loss_function ) #diverge
+        # p0, l_list = utils.coordinate_descent_optimisation_xy(plot = True, alpha0 = 0.01, epsilon = 10,  epsilon2 = 0.0001,  loss_function=loss_function ) #diverge
         
         # plot_functions.display_warped(utils,p0, utils.get_pix_at_translated, loss_function)
         
 
 
-        utils = Utils_starter_5(Image("images/clean_finger.png"),Image("images/tx_finger.png"))
+        utils = Image_registration_tools(Image("images/clean_finger.png"),Image("images/tx_finger.png"))
         # utils = Utils_starter_5(Image("images/clean_finger.png"),Image("images/txy_finger.png")) # TODO find params
 
         utils.compute_and_plot_loss(show = False, loss_function=loss_function,span="all")
 
 
-        p, l_list = utils.coordinate_descent_optimization_xy(plot = True, p0=p0, alpha0 = 0.1, epsilon = 100, epsilon2 = 0.001, loss_function=loss_function )
+        p, l_list = utils.coordinate_descent_optimisation_xy(plot = True, p0=p0, alpha0 = 0.1, epsilon = 100, epsilon2 = 0.001, loss_function=loss_function )
 
         plot_functions.display_warped(utils,p, utils.get_pix_at_translated, loss_function)
 
-        p, l_list = utils.coordinate_descent_optimization_xy(plot = True, p0=p0, alpha0 = 0.01, epsilon = 10,  epsilon2 = 0.0001,  loss_function=loss_function ) #diverge
+        p, l_list = utils.coordinate_descent_optimisation_xy(plot = True, p0=p0, alpha0 = 0.01, epsilon = 10,  epsilon2 = 0.0001,  loss_function=loss_function ) #diverge
         
         plot_functions.display_warped(utils,p, utils.get_pix_at_translated, loss_function)
         
