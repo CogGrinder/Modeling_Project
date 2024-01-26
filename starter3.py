@@ -41,7 +41,32 @@ if __name__ == "__main__":
 
     from image import Image
 
-    # kernel = np.ones((15, 15))/225
-    img = Image("images/clean_finger.png")
-    img.conv_2d(200, 125)
-    img.display()
+    print("(1) Motion blurring")
+    print("(2) Blur 2D convolution")
+    print("(3) Blur FFT convolution")
+    print("(4) 2D FFT result")
+    choice = int(input("Choice > "))
+
+    if choice == 1:
+        img = Image("images/clean_finger.png")
+        img.conv_2d(200, 125)
+        img.display()
+
+    elif choice == 2:
+        img = Image("images/clean_finger.png")
+        img.blur(15)
+        img.display()
+
+    elif choice == 3:
+        img = Image("images/clean_finger.png")
+        kernel = np.ones((15, 15))/225
+        img.fft_conv_2d(kernel)
+        img.display()
+
+    elif choice == 4:
+        img = Image("images/clean_finger.png")
+        img_fft_2d = img.fft_2d()
+        plt.imshow(np.log(abs(img_fft_2d)), cmap="gray")
+        plt.title("FFT 2D result on clean_finger")
+        plt.show()
+    
