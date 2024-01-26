@@ -520,7 +520,8 @@ class Image_registration_tools:
         Do While style loop
         """
         p = p0.copy()
-        l_previous = loss_function(p=p) # previously sys.float_info.max
+        l_previous = loss_function(p=p,warp = warp) # previously sys.float_info.max
+        print(l_previous)
         p_list = [p0] #used to return the points for plotting
         l_list = [l_previous] #used to return the loss function for plotting
         

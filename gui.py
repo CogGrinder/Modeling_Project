@@ -778,52 +778,16 @@ class Main_Course_5_Window(customtkinter.CTkToplevel):
 
         self.gradient_button = customtkinter.CTkButton(self, text='Gradient descent', width=120, height=40,
                                           font=('Cambria', 16), command=self.gradient_descent_test)
-        self.gradient_button.grid(row=3, column=0, pady=(10, 0))
+        self.gradient_button.grid(row=3, column=1, sticky='w', pady=(10, 0))
 
         self.blurred_image_button = customtkinter.CTkButton(self, text='Blurred image optimisation', width=120, height=40,
                                           font=('Cambria', 16), command=self.blurred_image_test)
-        self.blurred_image_button.grid(row=3, column=1, pady=(10, 0))
+        self.blurred_image_button.grid(row=3, column=1, sticky='e', pady=(10, 0))
 
         # Label at the top
         self.label = customtkinter.CTkLabel(self, text="Optimise Registration on a Fingerprint Image",
                               fg_color="transparent", font=('Calibri', 14, 'bold'))
-        self.label.grid(row=0, column=0, sticky='w', padx=10, pady=10)
-
-        # Select file button
-        self.button = customtkinter.CTkButton(self, text='Select File', width=120, height=40,
-                                font=('Cambria', 16), command=self.open_file_dialog)
-        self.button.grid(row=1, column=0, pady=(0, 10))
-
-        # Display selected file name
-        self.selected_file_label = customtkinter.CTkLabel(self, text="Selected File: None", font=('Calibri', 12))
-        self.selected_file_label.grid(row=2, column=0, sticky='w', padx=10)
-
-        # Center of rotation entry
-        self.center_label = customtkinter.CTkLabel(self, text="Enter Center of Rotation (x, y):", font=('Calibri', 12))
-        self.center_label.grid(row=5, column=0, sticky='w', padx=10)
-        self.center_entry_x = customtkinter.CTkEntry(self, font=('Calibri', 12))
-        self.center_entry_x.grid(row=6, column=0, padx=10, pady=(0, 10))
-        self.center_entry_y = customtkinter.CTkEntry(self, font=('Calibri', 12))
-        self.center_entry_y.grid(row=7, column=0, padx=10, pady=(0, 10))
-
-        # Translation entry
-        self.translation_label = customtkinter.CTkLabel(self, text="Enter Translation (x, y):", font=('Calibri', 12))
-        self.translation_label.grid(row=8, column=0, sticky='w', padx=10)
-        self.translation_entry_x = customtkinter.CTkEntry(self, font=('Calibri', 12))
-        self.translation_entry_x.grid(row=9, column=0, padx=10, pady=(0, 10))
-        self.translation_entry_y = customtkinter.CTkEntry(self, font=('Calibri', 12))
-        self.translation_entry_y.grid(row=10, column=0, padx=10, pady=(0, 10))
-
-        # Checkboxes
-        self.data_conservation_checkbox = customtkinter.CTkCheckBox(self, text="Data Conservation", variable=self.data_conservation_var)
-        self.data_conservation_checkbox.grid(row=11, column=0, sticky='w', padx=10)
-        self.inverse_order_checkbox = customtkinter.CTkCheckBox(self, text="Inverse Rotation and Translation Order", variable=self.inverse_order_var)
-        self.inverse_order_checkbox.grid(row=12, column=0, sticky='w', padx=10)
-
-        # Transform button
-        self.blurred_image_button = customtkinter.CTkButton(self, text='Transform', width=120, height=40,
-                                          font=('Cambria', 16), command=self.transform_image)
-        self.blurred_image_button.grid(row=13, column=0, pady=(10, 0))
+        self.label.grid(row=0, column=1, sticky='w', padx=10, pady=10)
 
     def open_file_dialog(self):
         self.selected_file = filedialog.askopenfilename()
@@ -847,6 +811,7 @@ class Main_Course_5_Window(customtkinter.CTkToplevel):
             loss_function = utils.loss_function_2
         else:
             raise ValueError("Invalid value for loss function")
+        print("compute_and_plot_losscompute_and_plot_losscompute_and_plot_losscompute_and_plot_losscompute_and_plot_losscompute_and_plot_losscompute_and_plot_losscompute_and_plot_losscompute_and_plot_losscompute_and_plot_losscompute_and_plot_losscompute_and_plot_losscompute_and_plot_losscompute_and_plot_losscompute_and_plot_losscompute_and_plot_losscompute_and_plot_losscompute_and_plot_losscompute_and_plot_losscompute_and_plot_loss")
         utils.compute_and_plot_loss(show = False, loss_function=loss_function,span="all", skip=True)
 
         # for txy_finger
@@ -866,12 +831,12 @@ class Main_Course_5_Window(customtkinter.CTkToplevel):
             
 
         else:
-            p, l_list = utils.coordinate_descent_optimisation_xy(plot = True, p0 = [40,40], alpha0 = 0.5, epsilon = 1, epsilon2 = 0.0001, loss_function=loss_function, skip=True)
+            p, l_list = utils.coordinate_descent_optimisation_xy(plot = True, alpha0 = 0.1, epsilon = 100, epsilon2 = 0.001, loss_function=loss_function )
 
             plot_functions.display_warped(utils,p, utils.get_pix_at_translated, loss_function)
 
 
-            p, l_list = utils.coordinate_descent_optimisation_xy(plot = True, alpha0 = 0.1, epsilon = 100, epsilon2 = 0.001, loss_function=loss_function )
+            p, l_list = utils.coordinate_descent_optimisation_xy(plot = True, p0 = [40,40], alpha0 = 0.5, epsilon = 1, epsilon2 = 0.0001, loss_function=loss_function, skip=True)
 
             plot_functions.display_warped(utils,p, utils.get_pix_at_translated, loss_function)
 
@@ -916,28 +881,31 @@ class Main_Course_5_Window(customtkinter.CTkToplevel):
         utils.compute_and_plot_loss(show = False, loss_function=loss_function,span="all", skip=True)
 
 
-        p0, l_list = utils.coordinate_descent_optimisation_xy(plot = True, alpha0 = 0.1, epsilon = 100, epsilon2 = 0.001, loss_function=loss_function, skip=True)
+        if utils._moving_img.name == "blurred_tx_finger":
 
-        plot_functions.display_warped(utils,p0, utils.get_pix_at_translated, loss_function)
+            p0, l_list = utils.coordinate_descent_optimisation_xy(plot = True, alpha0 = 0.1, epsilon = 100, epsilon2 = 0.001, loss_function=loss_function, skip=True)
 
-        # p0, l_list = utils.coordinate_descent_optimisation_xy(plot = True, alpha0 = 0.01, epsilon = 10,  epsilon2 = 0.0001,  loss_function=loss_function ) #diverge
-        
-        # plot_functions.display_warped(utils,p0, utils.get_pix_at_translated, loss_function)
+            plot_functions.display_warped(utils,p0, utils.get_pix_at_translated, loss_function)
+        else :
+
+            p0, l_list = utils.coordinate_descent_optimisation_xy(plot = True, alpha0 = 0.01, epsilon = 10,  epsilon2 = 0.0001,  loss_function=loss_function ) #diverge
+            
+            plot_functions.display_warped(utils,p0, utils.get_pix_at_translated, loss_function)
         
 
 
         utils = Image_registration_tools(Image("images/clean_finger.png"),Image(self.moving_img_file))
 
-        utils.compute_and_plot_loss(show = False, loss_function=loss_function,span="all", skip=True)
+        utils.compute_and_plot_loss(show = False, loss_function=loss_function,span="all", skip=False)
 
 
         p, l_list = utils.coordinate_descent_optimisation_xy(plot = True, p0=p0, alpha0 = 0.1, epsilon = 100, epsilon2 = 0.001, loss_function=loss_function, skip=True)
 
         plot_functions.display_warped(utils,p, utils.get_pix_at_translated, loss_function)
 
-        p, l_list = utils.coordinate_descent_optimisation_xy(plot = True, p0=p0, alpha0 = 0.01, epsilon = 10,  epsilon2 = 0.0001,  loss_function=loss_function, skip=True) #diverge
+        # p, l_list = utils.coordinate_descent_optimisation_xy(plot = True, p0=p0, alpha0 = 0.01, epsilon = 10,  epsilon2 = 0.0001,  loss_function=loss_function, skip=True) #diverge
         
-        plot_functions.display_warped(utils,p, utils.get_pix_at_translated, loss_function)
+        # plot_functions.display_warped(utils,p, utils.get_pix_at_translated, loss_function)
         
 
     def transform_image(self):

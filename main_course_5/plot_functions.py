@@ -14,7 +14,7 @@ def plot_background(utils,loss_function:callable,title,skip=False,shrink=6):
         Figure: axis on which background was plotted
     """
     print("plot_background")
-    ax = plt.figure().add_subplot(projection='3d')
+    ax = plt.figure(figsize = (12,12)).add_subplot(projection='3d')
     ax.set_title(title)
             
     px_loss, py_loss, loss_data = utils.import_data(loss_function,skip=skip)
