@@ -317,7 +317,9 @@ class Image_registration_tools:
 
 
         if show :
-            ax = plt.figure().add_subplot(projection='3d')
+            ax = plt.figure(figsize = (12,12)).add_subplot(projection='3d')
+            ax.set_xlabel("image $x$ coordinate")
+            ax.set_ylabel("image $y$ coordinate")
             
             if compute == "y":
                 ax.plot_surface(px,py,loss_grid,rcount=surface_sampling,ccount=surface_sampling)
@@ -325,6 +327,7 @@ class Image_registration_tools:
                 px, py, loss_grid = self.import_data(loss_function,skip=skip)
                 ax.plot_surface(px,py,loss_grid,rcount=surface_sampling,ccount=surface_sampling)
             
+            #ax.legend()
             plt.show()
         else:
             if compute != "y":
@@ -592,7 +595,7 @@ if __name__ == '__main__' :
     
     """Testing greedy_optimisation_xy with x translation
     """
-    if True:
+    if False:
         p_min, l_list = utils.greedy_optimisation_xy(translate_type = "x", plot = True, step=0.11)
         p_min, l_list = utils.greedy_optimisation_xy(translate_type = "x", plot = True, step=1)
         # note: can use a floating step to test floating point translation
@@ -600,7 +603,7 @@ if __name__ == '__main__' :
 
     """Making smaller images for testing greedy_optimisation_xy with xy translation
     """
-    if True:
+    if False:
         clean_finger_small = Image("images/clean_finger_small.png")
         tx_finger_small = Image("images/tx_finger.png")
         tx_finger_small.data = cv2.resize(tx_finger_small.data, dsize=clean_finger_small.data.shape[::-1], interpolation=cv2.INTER_CUBIC)
@@ -609,6 +612,18 @@ if __name__ == '__main__' :
         utils = Image_registration_tools(clean_finger_small,tx_finger_small)
         
         p_min, l_list = utils.greedy_optimisation_xy(translate_type = "xy", plot = True)
+
+    if True:
+        utils = Image_registration_tools(Image("images/clean_finger.png"),Image("images/txy_finger.png"))
+
+        # p_min, l_list = utils.greedy_optimisation_xy(translate_type = "xy", plot = True)
+        # p_min, l_list = utils.greedy_optimisation_xy(translate_type = "xy", plot = True)
+        loss_function = utils.loss_function_1
+        utils.compute_and_plot_loss(show = True, loss_function=loss_function,span="all")
+        loss_function = utils.loss_function_2
+        utils.compute_and_plot_loss(show = True, loss_function=loss_function,span="all")
+
+
 
     """Testing coordinate_descent_optimisation_xy with small translation
     """
